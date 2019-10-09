@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/Dorumin/Twinkle/issues"
   },
-  "homepage": "https://github.com/Dorumin/Twinkle#readme"
+  "homepage": "https://github.com/Dorumin/Twinkle#readme",
+  "dependencies": {
+    "discord.js": "11.5.1",
+    "dropbox": "4.0.30",
+    "got": "9.6.0",
+    "isomorphic-fetch": "2.2.1"
+  }
 }
