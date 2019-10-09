@@ -1,0 +1,19 @@
+{
+  "name": "twinklebot",
+  "version": "0.0.1",
+  "description": "Fandom Developers Discord bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dorumin/Twinkle.git"
+  },
+  "author": "Doru",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dorumin/Twinkle/issues"
+  },
+  "homepage": "https://github.com/Dorumin/Twinkle#readme"
+}
