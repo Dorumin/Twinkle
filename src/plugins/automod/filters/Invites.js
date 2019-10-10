@@ -12,10 +12,10 @@ class InvitesFilter extends Filter {
     }
 
     async interested(message) {
-        const invites = this.matchInvites(message.content);
-        if (!invites.length) return false;
+        const inviteCodes = this.matchInvites(message.content);
+        if (!inviteCodes.length) return false;
 
-        const invites = await Promise.all(invites.map(invite => message.client.fetchInvite(invite)));
+        const invites = await Promise.all(inviteCodes.map(invite => message.client.fetchInvite(invite)));
 
         let i = invites.length;
         while (i--) {
