@@ -15,7 +15,7 @@ class InvitesFilter extends Filter {
         if (message.member.permissions.has('MANAGE_MESSAGES')) return false;
 
         const inviteCodes = this.matchInvites(message.content);
-        if (!inviteCodes.length) return false;
+        if (!inviteCodes || !inviteCodes.length) return false;
 
         const invites = await Promise.all(inviteCodes.map(invite => message.client.fetchInvite(invite)));
 
