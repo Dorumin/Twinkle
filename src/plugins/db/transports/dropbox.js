@@ -66,12 +66,12 @@ class DropboxTransport extends Transport {
         });
     }
 
-    extend(key, object) {
+    async extend(key, object) {
         const val = await this.get(key);
         this.set(key, this.constructor.extend(val, object));
     }
 
-    push(key, ...items) {
+    async push(key, ...items) {
         const arr = await this.get(key);
         this.set(key, arr.concat(items));
     }
