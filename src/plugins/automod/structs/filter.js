@@ -1,5 +1,6 @@
 class Filter {
-    constructor(bot) {
+    constructor(automod) {
+        this.automod = automod;
         this.offenses = new Map();
     }
 

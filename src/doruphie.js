@@ -8,7 +8,7 @@ class Doruphie {
         this.client = new Discord.Client();
         this.config = config.DORUPHIE;
         this._loggedIn = false;
-        
+
         this.client.on('ready', this.onReady.bind(this));
         this.client.on('error', this.onError.bind(this));
     }

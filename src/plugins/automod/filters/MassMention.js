@@ -21,16 +21,25 @@ class MassMentionFilter extends Filter {
 
     handle(message) {
         const suppressed = this.suppressMentions(message.content);
+        let deleted = !suppressed.trim();
 
-        if (!suppressed.trim()) {
+        if (deleted) {
             message.delete();
         }
 
-        message.channel.send({
+        let warning = `Hey! Please avoid mentioning so many people in ${message.guild.name}.`;
+
+        if (deleted) {
+            warning += `\n\nYour message has been deleted.`;
+        }
+
+        message.author.send(warning);
+
+        this.automod.logchan.send({
             embed: {
                 title: `${message.author.username}#${message.author.discriminator} has been warned`,
                 color: message.guild.me.displayColor,
-                description: `<@${message.author.id}>\nReason: Mass mention (${message.mentions.users.size})`, // TODO: # of offenses
+                description: `<@${message.author.id}>\nReason: Mass mention (${message.mentions.users.size} users)`, // TODO: # of offenses
                 author: {
                     icon_url: message.author.displayAvatarURL
                 }

@@ -57,7 +57,7 @@ class FSTransport extends Transport {
 
             const result = this.toJson(file.fileBinary.toString()) || def;
             this.cache.set(key, result);
-    
+
             res(result);
         });
     }
@@ -90,12 +90,12 @@ class FSTransport extends Transport {
         if (this.saving) return;
 
         this.saving = true;
-        
+
         await Promise.all([
             this.wait(this.delay),
             this.write(key, this.cache.get(key))
         ]);
-        
+
         this.saving = false;
         this.queue.shift();
 

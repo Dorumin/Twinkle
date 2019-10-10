@@ -35,7 +35,7 @@ class Transport {
                 obj2[key] = this.extend(obj1[key], obj2[key]);
             }
         }
-    
+
         return {
             ...obj1,
             ...obj2
