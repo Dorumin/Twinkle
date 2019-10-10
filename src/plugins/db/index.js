@@ -13,7 +13,7 @@ class Database {
     constructor(bot) {
         this.bot = bot;
         this.config = bot.config.DB;
-        this.type = config.TYPE;
+        this.type = this.config.TYPE;
         this.transport = null;
 
         switch (this.type) {
