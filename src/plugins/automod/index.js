@@ -23,8 +23,17 @@ class AutoMod {
     }
 
     onMessage(message) {
-        this.filters.forEach(filter => {
-            if (filter.interested(message)) {
+        this.filters.forEach(async (filter) => {
+            const interest = filter.interested(message);
+            let result;
+
+            if (interest instanceof Promise) {
+                result = await interest;
+            } else {
+                result = interest;
+            }
+
+            if (result) {
                 filter.handle(message);
             }
         });
