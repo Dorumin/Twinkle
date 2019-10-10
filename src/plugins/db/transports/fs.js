@@ -29,7 +29,7 @@ class FSTransport extends Transport {
     }
 
     get(key, def = null) {
-        return new Promise((res, rej) => {
+        return new Promise(async (res, rej) => {
             if (this.cache.has(key)) {
                 return res(this.cache.get(key));
             }
