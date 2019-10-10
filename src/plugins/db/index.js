@@ -19,8 +19,10 @@ class Database {
         switch (this.type) {
             case 'dropbox':
                 this.transport = new DropboxTransport(this.config);
+                break;
             case 'fs':
                 this.transport = new FSTransport(this.config);
+                break;
             default:
                 throw new Error(`Unsupported transport: ${this.type}`);
         }
