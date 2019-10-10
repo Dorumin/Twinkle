@@ -19,12 +19,14 @@ class Transport {
         throw new Error('Unimplemented');
     }
 
-    extend(key, object) {
-        throw new Error('Unimplemented');
+    async extend(key, object) {
+        const val = await this.get(key);
+        this.set(key, this.constructor.extend(val, object));
     }
 
-    push(key, ...items) {
-        throw new Error('Unimplemented');
+    async push(key, ...items) {
+        const arr = await this.get(key);
+        this.set(key, arr.concat(items));
     }
 
     static extend(obj1, obj2) {
