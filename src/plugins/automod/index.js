@@ -9,7 +9,7 @@ class AutoModPlugin extends Plugin {
 class AutoMod {
     constructor(bot) {
         this.config = bot.config.AUTOMOD;
-        this.filters = bot.config.FILTERS.map((module) => {
+        this.filters = this.config.FILTERS.map((module) => {
             return require(`./filters/${module}.js`);
         });
 
