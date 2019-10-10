@@ -9,6 +9,8 @@ class ZalgoFilter extends Filter {
     }
 
     interested(message) {
+        if (message.member.permissions.has('MANAGE_MESSAGES')) return false;
+
         let i = message.content.length,
         min = this.min;
 
@@ -25,6 +27,7 @@ class ZalgoFilter extends Filter {
 
     handle(message) {
         message.author.send(`Hey! Please don't abuse zalgo/spammy text in ${message.guild.name}.`); // TODO # of offenses
+        message.delete();
 
         (this.automod.logchan() || message.channel).send({
             embed: {

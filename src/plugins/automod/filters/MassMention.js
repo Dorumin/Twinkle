@@ -12,7 +12,7 @@ class MassMentionFilter extends Filter {
     }
 
     interested(message) {
-        // if (message.member.permissions.has('MANAGE_MESSAGES')) return false;
+        if (message.member.permissions.has('MANAGE_MESSAGES')) return false;
 
         if (message.mentions.users.size < 6) return;
 

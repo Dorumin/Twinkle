@@ -12,6 +12,8 @@ class InvitesFilter extends Filter {
     }
 
     async interested(message) {
+        if (message.member.permissions.has('MANAGE_MESSAGES')) return false;
+
         const inviteCodes = this.matchInvites(message.content);
         if (!inviteCodes.length) return false;
 
