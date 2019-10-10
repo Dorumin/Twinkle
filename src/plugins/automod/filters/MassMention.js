@@ -42,7 +42,7 @@ class MassMentionFilter extends Filter {
                     icon_url: message.author.displayAvatarURL
                 },
                 color: message.guild.me.displayColor,
-                description: `<@${message.author.id}>\n**Reason**: Mass mention (${message.mentions.users.size} users)`, // TODO: # of offenses
+                description: `**Reason**: Mass mention (${message.mentions.users.size} users)\n<@${message.author.id}>\n`, // TODO: # of offenses
             }
         });
     }

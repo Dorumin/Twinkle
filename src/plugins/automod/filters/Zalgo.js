@@ -33,7 +33,7 @@ class ZalgoFilter extends Filter {
                     icon_url: message.author.displayAvatarURL
                 },
                 color: message.guild.me.displayColor,
-                description: `<@${message.author.id}>\n**Reason**: Zalgo usage`, // TODO: # of offenses
+                description: `**Reason**: Zalgo usage\n<@${message.author.id}>`, // TODO: # of offenses
             }
         });
     }
