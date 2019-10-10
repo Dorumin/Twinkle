@@ -1,4 +1,7 @@
 const Plugin = require('../../structs/plugin.js');
+const DropboxTransport = require('./transports/dropbox.js');
+const FSTransport = require('./transports/fs.js');
+
 
 class DatabasePlugin extends Plugin {
     load() {
@@ -15,30 +18,36 @@ class Database {
 
         switch (this.type) {
             case 'dropbox':
-                this.transport = new DropboxTransport();
+                this.transport = new DropboxTransport(this.config);
             case 'fs':
-                this.transport = new FSTransport();
+                this.transport = new FSTransport(this.config);
             default:
                 throw new Error(`Unsupported transport: ${this.type}`);
         }
     }
 
-    getDefaultChannel(guild) {
-        if (guild.channels.has(guild.id)) {
-            return guild.channels.get(guild.id);
-        }
-
-        return guild.channels.sort((a, b) => a.id - b.id).first();
-    }
-    
-    onJoin(member) {
-        const channel = this.getDefaultChannel(member.guild);
-        channel.send(`Hello <@${member.id}> and welcome to the Fandom Developers server! You can read useful information about the server in <#246663167537709058>`);
+    list() {
+        return this.transport.list();
     }
 
-    onLeave(member) {
-        const channel = this.getDefaultChannel(member.guild);
-        channel.send(`client.emit(Events.GUILD_LEAVE, "${member.user.username}#${member.user.discriminator}");`);
+    get(key) {
+        return this.transport.get(key);
+    }
+
+    set(key, object) {
+        return this.transport.set(key, object);
+    }
+
+    delete(key) {
+        return this.transport.delete(key);
+    }
+
+    extend(key, object) {
+        return this.transport.extend(key, object);
+    }
+
+    push(key, ...items) {
+        return this.transport.push(key, ...items);
     }
 }
 
