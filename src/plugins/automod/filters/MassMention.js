@@ -37,12 +37,12 @@ class MassMentionFilter extends Filter {
 
         (this.automod.logchan() || message.channel).send({
             embed: {
-                title: `${message.author.username}#${message.author.discriminator} has been warned`,
-                color: message.guild.me.displayColor,
-                description: `<@${message.author.id}>\nReason: Mass mention (${message.mentions.users.size} users)`, // TODO: # of offenses
                 author: {
+                    name: `${message.author.username}#${message.author.discriminator} has been warned`,
                     icon_url: message.author.displayAvatarURL
-                }
+                },
+                color: message.guild.me.displayColor,
+                description: `<@${message.author.id}>\n**Reason**: Mass mention (${message.mentions.users.size} users)`, // TODO: # of offenses
             }
         });
     }
