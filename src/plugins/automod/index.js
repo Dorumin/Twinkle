@@ -10,7 +10,8 @@ class AutoMod {
     constructor(bot) {
         this.config = bot.config.AUTOMOD;
         this.filters = this.config.FILTERS.map((module) => {
-            return require(`./filters/${module}.js`);
+            const Filter = require(`./filters/${module}.js`);
+            return new Filter(this);
         });
 
         bot.client.on('message', this.onMessage.bind(this));
