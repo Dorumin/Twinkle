@@ -11,7 +11,7 @@ class InvitesFilter extends Filter {
         return text.match(/discord\.gg\/[\w\d]+/g);
     }
 
-    interested(message) {
+    async interested(message) {
         const invites = this.matchInvites(message.content);
         if (!invites.length) return false;
 
