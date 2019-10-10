@@ -35,7 +35,7 @@ class MassMentionFilter extends Filter {
 
         message.author.send(warning);
 
-        this.automod.logchan.send({
+        (this.automod.logchan() || message.channel).send({
             embed: {
                 title: `${message.author.username}#${message.author.discriminator} has been warned`,
                 color: message.guild.me.displayColor,
