@@ -7,7 +7,7 @@ class EvalCommand extends OPCommand {
         this.hidden = true;
     }
 
-    call(message, content) {
+    async call(message, content) {
         let code = content;
         if (code.startsWith('```') && code.endsWith('```')) {
             code = code.slice(3, -3);
@@ -21,7 +21,7 @@ class EvalCommand extends OPCommand {
         let send = message.channel.send.bind(message.channel);
         let bot = this.bot;
         let client = bot.client;
-        
+
         this.constructor.use(send, bot, client);
 
         try {
