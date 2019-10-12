@@ -1,3 +1,4 @@
+const { Collection } = require('discord.js');
 const OPCommand = require('../structs/opcommand.js');
 
 class EvalCommand extends OPCommand {
@@ -18,7 +19,14 @@ class EvalCommand extends OPCommand {
 
         console.log(content);
 
-        let send = message.channel.send.bind(message.channel);
+        let send = (...args) => {
+            args = args.map(arg => {
+                if (arg instanceof Collection) return arg.array();
+                return arg;
+            });
+
+            message.channel.send(...args);
+        };
         let bot = this.bot;
         let client = bot.client;
 
