@@ -6,6 +6,7 @@ const config = require('./util/config.js');
 class Doruphie {
     constructor()  {
         this.client = new Discord.Client();
+        this._globalConfig = config;
         this.config = config.DORUPHIE;
         this._loggedIn = false;
 
