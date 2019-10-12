@@ -22,6 +22,8 @@ class EvalCommand extends OPCommand {
         let send = (...args) => {
             args = args.map(arg => {
                 if (arg instanceof Collection) return arg.array();
+                if (String(arg) == '[object Object]') return '```' + JSON.stringify(arg, null, 2) + '```';
+
                 return arg;
             });
 
