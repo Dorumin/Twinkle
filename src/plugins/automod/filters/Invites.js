@@ -15,9 +15,14 @@ class InvitesFilter extends Filter {
         if (message.member.permissions.has('MANAGE_MESSAGES')) return false;
 
         const inviteCodes = this.matchInvites(message.content);
-        if (!inviteCodes || !inviteCodes.length) return false;
+        if (!inviteCodes.length) return false;
 
-        const invites = await Promise.all(inviteCodes.map(invite => message.client.fetchInvite(invite)));
+        let invites;
+        try {
+            invites = await Promise.all(inviteCodes.map(invite => message.client.fetchInvite(invite)));
+        } catch(e) {
+            return false;
+        }
 
         let i = invites.length;
         while (i--) {
@@ -35,6 +40,8 @@ class InvitesFilter extends Filter {
 
     handle(message) {
         message.author.send(`Hey! Please don't link outside servers in ${message.guild.name}.`); // TODO # of offenses
+        message.author.send(`Here's a copy of your message:\`\`\`${message.content}\`\`\``);
+        message.delete();
 
         (this.automod.logchan() || message.channel).send({
             embed: {
@@ -43,7 +50,7 @@ class InvitesFilter extends Filter {
                     icon_url: message.author.displayAvatarURL
                 },
                 color: message.guild.me.displayColor,
-                description: `**Reason**: Linking outside servers\n<@${message.author.id}>`, // TODO: # of offenses
+                description: `**Reason**: Zalgo usage\n<@${message.author.id}>`, // TODO: # of offenses
             }
         });
     }

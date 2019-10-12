@@ -23,6 +23,8 @@ class AutoMod {
     }
 
     onMessage(message) {
+        if (!message.member) return;
+
         this.filters.forEach(async (filter) => {
             const interest = filter.interested(message);
             let result;
