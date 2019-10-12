@@ -36,7 +36,7 @@ class EvalCommand extends OPCommand {
 
         try {
             const promise = eval(`(async () => {
-                ${code}
+                ${code};
             })()`);
             await promise;
         } catch(e) {
