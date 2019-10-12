@@ -25,7 +25,10 @@ class EvalCommand extends OPCommand {
         this.constructor.use(send, bot, client);
 
         try {
-            eval(code);
+            const promise = eval(`(() => {
+                ${code}
+            })()`);
+            await promise;
         } catch(e) {
             send('```http\n' + e + '```');
         }
