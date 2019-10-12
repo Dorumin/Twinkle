@@ -6,13 +6,14 @@ class PersonalCSSCommand extends Command {
         this.aliases = ['personalcss', 'usercss'];
     }
 
-    call(message) {
+    call(message, content) {
+        let wiki = content || 'dev';
         message.channel.send(`
 Personal CSS pages are located on
-- <https://dev.fandom.com/wiki/Special:Mypage/common.css>
-- <https://dev.fandom.com/wiki/Special:Mypage/chat.css> (for chat)
+- <https://${wiki}.fandom.com/wiki/Special:Mypage/common.css>
+- <https://${wiki}.fandom.com/wiki/Special:Mypage/chat.css> (for chat)
 - <https://c.fandom.com/wiki/Special:Mypage/global.css> (for all wikis)
-You can replace dev.fandom.com with your wiki's URL to install your CSS on that wiki.
+${content ? '' : `You can replace dev.fandom.com with your wiki's URL to install your CSS on that wiki.`}
         `);
     }
 }
