@@ -25,6 +25,7 @@ class Fandomizer {
         // Note: http necessary
         const { headers, statusCode } = await got.head(`http://${wikiname}.wikia.com/api.php`, { followRedirect: false });
 
+        // Status code used for https://community.fandom.com/wiki/Community_Central:Not_a_valid_community?from=X
         if (statusCode == 302) return alt || `http://${wikiname}.wikia.com`;
 
         const url = new URL(headers.location),
