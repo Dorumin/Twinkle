@@ -6,9 +6,10 @@ const config = require('./util/config.js');
 class Doruphie {
     constructor()  {
         this.client = new Discord.Client();
-        this._globalConfig = config;
         this.config = config.DORUPHIE;
+        this._globalConfig = config;
         this._loggedIn = false;
+        this._plugins = [];
 
         this.client.on('ready', this.onReady.bind(this));
         this.client.on('error', this.onError.bind(this));
@@ -16,7 +17,9 @@ class Doruphie {
 
     loadPlugin(Plugin) {
         if (this._loggedIn) throw new Error('Plugins must be loaded before calling login()');
+        if (this._plugins.includes(Plugin)) return;
 
+        this._plugins.push(Plugin);
         const plugin = new Plugin(this);
         plugin.load();
     }
