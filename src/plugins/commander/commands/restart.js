@@ -23,7 +23,7 @@ class RestartCommand extends OPCommand {
 
     async restartHeroku() {
         const config = this.bot._globalConfig;
-        const name = config.IS_BACKUP ? config.APP_NAME : config.BACKUP_APP_NAME;
+        const name = config.IS_BACKUP ? config.BACKUP_APP_NAME : config.APP_NAME;
         const token = config.HEROKU_TOKEN;
 
         const { body } = await got(`https://api.heroku.com/teams/apps/${name}`, {
@@ -34,11 +34,17 @@ class RestartCommand extends OPCommand {
             }
         });
 
-        await got.delete(`https://api.heroku.com/apps/${body.id}/dynos`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        console.log(body);
+
+        try {
+            await got.delete(`https://api.heroku.com/apps/${body.id}/dynos`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+        } catch(e) {
+            console.log(e);
+        }
     }
 
     restartProc() {
