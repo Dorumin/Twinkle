@@ -55,8 +55,13 @@ class Commander {
     loadCommandDir(dir) {
         fs.readdirSync(dir).forEach(file => {
             const p = path.join(dir, file);
-            const Command = require(p);
-            this.loadCommand(Command, file.slice(0, -3));
+            try {
+                const Command = require(p);
+                this.loadCommand(Command, file.slice(0, -3));
+            } catch(e) {
+                console.log(`Failure while parsing command: ${file}`);
+                console.log(e.stack);
+            }
         });
 
         this.sortCommandsByPriority();
