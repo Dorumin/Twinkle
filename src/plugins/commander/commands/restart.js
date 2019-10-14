@@ -34,17 +34,12 @@ class RestartCommand extends OPCommand {
             }
         });
 
-        console.log(body);
-
-        try {
-            await got.delete(`https://api.heroku.com/apps/${body.id}/dynos`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-        } catch(e) {
-            console.log(e);
-        }
+        await got.delete(`https://api.heroku.com/apps/${body.id}/dynos`, {
+            headers: {
+                Accept: `application/vnd.heroku+json; version=3`,
+                Authorization: `Bearer ${token}`
+            }
+        });
     }
 
     restartProc() {
