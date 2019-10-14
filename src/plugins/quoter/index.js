@@ -10,7 +10,7 @@ class QuoterPlugin extends Plugin {
 class Quoter {
     constructor(bot) {
         this.bot = bot;
-        this.QUOTE_PATTERN = /https?:\/\/(?:(?:canary|ptb)\.)?discordapp\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)/gm;
+        this.QUOTE_PATTERN = /<?https?:\/\/(?:(?:canary|ptb)\.)?discordapp\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)>?/gm;
         bot.client.on('message', this.onMessage.bind(this));
     }
 
