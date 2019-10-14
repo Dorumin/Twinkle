@@ -30,9 +30,9 @@ class Fandomizer {
 
         parts.pop();
 
-        const url = `https://${host}${parts.join('/')}`;
+        const final = `https://${host}${parts.join('/')}`;
 
-        return url;
+        return final;
     }
 }
 
