@@ -38,7 +38,8 @@ class Fandomizer {
             wikiname = wikiname.slice(0, pathIndex);
         }
 
-        wikiname = wikiname.replace(/(fandom\.com|wikia\.(com|org))$/, '');
+        wikiname = wikiname.replace(/\.(fandom\.com|wikia\.(com|org))$/, '');
+        // wikiname = wikiname.replace(/^\.+|\.+$/, '');
 
         return wikiname;
     }
