@@ -6,9 +6,9 @@ class PersonalCSSCommand extends Command {
         this.aliases = ['personalcss', 'usercss'];
     }
 
-    call(message, content) {
+    async call(message, content) {
         let wiki = content || 'dev',
-        url = this.bot.fandomizer.url(wiki);
+        url = await this.bot.fandomizer.url(wiki);
 
         message.channel.send(`
 Personal CSS pages are located on
