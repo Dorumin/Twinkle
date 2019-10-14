@@ -5,6 +5,10 @@ class Command {
         this.aliases = [];
     }
 
+    static get deps() {
+        return [];
+    }
+
     isOperator(message) {
         return this.bot.config.OPERATORS.includes(message.author.id);
     }
@@ -20,7 +24,7 @@ class Command {
     wait(ms) {
         return new Promise(res => setTimeout(res, ms));
     }
-    
+
     filter() {
         return true;
     }

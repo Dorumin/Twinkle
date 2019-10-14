@@ -2,7 +2,6 @@ const Plugin = require('../../structs/plugin.js');
 const DropboxTransport = require('./transports/dropbox.js');
 const FSTransport = require('./transports/fs.js');
 
-
 class DatabasePlugin extends Plugin {
     load() {
         this.bot.db = new Database(this.bot);
