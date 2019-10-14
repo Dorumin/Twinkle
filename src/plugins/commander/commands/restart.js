@@ -1,6 +1,7 @@
 const { spawn } = require('child_process');
 const got = require('got');
 const OPCommand = require('../structs/opcommand.js');
+const DatabasePlugin = require('../../db');
 
 class RestartCommand extends OPCommand {
     constructor(bot) {
@@ -8,11 +9,20 @@ class RestartCommand extends OPCommand {
         this.aliases = ['restart', 'r'];
         this.hidden = true;
         this.heroku = this.bot._globalConfig.HEROKU == 'true';
-        console.log(this.bot._globalConfig.HEROKU, typeof this.bot._globalConfig.HEROKU)
+    }
+
+    static get deps() {
+        return [
+            DatabasePlugin
+        ];
     }
 
     async call(message) {
-        await message.channel.send('Restarting...');
+        await Promise.all([
+            message.channel.send('Restarting...'),
+            // TODO: Make db writes return usable promises
+            this.bot.db.set('lastRestartChannel', message.channel.id)
+        ]);
 
         if (this.heroku) {
             this.restartHeroku();
