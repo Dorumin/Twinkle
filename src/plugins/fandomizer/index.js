@@ -12,13 +12,13 @@ class Fandomizer {
         this.cache = new Map();
     }
 
-    url(maybeWiki) {
+    url(maybeWiki, alt) {
         const wikiname = this.sanitize(maybeWiki);
 
-        if (!wikiname) return null;
+        if (!wikiname) return alt || null;
 
         if (!this.cache.has(wikiname)) {
-            this.cache.set(wikiname, this.fetch(wikiname));
+            this.cache.set(wikiname, this.fetch(wikiname, alt));
         }
 
         return this.cache.get(wikiname);
