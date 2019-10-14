@@ -21,10 +21,13 @@ class Fandomizer {
 
     }
 
-    async fetch(wikiname) {
+    async fetch(wikiname, alt) {
         // Note: http necessary
-        const { headers } = await got.head(`http://${wikiname}.wikia.com/api.php`, { followRedirect: false }),
-        url = new URL(headers.location),
+        const { headers, statusCode } = await got.head(`http://${wikiname}.wikia.com/api.php`, { followRedirect: false });
+
+        if (statusCode == 302) return alt || `http://${wikiname}.wikia.com`;
+
+        const url = new URL(headers.location),
         parts = url.pathname.split('/'),
         host = url.hostname;
 
