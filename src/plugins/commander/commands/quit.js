@@ -6,7 +6,7 @@ class QuitCommand extends Command {
         this.aliases = ['quit', 'q', 'destroy', 'die'];
     }
 
-    call(message) {
+    async call(message) {
         await message.channel.send('Alright then');
 
         this.bot.client.destroy();
