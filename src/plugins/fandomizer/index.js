@@ -9,7 +9,6 @@ class FandomizerPlugin extends Plugin {
 
 class Fandomizer {
     constructor(bot) {
-        super(bot);
         this.cache = new Map();
     }
 
