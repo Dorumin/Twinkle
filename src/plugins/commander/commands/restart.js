@@ -6,7 +6,7 @@ class RestartCommand extends OPCommand {
         super(bot);
         this.aliases = ['restart', 'r'];
         this.hidden = true;
-        this.heroku = this.bot._globalConfig.HEROKU == true;
+        this.heroku = this.bot._globalConfig.HEROKU == 'true';
         console.log(this.bot._globalConfig.HEROKU, typeof this.bot._globalConfig.HEROKU)
     }
 
