@@ -19,7 +19,7 @@ class EvalCommand extends OPCommand {
 
         console.log(content);
 
-        let send = (...args) => {
+        const send = (...args) => {
             args = args.map(arg => {
                 if (arg instanceof Collection) return arg.array();
                 if (String(arg) == '[object Object]') return '```json\n' + JSON.stringify(arg, null, 2) + '```';
@@ -29,10 +29,11 @@ class EvalCommand extends OPCommand {
 
             message.channel.send(...args);
         };
-        let bot = this.bot;
-        let client = bot.client;
+        const bot = this.bot;
+        const client = bot.client;
+        const got = require('got');
 
-        this.constructor.use(send, bot, client);
+        this.constructor.use(send, bot, client, got);
 
         try {
             const promise = eval(`(async () => {
