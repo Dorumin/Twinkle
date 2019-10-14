@@ -20,7 +20,7 @@ class RestartNotify {
     }
 
     async onReady() {
-        const channelId = this.bot.db.get('lastRestartChannel');
+        const channelId = await this.bot.db.get('lastRestartChannel');
         console.log(channelId);
         if (!channelId) return;
 
