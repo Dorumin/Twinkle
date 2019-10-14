@@ -8,17 +8,39 @@ class FandomizerPlugin extends Plugin {
 }
 
 class Fandomizer {
-    constructor(bot) {
+    constructor() {
         this.cache = new Map();
     }
 
-    url(wikiname) {
+    url(maybeWiki) {
+        const wikiname = this.sanitize(maybeWiki);
+
+        if (!wikiname) return null;
+
         if (!this.cache.has(wikiname)) {
             this.cache.set(wikiname, this.fetch(wikiname));
         }
 
         return this.cache.get(wikiname);
 
+    }
+
+    sanitize(wikiname) {
+        wikiname = wikiname.toLowerCase();
+
+        const protocolIndex = wikiname.indexOf('://');
+        if (protocolIndex != -1) {
+            wikiname = wikiname.slice(protocolIndex + 3);
+        }
+
+        const pathIndex = wikiname.indexOf('/');
+        if (pathIndex != -1) {
+            wikiname = wikiname.slice(0, pathIndex);
+        }
+
+        wikiname = wikiname.replace(/(fandom\.com|wikia\.(com|org))$/, '');
+
+        return wikiname;
     }
 
     async fetch(wikiname, alt) {
