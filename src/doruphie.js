@@ -20,6 +20,11 @@ class Doruphie {
         if (this._plugins.includes(Plugin)) return;
 
         this._plugins.push(Plugin);
+
+        if (Plugin.deps) {
+            Plugin.deps.forEach(this.loadPlugin.bind(this));
+        }
+
         const plugin = new Plugin(this);
         plugin.load();
     }

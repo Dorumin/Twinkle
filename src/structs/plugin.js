@@ -5,6 +5,10 @@ class Plugin {
         this.config = bot.config;
     }
 
+    static get deps() {
+        return [];
+    }
+
     load() {
         throw new Error('load() not implemented');
     }
