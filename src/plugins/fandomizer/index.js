@@ -9,11 +9,12 @@ class FandomizerPlugin extends Plugin {
 
 class Fandomizer {
     constructor(bot) {
+        super(bot);
         this.cache = new Map();
     }
 
     fandomize(wikiname) {
-        if (this.cache.has(wikiname)) {
+        if (!this.cache.has(wikiname)) {
             this.cache.set(wikiname, this.fetch(wikiname));
         }
 
