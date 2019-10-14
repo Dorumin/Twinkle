@@ -31,8 +31,8 @@ class Database {
         return this.transport.list();
     }
 
-    get(key) {
-        return this.transport.get(key);
+    get(key, alt) {
+        return this.transport.get(key, alt);
     }
 
     set(key, object) {
