@@ -12,7 +12,7 @@ class Fandomizer {
         this.cache = new Map();
     }
 
-    fandomize(wikiname) {
+    url(wikiname) {
         if (!this.cache.has(wikiname)) {
             this.cache.set(wikiname, this.fetch(wikiname));
         }

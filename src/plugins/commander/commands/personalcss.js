@@ -7,11 +7,13 @@ class PersonalCSSCommand extends Command {
     }
 
     call(message, content) {
-        let wiki = content || 'dev';
+        let wiki = content || 'dev',
+        url = this.bot.fandomizer.url(wiki);
+
         message.channel.send(`
 Personal CSS pages are located on
-- <https://${wiki}.fandom.com/wiki/Special:Mypage/common.css>
-- <https://${wiki}.fandom.com/wiki/Special:Mypage/chat.css> (for chat)
+- <${url}/wiki/Special:Mypage/common.css>
+- <${url}/wiki/Special:Mypage/chat.css> (for chat)
 - <https://c.fandom.com/wiki/Special:Mypage/global.css> (for all wikis)
 ${content ? '' : `You can replace dev.fandom.com with your wiki's URL to install your CSS on that wiki.`}
         `);
