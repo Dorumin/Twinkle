@@ -23,7 +23,7 @@ class Fandomizer {
 
     async fetch(wikiname) {
         // Note: http necessary
-        const { headers } = await got.head(`http://${wikiname}.wikia.com/api.php`, { followRedirects: false }),
+        const { headers } = await got.head(`http://${wikiname}.wikia.com/api.php`, { followRedirect: false }),
         url = new URL(headers.location),
         parts = url.pathname.split('/'),
         host = url.hostname;
