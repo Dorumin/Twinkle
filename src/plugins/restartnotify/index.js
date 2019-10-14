@@ -21,11 +21,13 @@ class RestartNotify {
 
     async onReady() {
         const channelId = this.bot.db.get('lastRestartChannel');
+        console.log(channelId);
         if (!channelId) return;
 
         this.bot.db.delete('lastRestartChannel');
 
         const channel = this.bot.client.channels.get(channelId);
+        console.log(channel);
         if (!channel) return;
 
         channel.send('Restarted!');
