@@ -39,7 +39,10 @@ class EvalCommand extends OPCommand {
             const promise = eval(`(async () => {
                 ${code};
             })()`);
-            await promise;
+            const result = await promise;
+            if (result !== undefined) {
+                send('```js\n' + result + '```');
+            }
         } catch(e) {
             send('```http\n' + e + '```');
         }
