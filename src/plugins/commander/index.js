@@ -127,6 +127,7 @@ class Commander {
                     const code = text.charCodeAt(sum);
                     if (code === code && !this.whitespace.includes(code)) continue;
                     if (!command.filter(message)) continue;
+                    if (!command.bot && message.author.bot) continue;
                     matched = true;
                     command.call(message, text.slice(sum + 1));
                 }
@@ -136,6 +137,10 @@ class Commander {
 
             if (matched) break;
         }
+    }
+
+    matchCommand() {
+        // TODO:
     }
 
     run(command, message, content) {
