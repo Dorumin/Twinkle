@@ -1,6 +1,6 @@
 const path = require('path');
-const Doruphie = require('./src/twinkle.js');
-const client = new Doruphie();
+const Twinkle = require('./src/twinkle.js');
+const client = new Twinkle();
 
 client.loadPluginDir(path.join(__dirname, 'src', 'plugins'));
 

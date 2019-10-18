@@ -6,7 +6,7 @@ const config = require('./util/config.js');
 class Twinkle {
     constructor()  {
         this.client = new Discord.Client();
-        this.config = config.DORUPHIE;
+        this.config = config.TWINKLE;
         this._globalConfig = config;
         this._loggedIn = false;
         this._plugins = [];
