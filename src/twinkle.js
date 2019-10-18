@@ -3,7 +3,7 @@ const path = require('path');
 const Discord = require('discord.js');
 const config = require('./util/config.js');
 
-class Doruphie {
+class Twinkle {
     constructor()  {
         this.client = new Discord.Client();
         this.config = config.DORUPHIE;
@@ -54,4 +54,4 @@ class Doruphie {
     }
 }
 
-module.exports = Doruphie;
+module.exports = Twinkle;
