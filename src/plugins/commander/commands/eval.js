@@ -38,7 +38,7 @@ class EvalCommand extends OPCommand {
                 return stringify(arg);
             });
 
-            message.channel.send(...args);
+            return message.channel.send(...args);
         };
         const bot = this.bot;
         const client = bot.client;
