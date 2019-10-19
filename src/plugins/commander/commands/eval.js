@@ -16,15 +16,26 @@ class EvalCommand extends OPCommand {
                 code = code.replace(/^.+/, '');
             }
         }
+        code = code.replace(/;+$/g, '');
 
         console.log(content);
 
-        const send = (...args) => {
-            args = args.map(arg => {
-                if (arg instanceof Collection) return arg.array();
-                if (String(arg) == '[object Object]') return '```json\n' + JSON.stringify(arg, null, 2) + '```';
+        const stringify = (val) => {
+            if (val instanceof Collection) return val.array();
+            if (String(val) == '[object Array]') return '```json\n' + JSON.stringify(val, null, 2) + '```';
+            if (String(val) == '[object Object]') return '```json\n' + JSON.stringify(val, null, 2) + '```';
 
-                return arg;
+            return val;
+        };
+        const send = (...args) => {
+            args = args.map((arg) => {
+                if (String(arg) == '[object Object]') {
+                    if (arg.hasOwnProperty('embed')) {
+                        return arg;
+                    }
+                }
+
+                return stringify(arg);
             });
 
             message.channel.send(...args);
