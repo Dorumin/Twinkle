@@ -36,12 +36,23 @@ class EvalCommand extends OPCommand {
         this.constructor.use(send, bot, client, got);
 
         try {
-            const promise = eval(`(async () => {
-                ${code};
-            })()`);
-            const result = await promise;
-            if (result !== undefined) {
-                send('```js\n' + result + '```');
+            // Weak assertions, used to restrict functionality *in case of*, not enable it
+            const isAsync = code.includes('await');
+            const isSingleStatement = !code.includes(';');
+            if (isAsync) {
+                const promise = eval(`(async () => {
+                    ${isSingleStatement ? 'return ' : ''}${code};
+                })()`);
+                const result = await promise;
+
+                if (result !== undefined) {
+                    send('```js\n' + result + '```');
+                }
+            } else {
+                const result = eval(code);
+                if (result !== undefined) {
+                    send('```js\n' + result + '```');
+                }
             }
         } catch(e) {
             send('```http\n' + e + '```');
