@@ -8,7 +8,7 @@ class Cache extends Collection {
             return val;
         }
 
-        return this.get(key);
+        return super.get(key);
     }
 
     getAll(generators) {
