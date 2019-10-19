@@ -21,8 +21,8 @@ class Command {
         return message.member.hasPermission('ADMINISTRATOR');
     }
 
-    wait(ms) {
-        return new Promise(res => setTimeout(res, ms));
+    wait(ms, val) {
+        return new Promise(res => setTimeout(res.bind(this, val), ms));
     }
 
     filter() {
