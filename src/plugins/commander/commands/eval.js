@@ -49,7 +49,7 @@ class EvalCommand extends OPCommand {
                 if (forCode) return json;
                 return '```json\n' + json + '```';
             }
-            if (typeof val == 'string' && forCode) return JSON.stringify(val);
+            if (typeof val == 'string' && val === '') return JSON.stringify(val);
 
             return val;
         };
