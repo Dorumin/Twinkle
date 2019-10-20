@@ -1,10 +1,10 @@
 const got = require('got');
-const ModCommand = require('../structs/command.js');
+const ModCommand = require('../structs/modcommand.js');
 
 class ClearCommand extends ModCommand {
     constructor(bot) {
         super(bot);
-        this.aliases = ['clear', 'clean'];
+        this.aliases = ['clear', 'clean', 'clr', 'purge'];
         this.CHECKMARK = '✅';
         this.CROSS = '❌';
         this.DISCORD_EPOCH = 1420070400000;
