@@ -151,7 +151,7 @@ class Commander {
 
     getAlias(alias) {
         for (const command of this.commands.values()) {
-            const aliases = command.aliases();
+            const aliases = command.aliases;
             let i = aliases.length;
 
             while (i--) {
