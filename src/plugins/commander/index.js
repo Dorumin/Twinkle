@@ -49,6 +49,8 @@ class Commander {
         deps.forEach(this.bot.loadPlugin.bind(this.bot));
 
         const command = new Command(this.bot);
+        command.aliases = command.aliases.map(alias => alias.toLowerCase());
+
         this.commands.set(name, command);
     }
 
@@ -92,6 +94,7 @@ class Commander {
                 console.log('Command has no defined aliases', command);
                 return;
             }
+
             command.aliases = command.aliases.filter(alias => {
                 const conflicting = priorityAliases[command.priority].includes(alias);
                 if (conflicting) {
@@ -99,8 +102,10 @@ class Commander {
                     console.log('Conflicting commands:', aliasMap[command.priority][alias], command);
                     return false;
                 }
+
                 priorityAliases[command.priority].push(alias);
                 aliasMap[command.priority][alias] = command;
+
                 return true;
             });
         });
@@ -110,8 +115,6 @@ class Commander {
         let text = message.content.trim(),
         i = this.prefixes.length;
 
-        console.log(text);
-
         while (i--) {
             const prefix = this.prefixes[i];
             if (text.slice(0, prefix.length) != prefix) continue;
@@ -120,16 +123,23 @@ class Commander {
             for (const command of this.commands.values()) {
                 const aliases = command.aliases;
                 let i = aliases.length;
+
                 while (i--) {
                     const alias = aliases[i],
                     sum = prefix.length + alias.length;
+                    // Ensure str[prefix..prefix+alias] == alias
                     if (text.slice(prefix.length, sum) != alias) continue;
+
                     const code = text.charCodeAt(sum);
+                    // Make sure the character after the command isn't NaN (EOF) and is whitespace
                     if (code === code && !this.whitespace.includes(code)) continue;
+                    // Filter function implemented by commands
                     if (!command.filter(message)) continue;
+                    // Don't run commands for bots
                     if (!command.bot && message.author.bot) continue;
+
                     matched = true;
-                    command.call(message, text.slice(sum + 1));
+                    this.callCommand(command, message, text.slice(sum + 1));
                 }
 
                 if (matched) break;
@@ -139,17 +149,37 @@ class Commander {
         }
     }
 
-    matchCommand() {
-        // TODO:
+    getAlias(alias) {
+        for (const command of this.commands.values()) {
+            const aliases = command.aliases();
+            let i = aliases.length;
+
+            while (i--) {
+                if (aliases[i] == alias) {
+                    return command;
+                }
+            }
+        }
+
+        return null;
     }
 
-    run(command, message, content) {
-        for (const command of this.commands.values()) {
-            const aliases = command.aliases;
-            let i = aliases.length;
-            while (i--) {
+    run(alias, message, content) {
+        const command = this.getAlias(alias);
+        if (!command) return;
 
-            }
+        this.callCommand(command, message, content);
+    }
+
+    callCommand(command, message, content) {
+        try {
+            command.call(message, content.trim());
+        } catch(e) {
+            const lines = e.stack.split('\n'),
+            firstRelevant = lines.findIndex(line => line.includes('Commander.callCommand')),
+            relevantLines = lines.slice(0, firstRelevant);
+
+            this.bot.logger.log('commander', `${command.constructor.name}CallError: ${relevantLines.join('\n')}`);
         }
     }
 }
