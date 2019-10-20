@@ -79,7 +79,7 @@ class EvalCommand extends OPCommand {
             } else {
                 const result = eval(code);
                 if (result !== undefined) {
-                    send('```js\n' + result + '```');
+                    send('```js\n' + stringify(result) + '```');
                 }
             }
         } catch(e) {
