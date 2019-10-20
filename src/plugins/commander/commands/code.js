@@ -44,7 +44,7 @@ class CodeCommand extends Command {
 
         fields.push({
             name: 'CPU usage',
-            value: (100 - cpu * 100).toFixed(2),
+            value: `(100 - cpu * 100).toFixed(2)%`,
             inline: true
         });
 
