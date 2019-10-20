@@ -31,8 +31,14 @@ class EvalCommand extends OPCommand {
 
         console.log(content);
 
-        const stringify = (val) => {
-            if (val instanceof Collection) return val.array();
+        const stringify = (val, forCode) => {
+            if (val instanceof Collection) {
+                if (forCode) {
+                    val = val.array();
+                } else {
+                    return val.array();
+                }
+            }
             if (String(val) == '[object Array]') return '```json\n' + JSON.stringify(val, null, 2) + '```';
             if (String(val) == '[object Object]') return '```json\n' + JSON.stringify(val, null, 2) + '```';
 
@@ -68,7 +74,7 @@ class EvalCommand extends OPCommand {
                 const result = await promise;
 
                 if (result !== undefined) {
-                    send('```js\n' + result + '```');
+                    send('```js\n' + stringify(result) + '```');
                 }
             } else {
                 const result = eval(code);
