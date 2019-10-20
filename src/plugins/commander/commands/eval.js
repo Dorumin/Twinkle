@@ -39,8 +39,17 @@ class EvalCommand extends OPCommand {
                     return val.array();
                 }
             }
-            if (String(val) == '[object Array]') return '```json\n' + JSON.stringify(val, null, 2) + '```';
-            if (String(val) == '[object Object]') return '```json\n' + JSON.stringify(val, null, 2) + '```';
+            if (String(val) == '[object Array]') {
+                const json = JSON.stringify(val, null, 2);
+                if (forCode) return json;
+                return '```json\n' + json + '```';
+            }
+            if (String(val) == '[object Object]') {
+                const json = JSON.stringify(val, null, 2);
+                if (forCode) return json;
+                return '```json\n' + json + '```';
+            }
+            if (typeof val == 'string' && forCode) return JSON.stringify(val);
 
             return val;
         };
@@ -74,12 +83,12 @@ class EvalCommand extends OPCommand {
                 const result = await promise;
 
                 if (result !== undefined) {
-                    send('```js\n' + stringify(result) + '```');
+                    send('```js\n' + stringify(result, true) + '```');
                 }
             } else {
                 const result = eval(code);
                 if (result !== undefined) {
-                    send('```js\n' + stringify(result) + '```');
+                    send('```js\n' + stringify(result, true) + '```');
                 }
             }
         } catch(e) {
