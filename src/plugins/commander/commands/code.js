@@ -2,6 +2,7 @@ const os = require('os');
 const fs = require('fs');
 const got = require('got');
 const path = require('path');
+const process = require('process');
 const readdir = require('recursive-readdir');
 const Command = require('../structs/command.js');
 const Cache = require('../../../structs/cache');
@@ -50,7 +51,7 @@ class CodeCommand extends Command {
 
         fields.push({
             name: 'RAM',
-            value: `${this.formatSize(ram.used, 2, false)}/${this.formatSize(ram.total)} - ${ram.percent.toFixed(2)}%`,
+            value: `${this.formatSize(ram.proc, 2)}/${this.formatSize(ram.total)} - ${ram.percent.toFixed(2)}%`,
             inline: true
         });
 
@@ -275,13 +276,15 @@ class CodeCommand extends Command {
         const total = os.totalmem(),
         free = os.freemem(),
         used = total - free,
-        percent = used / total * 100;
+        percent = used / total * 100,
+        proc = process.memoryUsage();
 
         return {
             total,
             free,
             used,
-            percent
+            percent,
+            proc
         };
     }
 }
