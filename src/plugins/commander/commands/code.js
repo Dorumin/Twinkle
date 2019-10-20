@@ -232,7 +232,7 @@ class CodeCommand extends Command {
     formatSize(bytes, decimals = 2, include = true) {
         if (bytes === 0) return '0 bytes';
 
-        let k = 1000,
+        let k = 1024,
             sizes = [' bytes', 'kb', 'mb', 'gb', 'tb', 'pb', 'eb', 'zb', 'yb'],
             i = Math.floor(Math.log(bytes) / Math.log(k));
 
