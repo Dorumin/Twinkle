@@ -32,7 +32,7 @@ class Collection extends Map {
         this.uncache();
         return super.set(key, val);
     }
-  
+
     delete(key) {
         this.uncache();
         return super.delete(key);
@@ -144,6 +144,13 @@ class Collection extends Map {
         if (dis) fn = fn.bind(dis);
         for (const [key, value] of this) {
             if (fn(value, key, this)) return value;
+        }
+    }
+
+    findKey(fn, dis) {
+        if (dis) fn = fn.bind(dis);
+        for (const [key, value] of this) {
+            if (fn(value, key, this)) return key;
         }
     }
 
