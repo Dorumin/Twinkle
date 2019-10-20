@@ -277,7 +277,7 @@ class CodeCommand extends Command {
         free = os.freemem(),
         used = total - free,
         percent = used / total * 100,
-        proc = process.memoryUsage();
+        proc = process.memoryUsage().rss;
 
         return {
             total,
