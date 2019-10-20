@@ -6,6 +6,17 @@ class EvalCommand extends OPCommand {
         super(bot);
         this.aliases = ['eval'];
         this.hidden = true;
+
+        this.shortdesc = 'Evaluates a piece of code.';
+        this.desc = 'Runs JavaScript in a non-sandboxed environment, and returns the value if it exists.\nIf you use a code block, it will get stripped out before evaluation.\nYou need to be a bot operator to use this command.';
+        this.usages = [
+            '!eval <code>'
+        ];
+        this.examples = [
+            '!eval send("Hello, world!")',
+            '!eval 2 + 2 * 2 ** 2',
+            '!eval ```js\nawait message.react("🤔");```'
+        ];
     }
 
     async call(message, content) {

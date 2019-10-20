@@ -4,6 +4,17 @@ class PersonalCSSCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['personalcss', 'usercss'];
+
+        this.shortdesc = 'Lists links to personal CSS pages.';
+        this.desc = 'Lists all links for personal CSS pages.\nIf a wiki is provided, links will point to it. Otherwise, dev will be used.';
+        this.usages = [
+            '!personalcss [wiki]'
+        ];
+        this.examples = [
+            '!personalcss',
+            '!personalcss c',
+            '!personalcss doru',
+        ];
     }
 
     async call(message, content) {
@@ -14,7 +25,7 @@ class PersonalCSSCommand extends Command {
 Personal CSS pages are located on
 - <${url}/wiki/Special:Mypage/common.css>
 - <${url}/wiki/Special:Mypage/chat.css> (for chat)
-- <https://c.fandom.com/wiki/Special:Mypage/global.css> (for all wikis)
+- <https://community.fandom.com/wiki/Special:Mypage/global.css> (for all wikis)
 ${content ? '' : `You can replace dev.fandom.com with your wiki's URL to install your CSS on that wiki.`}
         `);
     }

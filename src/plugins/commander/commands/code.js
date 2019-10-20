@@ -10,6 +10,12 @@ class CodeCommand extends Command {
         super(bot);
         this.aliases = ['code', 'github', 'git', 'source'];
         this.cache = new Cache();
+
+        this.shortdesc = 'Shows statistics and a link to the bot repository.';
+        this.desc = 'Displays info about the bot.\nShows statistics like stargazers, watchers, open issues, and lines of code.';
+        this.usages = [
+            '!code'
+        ];
     }
 
     async call(message) {

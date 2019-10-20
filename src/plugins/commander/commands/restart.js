@@ -9,6 +9,12 @@ class RestartCommand extends OPCommand {
         this.aliases = ['restart', 'r'];
         this.hidden = true;
         this.heroku = this.bot._globalConfig.HEROKU == 'true';
+
+        this.shortdesc = 'Restarts the bot.';
+        this.desc = 'Restarts the bot.\nThe bot will send another message once the restart has finished.\nYou need to be a bot operator to use this command.';
+        this.usages = [
+            '!restart'
+        ];
     }
 
     static get deps() {

@@ -3,7 +3,13 @@ const Command = require('../structs/command.js');
 class RulesCommand extends Command {
     constructor(bot) {
         super(bot);
-        this.aliases = ['rules'];
+        this.aliases = ['rules', 'regulations'];
+
+        this.shortdesc = 'Links various regulation pages you should follow.';
+        this.desc = 'Lists various regulation pages you should follow.\nIncludes the info channel, Fandom community guidelines and Terms of Use, and Discord community guidelines and Terms of Use';
+        this.usages = [
+            '!rules'
+        ];
     }
 
     call(message) {

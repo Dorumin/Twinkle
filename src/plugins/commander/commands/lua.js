@@ -4,6 +4,12 @@ class LuaRoleCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['lua'];
+
+        this.shortdesc = 'Gives you the Lua role.';
+        this.desc = 'Gives you the Lua role if you don\'t have it, or removes it if you do.\nDeletes your message afterwards.';
+        this.usages = [
+            '!lua'
+        ];
     }
 
     call(message) {
