@@ -45,8 +45,7 @@ class ClearCommand extends ModCommand {
 
         await Promise.all([
             confirmation.edit(countMessage),
-            confirmation.react(this.CHECKMARK)
-                .then(() => confirmation.react(this.CROSS))
+            this.react(confirmation, this.CHECKMARK, this.CROSS),
         ]);
 
         const reactions = await confirmation.awaitReactions(
