@@ -77,7 +77,7 @@ class CodeCommand extends Command {
                 },
                 url: info.url,
                 title: `Click here to view source code on ${info.sitename}`,
-                color: message.guild.me.displayColor,
+                color: message.guild && message.guild.me.displayColor,
                 timestamp: info.lastPush.toISOString(),
                 fields,
                 footer: {
