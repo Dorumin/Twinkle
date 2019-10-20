@@ -1,3 +1,4 @@
+const os = require('os');
 const fs = require('fs');
 const got = require('got');
 const path = require('path');
@@ -8,11 +9,11 @@ const Cache = require('../../../structs/cache');
 class CodeCommand extends Command {
     constructor(bot) {
         super(bot);
-        this.aliases = ['code', 'github', 'git', 'source'];
+        this.aliases = ['code', 'github', 'git', 'source', 'status'];
         this.cache = new Cache();
 
         this.shortdesc = 'Shows statistics and a link to the bot repository.';
-        this.desc = 'Displays info about the bot.\nShows statistics like stargazers, watchers, open issues, and lines of code.';
+        this.desc = 'Displays info about the bot.\nShows statistics like stargazers, watchers, open issues, CPU usage, RAM, and lines of code.';
         this.usages = [
             '!code'
         ];
@@ -22,9 +23,13 @@ class CodeCommand extends Command {
         const [
             lines,
             info,
+            cpu,
+            ram
         ] = await Promise.all([
             this.cache.get('lines', () => this.countBotLines()),
             this.cache.get('info', () => this.getRepoInfo()),
+            this.getCPUUsage(),
+            this.getRAMInfo()
         ]);
 
         const fields = [];
@@ -36,6 +41,18 @@ class CodeCommand extends Command {
                 inline: true,
             });
         }
+
+        fields.push({
+            name: 'CPU usage',
+            value: (100 - cpu * 100).toFixed(2),
+            inline: true
+        });
+
+        fields.push({
+            name: 'RAM',
+            value: `${this.formatSize(ram.used, 2, false)}/${this.formatSize(ram.total)} - ${ram.percent.toFixed(2)}%`,
+            inline: true
+        });
 
         if (info.watchers) {
             fields.push({
@@ -65,6 +82,14 @@ class CodeCommand extends Command {
             fields.push({
                 name: 'Forks',
                 value: info.forks,
+                inline: true,
+            });
+        }
+
+        if (this.bot.operators) {
+            fields.push({
+                name: 'Operators',
+                value: this.bot.operators.length,
                 inline: true,
             });
         }
@@ -201,6 +226,62 @@ class CodeCommand extends Command {
         }
 
         return data;
+    }
+
+    formatSize(bytes, decimals = 2, include = true) {
+        if (bytes === 0) return '0 bytes';
+
+        let k = 1000,
+            sizes = [' bytes', 'kb', 'mb', 'gb', 'tb', 'pb', 'eb', 'zb', 'yb'],
+            i = Math.floor(Math.log(bytes) / Math.log(k));
+
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + (include ? sizes[i] : '')
+    }
+
+    async getCPUUsage() {
+        let stats1 = this.getCPUInfo();
+
+        await this.wait(500);
+
+        let stats2 = this.getCPUInfo();
+
+        let idle = stats2.idle - stats1.idle;
+        let total = stats2.total - stats1.total;
+
+        return idle / total;
+    }
+
+    getCPUInfo() {
+        let idle = 0,
+        total = 0,
+        cpus = os.cpus();
+
+        for (const cpu of cpus) {
+            for (const thing in  cpu.times) {
+                total += cpu.times[thing];
+            }
+
+            idle += cpu.times.idle;
+        }
+
+        return {
+            idle: idle / cpus.length,
+            total: total / cpus.length,
+        };
+    }
+
+    getRAMInfo() {
+        const total = os.totalmem(),
+        free = os.freemem(),
+        used = total - free,
+        percent = used / total * 100;
+
+        return {
+            total,
+            free,
+            used,
+            percent
+        };
     }
 }
 
