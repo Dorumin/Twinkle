@@ -89,7 +89,10 @@ class CodeCommand extends Command {
         if (this.bot.operators) {
             fields.push({
                 name: 'Operators',
-                value: this.bot.operators.map(id => this.bot.client.users.get(id)).join('\n'),
+                value: this.bot.operators
+                    .map(id => this.bot.client.users.get(id))
+                    .map(user => `${user.username}`)
+                    .join('\n'),
                 inline: true,
             });
         }
