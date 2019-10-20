@@ -14,11 +14,11 @@ class Command {
     }
 
     isModerator(message) {
-        return message.member.hasPermission('MANAGE_MESSAGES');
+        return message.guild && message.member.hasPermission('MANAGE_MESSAGES');
     }
 
     isAdmin(message) {
-        return message.member.hasPermission('ADMINISTRATOR');
+        return message.guild && message.member.hasPermission('ADMINISTRATOR');
     }
 
     wait(ms, val) {
