@@ -6,3 +6,6 @@ config.json
 
 # Log streams
 log/
+
+# Workspace settings
+.vscode/
