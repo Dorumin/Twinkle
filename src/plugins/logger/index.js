@@ -25,6 +25,11 @@ class Logger {
 
         console.log(`[${label}] ${message}`);
     }
+
+    suppress(message) {
+        // Don't do anything
+        message;
+    }
 }
 
 module.exports = LoggerPlugin;
