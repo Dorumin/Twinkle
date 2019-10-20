@@ -50,12 +50,12 @@ class HelpCommand extends Command {
             .sort((a, b) => a.aliases[0].localeCompare(b.aliases[0]));
     }
 
-    buildListingEmbed(page) { // TODO: pass commands as arg?
+    buildListingEmbed(page) {
         const commands = this.cache.get('commands', () => this.getSortedCommands());
 
         return {
             title: `Command listing [${page + 1}/${Math.ceil(commands.length / this.pageSize)}]`,
-            description: 'To get detailed information on a particular command, use `help <command>`!',
+            description: 'To get detailed information on a particular command, use `!help <command>`',
             fields: this.getFields(commands, page * this.pageSize)
         };
     }
