@@ -51,7 +51,7 @@ class CodeCommand extends Command {
 
         fields.push({
             name: 'RAM',
-            value: `${this.formatSize(ram.proc, 2)}/${this.formatSize(ram.total)} - ${ram.percent.toFixed(2)}%`,
+            value: `${this.formatSize(ram.proc, 2)}/${this.formatSize(ram.total)}`,
             inline: true
         });
 
