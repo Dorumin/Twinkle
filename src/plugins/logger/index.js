@@ -93,6 +93,10 @@ class Logger {
     stringifyEmbed(embed) {
         const lines = [];
 
+        if (embed.provider) {
+            lines.push(`${embed.provider.name} - ${embed.provider.url}`);
+        }
+
         if (embed.author && embed.author.name) {
             const name = embed.author.url
                 ? `[${embed.author.name}](${embed.author.url})`
