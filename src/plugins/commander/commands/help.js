@@ -112,7 +112,7 @@ class HelpCommand extends Command {
 
         return {
             author: {
-                name: 'View command declaration',
+                name: 'View command declaration </>',
                 url: `${this.bot.config.SOURCE.URL}/tree/master/src/plugins/commander/commands/${fileName}.js`
             },
             title: `Command description: ${command.aliases[0]}`,
