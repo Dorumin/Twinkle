@@ -3,3 +3,6 @@ node_modules/
 
 # Settings
 config.json
+
+# Log streams
+log/
