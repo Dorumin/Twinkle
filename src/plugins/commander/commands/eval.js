@@ -76,6 +76,7 @@ class EvalCommand extends OPCommand {
             // Weak assertions, used to restrict functionality *in case of*, not enable it
             const isAsync = code.includes('await');
             const isSingleStatement = !code.includes(';');
+
             if (isAsync) {
                 const promise = eval(`(async () => {
                     ${isSingleStatement ? 'return ' : ''}${code};

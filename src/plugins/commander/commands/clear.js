@@ -126,7 +126,7 @@ class ClearCommand extends ModCommand {
         if (reactions.size === 0) {
             await Promise.all([
                 confirmation.edit('Your time ran out!'),
-                confirmation.clearReactions()
+                this.clearReactions(confirmation)
             ]);
             return;
         }
@@ -138,7 +138,7 @@ class ClearCommand extends ModCommand {
                 const chunks = this.chunk(newer, 100);
                 await Promise.all([
                     confirmation.edit('Starting batch deletion, no turning back now!'),
-                    confirmation.clearReactions()
+                    this.clearReactions(confirmation)
                 ]);
 
                 const [
@@ -167,7 +167,7 @@ class ClearCommand extends ModCommand {
             case this.CROSS:
                 await Promise.all([
                     confirmation.edit('Cancelled bulk deletion, cheers!'),
-                    confirmation.clearReactions()
+                    this.clearReactions(confirmation)
                 ]);
                 break;
         }

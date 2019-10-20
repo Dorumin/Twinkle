@@ -136,7 +136,7 @@ class HelpCommand extends Command {
         );
 
         if (!reactions.size) {
-            this.removeOwnReactions(message);
+            this.clearReactions(message);
             return;
         }
 
@@ -156,7 +156,7 @@ class HelpCommand extends Command {
                 // }
 
                 // if (page == 0) {
-                //     this.removeOwnReactions(message).then(() => {
+                //     this.clearReactions(message).then(() => {
                 //         this.react(message, '⬅', '➡');
                 //     });
                 // }
