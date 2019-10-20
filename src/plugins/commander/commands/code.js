@@ -44,7 +44,7 @@ class CodeCommand extends Command {
 
         fields.push({
             name: 'CPU usage',
-            value: `(100 - cpu * 100).toFixed(2)%`,
+            value: `${(100 - cpu * 100).toFixed(2)}%`,
             inline: true
         });
 
@@ -89,7 +89,7 @@ class CodeCommand extends Command {
         if (this.bot.operators) {
             fields.push({
                 name: 'Operators',
-                value: this.bot.operators.length,
+                value: this.bot.operators.map(id => this.bot.client.users.get(id)).join('\n'),
                 inline: true,
             });
         }
