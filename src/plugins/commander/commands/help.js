@@ -123,7 +123,7 @@ class HelpCommand extends Command {
         const page = this.cache.get(message.id, () => 0);
         const reactions = await message.awaitReactions(
             (reaction, user) => user.id == author.id && ['⬅', '➡'].includes(reaction.emoji.name),
-            { time: 30000, max: 1 }
+            { time: 60000, max: 1 }
         );
 
         if (!reactions.size) {
