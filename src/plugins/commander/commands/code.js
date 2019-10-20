@@ -54,6 +54,15 @@ class CodeCommand extends Command {
             inline: true
         });
 
+        fields.push({
+            name: 'Operators',
+            value: this.bot.operators
+                .map(id => this.bot.client.users.get(id))
+                .map(user => `${user.username}`)
+                .join('\n'),
+            inline: true,
+        });
+
         if (info.watchers) {
             fields.push({
                 name: 'Watchers',
@@ -82,17 +91,6 @@ class CodeCommand extends Command {
             fields.push({
                 name: 'Forks',
                 value: info.forks,
-                inline: true,
-            });
-        }
-
-        if (this.bot.operators) {
-            fields.push({
-                name: 'Operators',
-                value: this.bot.operators
-                    .map(id => this.bot.client.users.get(id))
-                    .map(user => `${user.username}`)
-                    .join('\n'),
                 inline: true,
             });
         }
