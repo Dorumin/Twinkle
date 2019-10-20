@@ -21,7 +21,17 @@ class Logger {
 
     onMessage(message) {
         if (message.content) {
-            this.log('message', `${message.author.username}: ${message.content} @ ${message.guild.name}#${message.channel.name}`);
+            const place = message.channel.type == 'dm'
+                ? 'DMs'
+                : `${message.guild.name}#${message.channel.name}`;
+
+            let entry = `${message.author.username}`;
+
+            if (message.content) {
+                entry += `: ${message.content}`;
+            }
+
+            this.log('message', `${entry} @ ${place}`);
         }
 
         if (message.attachments.size) {
