@@ -25,6 +25,12 @@ class Command {
         return new Promise(res => setTimeout(res.bind(this, val), ms));
     }
 
+    async react(message, ...emojis) {
+        for (let i = 0; i < emojis.length; i++) {
+            await message.react(emojis[i]);
+        }
+    }
+
     filter() {
         return true;
     }
