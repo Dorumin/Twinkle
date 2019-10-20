@@ -7,6 +7,8 @@ class Twinkle {
     constructor()  {
         this.client = new Discord.Client();
         this.config = config.TWINKLE;
+        this.token = this.config.TOKEN;
+        this.operators = this.config.OPERATORS;
         this._globalConfig = config;
         this._loggedIn = false;
         this._plugins = [];
