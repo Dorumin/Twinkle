@@ -75,6 +75,15 @@ class HelpCommand extends Command {
         const fileName = this.bot.commander.commands.findKey(cmd => cmd == command);
         const fields = [];
 
+        if (command.aliases.length > 1) {
+            const field = {
+                name: 'Command aliases',
+                value: command.aliases.slice(1).join(', ')
+            };
+
+            fields.push(field);
+        }
+
         if (command.usages) {
             const field = {
                 name: 'Command usage',
