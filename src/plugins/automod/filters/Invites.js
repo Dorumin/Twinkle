@@ -50,7 +50,7 @@ class InvitesFilter extends Filter {
                     icon_url: message.author.displayAvatarURL
                 },
                 color: message.guild.me.displayColor,
-                description: `**Reason**: Zalgo usage\n<@${message.author.id}>`, // TODO: # of offenses
+                description: `**Reason**: Posted invite\n<@${message.author.id}>`, // TODO: # of offenses
             }
         });
     }
