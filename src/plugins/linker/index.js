@@ -1,7 +1,7 @@
 const got = require('got');
 const { CookieJar } = require('tough-cookie');
+const Cache = require('../../structs/cache.js');
 const Plugin = require('../../structs/plugin.js');
-let config;
 
 class LinkerPlugin extends Plugin {
     load() {
@@ -13,22 +13,138 @@ class Linker {
     constructor(bot) {
         this.bot = bot;
         this.config = bot.config.LINKER;
-        config = this.config;
+        this.cache = new Cache();
+        this.replies = new Cache();
+        this.jar = new CookieJar();
+        this.loggingIn = this.login();
 
-        linker.token = this.config.TOKEN;
-        linker.init();
+        this.ZWSP = String.fromCharCode(8203);
+        this.LINK_REGEX = /\[\[([^\[\]|]+)(?:\|([^\[\]]+))?\]\]/g;
+        this.TEMPLATE_REGEX = /\{\{([^{}|]+)(\|[^{}]*)?\}\}/g;
+        this.SEARCH_REGEX = /--(.+?)--/g;
 
         bot.client.on('message', this.onMessage.bind(this));
     }
 
     async onMessage(message) {
         if (
-            message.author.bot || 
-            message.author.id == this.bot.client.user.id ||
-            !message.guild
+            message.author.bot
         ) return;
 
-        linker.on.message(message);
+        const wiki = this.getWiki(message.guild);
+        const promises = this.getPromises(message, wiki);
+
+        // linker.on.message(message);
+    }
+
+    login() {
+        return got.post('https://services.fandom.com/auth/token', {
+            form: true,
+            json: true,
+            body: {
+                username: this.config.USERNAME,
+                password: this.config.PASSWORD
+            },
+            cookieJar: this.jar
+        });
+    }
+
+    getWiki(guild) {
+        const wikis = this.config.WIKIS;
+
+        if (!guild) return wikis.default;
+
+        return wikis[guild.id] || wikis.default;
+    }
+
+    getPromises(message, wiki) {
+        const promises = [];
+        const cleaned = this.cleanText(message.cleanContent);
+
+        const links = this.match(this.LINK_REGEX, cleaned);
+        const templates = this.match(this.TEMPLATE_REGEX, cleaned);
+        const searches = this.match(this.SEARCH_REGEX, cleaned);
+
+        if (links.length) {
+            promises.push(...this.getLinks(links, wiki));
+        }
+
+        if (templates.length) {
+            promises.push(...this.getTemplates(templates, wiki));
+        }
+
+        if (searches.length) {
+            promises.push(...this.getSearches(searches, wiki));
+        }
+
+        return promises.slice(0, 5);
+    }
+
+    cleanText(str) {
+        return str
+            // Code blocks, ```a```, ``b``, `c`
+            .replace(/(`{1,3})[\S\s]+?\1/gm, '')
+            // Zero width spaces
+            .replace(/\u200B/g, '');
+    }
+
+    match(reg, str) {
+        const matches = [];
+        let m;
+        reg.lastIndex = 0;
+
+        while (m = reg.exec(str)) {
+            matches.push(m);
+        }
+
+        return matches;
+    }
+
+    decodeHex(str) {
+        return str.replace(/%([0-9a-f]{2})/gi,
+            (_, hex) => linker.encodeTable[hex.toLowerCase()] || String.fromCharCode(parseInt(hex, 16)) || '%' + hex
+        );
+    }
+
+    encode(str) {
+        return encodeURIComponent(str)
+            // Allow :, /, " ", and # in urls
+            .replace(/%(3A|2F|20|23)/gi, this.decodeHex)
+            // Allow ?=s
+            .replace(/(%3F|%26)([^%]+)%3D([^%]+)/gi, (_, char, key, value) => `${this.decodeHex(char)}${key}=${value}`)
+            .trim();
+    }
+
+    escape(str) {
+        return str.replace(/@|discord\.gg/g, `$&${this.ZWSP}`);
+    }
+
+    getLinks(links, wiki) {
+        // TODO: Implement 2048 line splitting
+        const embeds = [];
+
+        console.log(links);
+
+        embeds.push({
+            embed: {
+                description: links
+                    .map(link => ``)
+            }
+        });
+
+        return embeds;
+    }
+
+    getTemplates(templates) {
+        console.log(templates);
+
+        return [];
+    }
+
+    getSearches(searches) {
+        console.log(searches);
+
+        return [];
     }
 }
 
@@ -38,26 +154,9 @@ module.exports = LinkerPlugin;
 const linker = {
     on: {
         message: async function(msg) {
-            // const novica = linker.client.users.get(config.OTHER);
-            // if (
-            //     msg.author.bot ||
-            //     msg.author.id == linker.client.user.id ||
-            //     !msg.guild
-            //     // novica && novica.presence.status != 'offline'
-            // ) return;
-
             let matches;
             const promises = [];
             const wiki = config.WIKIS[msg.guild.id] || config.WIKIS.default;
-        
-            if (msg.content.startsWith(config.PREFIX)) {
-                const args = msg.content.slice(config.PREFIX.length).split(/ (.+)/);
-                const command = args.shift();
-                if (linker.commands.hasOwnProperty(command)) {
-                    linker.commands[command](msg, args);
-                    return;
-                }
-            }
 
             if (matches = linker.matchLinks(msg.cleanContent)) {
                 matches.forEach(match => promises.push(linker.getLink(match[1].trim(), wiki)));
@@ -212,14 +311,14 @@ const linker = {
                     args[param] = val;
                 }
             } else {
-                args[s[0]] = s[1];     
+                args[s[0]] = s[1];
             }
         }
-        
+
         if (typeof custom == 'function') {
             return custom(parts.slice(1).join(':'), args, wiki, message);
         }
-        
+
         return linker.fetchPreview(wiki, parts.join(':'), message);
     },
     getSearch: (query, wiki) => {
@@ -386,7 +485,7 @@ const linker = {
                 },
                 json: true,
                 cookieJar: linker.jar,
-                
+
             }),
             thread ? got(`https://${wiki}.wikia.com/api/v1/User/Details`, {
                 query: {
@@ -597,7 +696,7 @@ const linker = {
     },
     getFirstSearchResult: async (wiki, query) => {
         const pages = await linker.fetchSearchResults(wiki, query, 1);
-        
+
         if (!pages) return `No search results found for \`${query}\`.`;
 
         const page = pages[0],
