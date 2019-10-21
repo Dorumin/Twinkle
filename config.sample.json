@@ -1,0 +1,57 @@
+{
+    "TWINKLE": {
+        "TOKEN": "Discord bot token",
+        "SOURCE": {
+            "TYPE": "github",
+            "PATH": "Dorumin/Twinkle",
+            "URL": "https://github.com/Dorumin/Twinkle"
+        },
+        "OPERATORS": [
+            "148231501413089280",
+            "155545848812535808",
+            "195712766214930432"
+        ],
+        "COMMANDER": {
+            "PREFIXES": [
+                ">"
+            ]
+        },
+        "LINKER": {
+            "WIKIS": {
+                "default": "dev"
+            },
+            "USERNAME": "Wikia username",
+            "PASSWORD": "Wikia password"
+        },
+        "DB": {
+            "TYPE": "dropbox",
+            "DELAY": 10000,
+            "TOKEN": "Dropbox token"
+        },
+        "AUTOMOD": {
+            "LOGGING": "Default log channel ID",
+            "FILTERS": [
+                "MassMention",
+                "Zalgo",
+                "Invites",
+                "BadWords"
+            ],
+            "ZALGO": {
+                "MIN": 8
+            },
+            "INVITES": {
+                "WHITELIST": [
+                    "563020189604773888"
+                ]
+            },
+            "BAD_WORDS": {
+                "PATTERNS": [
+                    "test1",
+                    ["\\btest2\\b", "i"]
+                ],
+                "POST_CCNORM_PATTERNS": [
+                ]
+            }
+        }
+    }
+}
