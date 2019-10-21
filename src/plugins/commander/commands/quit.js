@@ -1,6 +1,6 @@
-const Command = require('../structs/command.js');
+const OPCommand = require('../structs/opcommand.js');
 
-class QuitCommand extends Command {
+class QuitCommand extends OPCommand {
     constructor(bot) {
         super(bot);
         this.aliases = ['quit', 'q', 'destroy', 'die'];
