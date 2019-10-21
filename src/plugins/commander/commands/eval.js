@@ -19,6 +19,47 @@ class EvalCommand extends OPCommand {
         ];
     }
 
+    stringify(val, forCode) {
+        if (val instanceof Collection) {
+            if (forCode) {
+                val = val.array();
+            } else {
+                return val.array();
+            }
+        }
+
+        if (val instanceof Array) {
+            if (forCode) {
+                const json = JSON.stringify(val, null, 2);
+
+                return '```json\n' + json + '```';
+            }
+
+            return val;
+        }
+
+        if (val instanceof Promise) {
+            if (forCode) return null;
+
+            return val;
+        }
+
+        if (String(val) == '[object Object]') {
+            const json = JSON.stringify(val, null, 2);
+            return '```json\n' + json + '```';
+        }
+
+        if (typeof val == 'string' && val === '') {
+            if (forCode) {
+                return '```json\n' + JSON.stringify(val) + '```';
+            }
+
+            return JSON.stringify(val);
+        }
+
+        return val;
+    }
+
     async call(message, content) {
         let code = content;
         if (code.startsWith('```') && code.endsWith('```')) {
@@ -29,30 +70,6 @@ class EvalCommand extends OPCommand {
         }
         code = code.replace(/;+$/g, '');
 
-        console.log(content);
-
-        const stringify = (val, forCode) => {
-            if (val instanceof Collection) {
-                if (forCode) {
-                    val = val.array();
-                } else {
-                    return val.array();
-                }
-            }
-            if (String(val) == '[object Array]') {
-                const json = JSON.stringify(val, null, 2);
-                if (forCode) return json;
-                return '```json\n' + json + '```';
-            }
-            if (String(val) == '[object Object]') {
-                const json = JSON.stringify(val, null, 2);
-                if (forCode) return json;
-                return '```json\n' + json + '```';
-            }
-            if (typeof val == 'string' && val === '') return JSON.stringify(val);
-
-            return val;
-        };
         const send = (...args) => {
             args = args.map((arg) => {
                 if (String(arg) == '[object Object]') {
@@ -61,7 +78,7 @@ class EvalCommand extends OPCommand {
                     }
                 }
 
-                return stringify(arg);
+                return this.stringify(arg);
             });
 
             return message.channel.send(...args);
@@ -84,12 +101,18 @@ class EvalCommand extends OPCommand {
                 const result = await promise;
 
                 if (result !== undefined) {
-                    send('```js\n' + stringify(result, true) + '```');
+                    const message = this.stringify(result, true);
+                    if (message) {
+                        send(message);
+                    }
                 }
             } else {
                 const result = eval(code);
                 if (result !== undefined) {
-                    send('```js\n' + stringify(result, true) + '```');
+                    const message = this.stringify(result, true);
+                    if (message) {
+                        send(message);
+                    }
                 }
             }
         } catch(e) {
