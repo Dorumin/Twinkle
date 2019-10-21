@@ -8,7 +8,7 @@ class InvitesFilter extends Filter {
     }
 
     matchInvites(text) {
-        return text.match(/discord\.gg\/[\w\d]+/g);
+        return text.match(/discord\.gg\/\w+/g);
     }
 
     async interested(message) {
@@ -38,19 +38,21 @@ class InvitesFilter extends Filter {
         return false;
     }
 
-    handle(message) {
+    async handle(message) {
+        const muteAction = message.member.addRole('401231955741507604');
         message.author.send(`Hey! Please don't link outside servers in ${message.guild.name}.`); // TODO # of offenses
         message.author.send(`Here's a copy of your message:\`\`\`${message.content}\`\`\``);
         message.delete();
 
+        const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
         (this.automod.logchan() || message.channel).send({
             embed: {
                 author: {
-                    name: `${message.author.username}#${message.author.discriminator} has been warned`,
+                    name: `${message.author.username}#${message.author.discriminator} has been warned ${muteResult}`,
                     icon_url: message.author.displayAvatarURL
                 },
                 color: message.guild.me.displayColor,
-                description: `**Reason**: Zalgo usage\n<@${message.author.id}>`, // TODO: # of offenses
+                description: `**Reason**: Posted invite\n<@${message.author.id}>`, // TODO: # of offenses
             }
         });
     }
