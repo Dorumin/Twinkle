@@ -90,65 +90,79 @@ class Logger {
 
     }
 
-    stringifyEmbed(embed) {
+    stringifyEmbed({ provider, author, title, url, thumbnail, description, fields, image, video, footer, timestamp }) {
         const lines = [];
+        const sections = new Array(4).fill(null).map(() => []);
 
-        if (embed.provider) {
-            lines.push(`${embed.provider.name} - ${embed.provider.url}`);
+        if (provider) {
+            let str = provider.name;
+
+            if (provider.url) {
+                str += ` - ${provider.url}`;
+            }
+
+            sections[0].push(str);
         }
 
-        if (embed.author && embed.author.name) {
-            const name = embed.author.url
-                ? `[${embed.author.name}](${embed.author.url})`
-                : `${embed.author.name}`;
+        if (author && author.name) {
+            const name = author.url
+                ? `[${author.name}](${author.url})`
+                : `${author.name}`;
 
-            if (embed.author.iconURL) {
-                lines.push(`(${embed.author.iconURL}) ${name}`);
+            if (author.iconURL) {
+                sections[0].push(`(${author.iconURL}) ${name}`);
             } else {
-                lines.push(`${name}`);
+                sections[0].push(`${name}`);
             }
         }
 
-        if (embed.title) {
-            if (embed.url) {
-                lines.push(`[${embed.title}](${embed.url})`);
+        if (title) {
+            let str = url
+                ? `[${title}](${url})`
+                : `${title}`;
+
+            if (thumbnail && !video) {
+                str += ` • ${thumbnail.url}`;
+            }
+
+            sections[0].push(str);
+        }
+
+        if (description) {
+            sections[0].push(`${description}`);
+        }
+
+        if (fields.length) {
+            for (const field of fields) {
+                sections[1].push(`${field.name}:`);
+                sections[1].push(field.value.split('\n').map(line => `  ${line}`).join('\n'));
+            }
+        }
+
+        if (image) {
+            sections[2].push(`${image.url}`);
+        }
+
+        if (video) {
+            if (thumbnail) {
+                sections[2].push(`${thumbnail.url}`)
+            }
+
+            sections[2].push(`${video.url}`);
+        }
+
+        if (footer) {
+            if (timestamp) {
+                sections[3].push(`${footer.text} • ${this.formatTime(timestamp)}`);
             } else {
-                lines.push(`${embed.title}`);
-            }
-
-            if (embed.thumbnail) {
-                lines[lines.length - 1] += ` • ${embed.thumbnail.url}`;
+                sections[3].push(`${footer.text}`);
             }
         }
 
-        if (embed.description) {
-            lines.push(`\n${embed.description}`);
-        }
-
-        if (embed.fields.length) {
-            for (const field of embed.fields) {
-                lines.push(`${field.name}:`);
-                lines.push(field.value.split('\n').map(line => `  ${line}`).join('\n'));
-            }
-        }
-
-        if (embed.image) {
-            lines.push(``, `${embed.image.url}`, ``);
-        }
-
-        if (embed.video) {
-            lines.push(``, `${embed.video.url}`, ``);
-        }
-
-        if (embed.footer) {
-            if (embed.timestamp) {
-                lines.push(`${embed.footer.text} • ${this.formatTime(embed.timestamp)}`);
-            } else {
-                lines.push(`${embed.footer.text}`);
-            }
-        }
-
-        return lines.join('\n').replace(/\n+/, '\n').trim();
+        return sections
+            .filter(section => section.length)
+            .map(section => section.join('\n'))
+            .join('\n\n');
     }
 
     formatTime(timestamp) {
