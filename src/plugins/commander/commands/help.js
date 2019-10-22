@@ -1,4 +1,4 @@
-const Command = require('../structs/command.js');
+const Command = require('../structs/Command.js');
 const Cache = require('../../../structs/cache.js');
 
 class HelpCommand extends Command {

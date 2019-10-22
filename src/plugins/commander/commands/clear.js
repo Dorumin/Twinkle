@@ -1,5 +1,5 @@
 const got = require('got');
-const ModCommand = require('../structs/modcommand.js');
+const ModCommand = require('../structs/ModCommand.js');
 
 class ClearCommand extends ModCommand {
     constructor(bot) {
