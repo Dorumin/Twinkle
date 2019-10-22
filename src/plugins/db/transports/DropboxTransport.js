@@ -1,4 +1,4 @@
-const Transport = require('./transport.js');
+const Transport = require('./Transport.js');
 const { Dropbox } = require('dropbox');
 const fetch = require('isomorphic-fetch');
 

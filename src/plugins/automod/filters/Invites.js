@@ -1,4 +1,4 @@
-const Filter = require('../structs/filter.js');
+const Filter = require('../structs/Filter.js');
 
 class InvitesFilter extends Filter {
     constructor(automod) {

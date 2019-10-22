@@ -4,8 +4,8 @@ const got = require('got');
 const path = require('path');
 const process = require('process');
 const readdir = require('recursive-readdir');
-const Command = require('../structs/command.js');
-const Cache = require('../../../structs/cache');
+const Command = require('../structs/Command.js');
+const Cache = require('../../../structs/Cache');
 
 class CodeCommand extends Command {
     constructor(bot) {

@@ -1,5 +1,5 @@
 const { Collection } = require('discord.js');
-const OPCommand = require('../structs/opcommand.js');
+const OPCommand = require('../structs/OPCommand.js');
 
 class EvalCommand extends OPCommand {
     constructor(bot) {

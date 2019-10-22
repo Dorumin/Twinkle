@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const Plugin = require('../../structs/plugin.js');
-const Collection = require('../../structs/collection.js');
+const Plugin = require('../../structs/Plugin.js');
+const Collection = require('../../structs/Collection.js');
 const LoggerPlugin = require('../logger');
 const DatabasePlugin = require('../db');
 

@@ -1,5 +1,5 @@
 const got = require('got');
-const Plugin = require('../../structs/plugin.js');
+const Plugin = require('../../structs/Plugin.js');
 
 class FandomizerPlugin extends Plugin {
     load() {

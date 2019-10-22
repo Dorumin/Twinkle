@@ -1,6 +1,6 @@
 const got = require('got');
 const { CookieJar } = require('tough-cookie');
-const Plugin = require('../../structs/plugin.js');
+const Plugin = require('../../structs/Plugin.js');
 let config;
 
 class LinkerPlugin extends Plugin {
@@ -23,7 +23,7 @@ class Linker {
 
     async onMessage(message) {
         if (
-            message.author.bot || 
+            message.author.bot ||
             message.author.id == this.bot.client.user.id ||
             !message.guild
         ) return;
@@ -49,7 +49,7 @@ const linker = {
             let matches;
             const promises = [];
             const wiki = config.WIKIS[msg.guild.id] || config.WIKIS.default;
-        
+
             if (msg.content.startsWith(config.PREFIX)) {
                 const args = msg.content.slice(config.PREFIX.length).split(/ (.+)/);
                 const command = args.shift();
@@ -212,14 +212,14 @@ const linker = {
                     args[param] = val;
                 }
             } else {
-                args[s[0]] = s[1];     
+                args[s[0]] = s[1];
             }
         }
-        
+
         if (typeof custom == 'function') {
             return custom(parts.slice(1).join(':'), args, wiki, message);
         }
-        
+
         return linker.fetchPreview(wiki, parts.join(':'), message);
     },
     getSearch: (query, wiki) => {
@@ -386,7 +386,7 @@ const linker = {
                 },
                 json: true,
                 cookieJar: linker.jar,
-                
+
             }),
             thread ? got(`https://${wiki}.wikia.com/api/v1/User/Details`, {
                 query: {
@@ -597,7 +597,7 @@ const linker = {
     },
     getFirstSearchResult: async (wiki, query) => {
         const pages = await linker.fetchSearchResults(wiki, query, 1);
-        
+
         if (!pages) return `No search results found for \`${query}\`.`;
 
         const page = pages[0],

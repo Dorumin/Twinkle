@@ -1,4 +1,4 @@
-const Plugin = require('../../structs/plugin.js');
+const Plugin = require('../../structs/Plugin.js');
 const DatabasePlugin = require('../db');
 
 class RestartNotifyPlugin extends Plugin {

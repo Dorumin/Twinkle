@@ -1,4 +1,4 @@
-const Filter = require('../structs/filter.js');
+const Filter = require('../structs/Filter.js');
 
 class ZalgoFilter extends Filter {
     constructor(automod) {

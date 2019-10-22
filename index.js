@@ -1,5 +1,5 @@
 const path = require('path');
-const Twinkle = require('./src/twinkle.js');
+const Twinkle = require('./src/Twinkle.js');
 const client = new Twinkle();
 
 client.loadPluginDir(path.join(__dirname, 'src', 'plugins'));
