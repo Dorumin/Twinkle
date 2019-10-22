@@ -67,60 +67,6 @@ class ClearCommand extends ModCommand {
                 time: 15000,
                 max: 1
             }
-            // why isn't this on a new line? single line {} is gross.
-            // Better?
-            // Much <3
-            // Lmao having it on a separate line feels kinda weird but sure
-            // I'm not really used to seeing single line .css({}) tbh, it's fucking disgusting
-            // Lmao this reminds me of when I first tried this out with Sophie and I did this exact same comment shit because we didn't have live share chat back then
-            // How fast did he type? ;^)
-            // Took 20 seconds to type "ok"
-            // LOL
-            // TRAGIC
-            // Also lol now you can see everything I delete smh
-            // And every typo by extension LMAO
-            // No privacy af
-            // Just how I like it ;D
-            // Then again I also make quite a few typos myself
-            // Lmao this is how chats should be tbhh, I wonder if someone'll come up with something like this
-            // That isn't like, on a fucking code editor
-            // lmao I could try to design something like that on the chat that you wanted me to design for Discord, thing is that I'd hit the ratelimits lmaoo
-            // That was actually my initial idea, to have a separate chat, not one that interfaced with Discord :P
-            // For the iPad?
-            // Yeah, and use SockJS for it, which works on ipads apparently
-            // And reaaaaact
-            // Man that's wonderful news lol, try it then, I just wanted somewhere to talk on the iPad better really :P
-            // A place we both agreed on because Twitter and Messenger are complete twats that force me to reload every time to check a new message and Discord won't even load LMAO, just a complete white screen
-            // And well you hate PS so
-            // Also if you do decide to do that make \\^^ a thing ;D
-            // Lmao you sure love those markdown thingies don't you
-            // I'll probably yoink some message parser off of npm if I have to, or make my own
-            // I'm pretty sure making some abstract syntax trees would be a really fun exercise anyway
-            // I did them for relay, yk how *this* is translated to __this__ when sent to PS?
-            // I parse every fucking token myself
-            // lmao what th efuck why did that happen ROFL
-            // Also lol watching you make typos is making me laugh incredibly hard idefk why I can't even type right
-            // Lmao is that because I usually always fix them before sending? :P
-            // Ctrl backspace does wonders in faking my actual accuracy
-            // lmao I gotta check out what that does later, but rn I need to do some dishes again :P
-            // Soup So brb :brb:
-            // Huh haven't seen you use that emote in a while, why soup?
-            // And yeah sure lmao, can't you see it in how I delete stuff, the whole word dies?
-            // Yeah I know that's a thing I just can't remember the command for it on the mac
-            // Also nah I already finished the soup I'm just washing the dishes :P
-            // Yeah lmao but why are soup dishes more time consuming?
-            // Because it uses a fucking pot :P
-            // Oh lol, so you're not really cleaning plates but the whole sink lol okay
-            // lmao yeah
-            // i also need to sleep btw, we should totally do this when I let you see the code for Para Él ;D
-            // Lmao yeah sure, if there's still things left to do :P
-            // Or you wanna see how I nitpick in real time every little line of code you wrote
-            // lmao that ^
-            // Or improve it :P
-            // I know youc an't bear to touch code I make but dw it's for the greater good ;DDDD
-            // Nighty
-            // No that's wrong you know I'm gonna put my hands all over anything you touch
-            // Especially if it's you
         );
 
         if (reactions.size === 0) {
