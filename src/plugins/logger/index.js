@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const Plugin = require('../../structs/plugin.js');
-const Cache = require('../../structs/cache.js');
+const Plugin = require('../../structs/Plugin.js');
+const Cache = require('../../structs/Cache.js');
 
 class LoggerPlugin extends Plugin {
     load() {

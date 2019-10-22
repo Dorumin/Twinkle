@@ -1,4 +1,4 @@
-const Plugin = require('../../structs/plugin.js');
+const Plugin = require('../../structs/Plugin.js');
 
 class AutoModPlugin extends Plugin {
     load() {

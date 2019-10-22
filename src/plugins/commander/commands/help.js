@@ -1,5 +1,5 @@
 const Command = require('../structs/Command.js');
-const Cache = require('../../../structs/cache.js');
+const Cache = require('../../../structs/Cache.js');
 
 class HelpCommand extends Command {
     constructor(bot) {

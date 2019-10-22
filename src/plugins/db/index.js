@@ -1,4 +1,4 @@
-const Plugin = require('../../structs/plugin.js');
+const Plugin = require('../../structs/Plugin.js');
 const DropboxTransport = require('./transports/dropbox.js');
 const FSTransport = require('./transports/fs.js');
 

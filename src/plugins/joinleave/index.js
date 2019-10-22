@@ -1,4 +1,4 @@
-const Plugin = require('../../structs/plugin.js');
+const Plugin = require('../../structs/Plugin.js');
 
 class JoinLeavePlugin extends Plugin {
     load() {
@@ -20,7 +20,7 @@ class JoinLeave {
 
         return guild.channels.sort((a, b) => a.id - b.id).first();
     }
-    
+
     onJoin(member) {
         const channel = this.getDefaultChannel(member.guild);
         channel.send(`Hello <@${member.id}> and welcome to the Fandom Developers server! You can read useful information about the server in <#246663167537709058>`);
