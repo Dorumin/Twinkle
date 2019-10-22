@@ -138,12 +138,11 @@ class Commander {
                 let i = aliases.length;
 
                 while (i--) {
-                    const alias = aliases[i],
-                    sum = prefix.length + alias.length;
+                    const alias = aliases[i];
                     // Ensure str[prefix..prefix+alias] == alias
-                    if (trimmed.slice(0, sum).toLowerCase() != alias) continue;
+                    if (trimmed.slice(0, alias.length).toLowerCase() != alias) continue;
 
-                    const code = trimmed.charCodeAt(sum);
+                    const code = trimmed.charCodeAt(alias.length);
                     // Return if the character after the command isn't NaN (EOF) and isn't whitespace
                     if (code === code && !this.whitespace.includes(code)) continue;
                     // Filter function implemented by commands
@@ -152,7 +151,7 @@ class Commander {
                     if (!command.bot && message.author.bot) continue;
 
                     matched = true;
-                    this.callCommand(command, message, trimmed.slice(sum + 1).trimLeft());
+                    this.callCommand(command, message, trimmed.slice(alias.length + 1).trimLeft());
                 }
 
                 if (matched) break;
