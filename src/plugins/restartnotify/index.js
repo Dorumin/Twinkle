@@ -2,6 +2,12 @@ const Plugin = require('../../structs/plugin.js');
 const DatabasePlugin = require('../db');
 
 class RestartNotifyPlugin extends Plugin {
+    static get deps() {
+        return [
+            DatabasePlugin
+        ];
+    }
+
     load() {
         this.bot.restartNotify = new RestartNotify(this.bot);
     }
@@ -11,12 +17,6 @@ class RestartNotify {
     constructor(bot) {
         this.bot = bot;
         bot.client.on('ready', this.onReady.bind(this));
-    }
-
-    static get deps() {
-        return [
-            DatabasePlugin
-        ];
     }
 
     async onReady() {

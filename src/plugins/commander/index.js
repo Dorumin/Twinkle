@@ -2,8 +2,17 @@ const fs = require('fs');
 const path = require('path');
 const Plugin = require('../../structs/plugin.js');
 const Collection = require('../../structs/collection.js');
+const LoggerPlugin = require('../logger');
+const DatabasePlugin = require('../db');
 
 class CommanderPlugin extends Plugin {
+    static get deps() {
+        return [
+            LoggerPlugin,
+            DatabasePlugin
+        ];
+    }
+
     load() {
         this.bot.commander = new Commander(this.bot);
     }
@@ -18,6 +27,8 @@ class Commander {
         this.config = bot.config.COMMANDER;
         this.prefixes = this.config.PREFIXES;
         this.whitespace = [9, 10, 11, 12, 13, 32, 160, 5760, 8192, 8193, 8194, 8195, 8196, 8197, 8198, 8199, 8200, 8201, 8202, 8232, 8233, 8239, 8287, 12288, 65279];
+
+        this.log = this.bot.logger.log.bind(this.bot.logger, 'commander');
 
         // if (this.config.commands) {
         //     if (this.config.commands == true) {
@@ -44,7 +55,7 @@ class Commander {
             log += `\nDependencies:\n${deps.map(plugin => `  - ${plugin.name}`).join('\n')}`;
         }
 
-        console.log(log);
+        this.log(log);
 
         deps.forEach(this.bot.loadPlugin.bind(this.bot));
 
@@ -61,8 +72,8 @@ class Commander {
                 const Command = require(p);
                 this.loadCommand(Command, file.slice(0, -3));
             } catch(e) {
-                console.log(`Failure while parsing command: ${file}`);
-                console.log(e.stack);
+                this.log(`Failure while parsing command: ${file}`);
+                this.log(e.stack);
             }
         });
 
@@ -91,15 +102,15 @@ class Commander {
         };
         this.commands.each(command => {
             if (!command.aliases.length) {
-                console.log('Command has no defined aliases', command);
+                this.log(`Command has no defined aliases: ${command}`);
                 return;
             }
 
             command.aliases = command.aliases.filter(alias => {
                 const conflicting = priorityAliases[command.priority].includes(alias);
                 if (conflicting) {
-                    console.log('Duplicate alias:', alias);
-                    console.log('Conflicting commands:', aliasMap[command.priority][alias], command);
+                    this.log(`Duplicate alias: ${alias}`);
+                    this.log(`Conflicting commands: ${aliasMap[command.priority][alias]} & ${command}`);
                     return false;
                 }
 
@@ -111,14 +122,16 @@ class Commander {
         });
     }
 
-    onMessage(message) {
+    async onMessage(message) {
         let text = message.content.trim(),
-        i = this.prefixes.length;
+        prefixes = await this.getPrefixes(message.guild),
+        i = prefixes.length;
 
         while (i--) {
-            const prefix = this.prefixes[i];
+            const prefix = prefixes[i];
             if (text.slice(0, prefix.length) != prefix) continue;
 
+            const trimmed = text.slice(prefix.length).trimLeft();
             let matched = false;
             for (const command of this.commands.values()) {
                 const aliases = command.aliases;
@@ -128,10 +141,10 @@ class Commander {
                     const alias = aliases[i],
                     sum = prefix.length + alias.length;
                     // Ensure str[prefix..prefix+alias] == alias
-                    if (text.slice(prefix.length, sum) != alias) continue;
+                    if (trimmed.slice(0, sum).toLowerCase() != alias) continue;
 
-                    const code = text.charCodeAt(sum);
-                    // Make sure the character after the command isn't NaN (EOF) and is whitespace
+                    const code = trimmed.charCodeAt(sum);
+                    // Return if the character after the command isn't NaN (EOF) and isn't whitespace
                     if (code === code && !this.whitespace.includes(code)) continue;
                     // Filter function implemented by commands
                     if (!command.filter(message)) continue;
@@ -139,7 +152,7 @@ class Commander {
                     if (!command.bot && message.author.bot) continue;
 
                     matched = true;
-                    this.callCommand(command, message, text.slice(sum + 1));
+                    this.callCommand(command, message, trimmed.slice(sum + 1).trimLeft());
                 }
 
                 if (matched) break;
@@ -147,6 +160,17 @@ class Commander {
 
             if (matched) break;
         }
+    }
+
+    async getPrefixes(guild) {
+        const prefixes = await this.bot.db.get(`commander.prefixes.${guild.id}`, this.prefixes);
+
+        if (this.config.MENTION) {
+            const id = this.bot.client.user.id;
+            prefixes.push(`<@${id}>`, `<@!${id}>`);
+        }
+
+        return prefixes;
     }
 
     getAlias(alias) {
@@ -171,9 +195,9 @@ class Commander {
         this.callCommand(command, message, content);
     }
 
-    callCommand(command, message, content) {
+    async callCommand(command, message, content) {
         try {
-            command.call(message, content.trim());
+            await command.call(message, content.trim());
         } catch(e) {
             const lines = e.stack.split('\n'),
             firstRelevant = lines.findIndex(line => line.includes('Commander.callCommand')),
