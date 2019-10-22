@@ -1,6 +1,6 @@
 const Plugin = require('../../structs/Plugin.js');
-const DropboxTransport = require('./transports/dropbox.js');
-const FSTransport = require('./transports/fs.js');
+const DropboxTransport = require('./transports/DropboxTransport.js');
+const FSTransport = require('./transports/FSTransport.js');
 
 class DatabasePlugin extends Plugin {
     load() {
