@@ -1,4 +1,4 @@
-const Collection = require('./Collection.js');
+const Collection = require('./_Collection.js/index.js');
 
 class Cache extends Collection {
     get(key, generator) {
