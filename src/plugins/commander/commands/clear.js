@@ -32,15 +32,20 @@ class ClearCommand extends ModCommand {
             return;
         }
 
-        const confirmation = await message.channel.send('Loading messages...');
-        const messages = await this.loadMessages(message.channel, limit, userIds, confirmation.id);
+        const [
+            confirmation,
+            messages
+        ] = await Promise.all([
+            message.channel.send('Loading messages...'),
+            this.loadMessages(message.channel, limit, userIds, message.id)
+        ]);
 
         if (!messages.length) {
             await confirmation.edit('No messages found.');
             return;
         }
 
-        const newer = [];
+        const newer = [message.id];
         const older = [];
 
         for (const id of messages) {
@@ -106,10 +111,14 @@ class ClearCommand extends ModCommand {
                     resultText += `\nFailed to delete ${failures} messages.`;
                 }
 
-                await Promise.all([
-                    confirmation.delete(),
+                const [result] = await Promise.all([
                     message.channel.send(resultText),
+                    confirmation.delete(),
                 ]);
+
+                await this.wait(5000);
+                await result.delete();
+
                 break;
             case this.CROSS:
                 await Promise.all([
