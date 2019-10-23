@@ -176,6 +176,22 @@ class Quoter {
             .map(section => section.join('\n'))
             .join('\n\n');
     }
+
+    formatTime(timestamp) {
+        const d = new Date(timestamp),
+        date = this.pad(d.getUTCDate()),
+        month = this.pad(d.getUTCMonth() + 1),
+        year = this.pad(d.getUTCFullYear()),
+        hour = this.pad(d.getUTCHours()),
+        mins = this.pad(d.getUTCMinutes()),
+        secs = this.pad(d.getUTCSeconds());
+
+        return `${date}/${month}/${year} ${hour}:${mins}:${secs}`;
+    }
+
+    pad(n, len = 2, char = '0') {
+        return (new Array(len).join(char) + n).slice(-len);
+    }
 }
 
 module.exports = QuoterPlugin;
