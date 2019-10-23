@@ -1,6 +1,6 @@
 const { spawn } = require('child_process');
 const got = require('got');
-const OPCommand = require('../structs/_OPCommand.js/index.js');
+const OPCommand = require('../structs/OPCommand.js/index.js.js');
 const DatabasePlugin = require('../../db');
 
 class RestartCommand extends OPCommand {

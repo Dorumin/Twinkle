@@ -1,4 +1,4 @@
-const OPCommand = require('../structs/_OPCommand.js/index.js');
+const OPCommand = require('../structs/OPCommand.js/index.js.js');
 
 class TestCommand extends OPCommand {
     constructor(bot) {
