@@ -91,9 +91,13 @@ class Quoter {
 
         let description = quote.content;
 
-        if (!description && message.embeds.length) {
-            description = this.stringifyEmbed(message.embeds[0]);
+        if (!description && quote.embeds.length) {
+            description = this.stringifyEmbed(quote.embeds[0]);
         }
+
+        const image = quote.attachments.size
+            ? quote.attachments.first()
+            : quote.embeds[0] && quote.embeds[0].image
 
         return {
             author: {
@@ -103,6 +107,7 @@ class Quoter {
             title: 'Click to jump',
             url: `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`,
             description,
+            image: image || undefined,
             footer: {
                 icon_url: message.author.displayAvatarURL,
                 text: `Quoted by ${message.author.username}#${message.author.discriminator}`
