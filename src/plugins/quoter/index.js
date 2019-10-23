@@ -89,6 +89,12 @@ class Quoter {
             }
         }
 
+        let description = quote.content;
+
+        if (!description && message.embeds.length) {
+            description = this.stringifyEmbed(message.embeds[0]);
+        }
+
         return {
             author: {
                 icon_url: quote.author.displayAvatarURL,
@@ -96,13 +102,72 @@ class Quoter {
             },
             title: 'Click to jump',
             url: `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`,
-            description: quote.content,
+            description,
             footer: {
                 icon_url: message.author.displayAvatarURL,
                 text: `Quoted by ${message.author.username}#${message.author.discriminator}`
             },
             timestamp: quote.createdAt.toISOString()
         };
+    }
+
+    stringifyEmbed({
+        provider,
+        author,
+        title,
+        url,
+        description,
+        fields,
+        footer,
+        timestamp
+    }) {
+        const sections = new Array(4).fill(null).map(() => []);
+
+        if (provider) {
+            let str = provider.name;
+
+            sections[0].push(str);
+        }
+
+        if (author && author.name) {
+            const name = author.url
+                ? `[${author.name}](${author.url})`
+                : `${author.name}`;
+
+            sections[0].push(`${name}`);
+        }
+
+        if (title) {
+            let str = url
+                ? `[${title}](${url})`
+                : `${title}`;
+
+            sections[0].push(str);
+        }
+
+        if (description) {
+            sections[0].push(`${description}`);
+        }
+
+        if (fields.length) {
+            for (const field of fields) {
+                sections[1].push(`${field.name}:`);
+                sections[1].push(field.value.split('\n').map(line => `  ${line}`).join('\n'));
+            }
+        }
+
+        if (footer) {
+            if (timestamp) {
+                sections[3].push(`${footer.text} • ${this.formatTime(timestamp)}`);
+            } else {
+                sections[3].push(`${footer.text}`);
+            }
+        }
+
+        return sections
+            .filter(section => section.length)
+            .map(section => section.join('\n'))
+            .join('\n\n');
     }
 }
 
