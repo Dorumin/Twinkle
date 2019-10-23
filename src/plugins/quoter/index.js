@@ -60,6 +60,8 @@ class Quoter {
     }
 
     async tryFetchQuote([_, guildId, channelId, messageId]) {
+        if (guildId == '@me') return null;
+
         try {
             const channel = this.bot.client.channels.get(channelId);
             if (!channel) return null;
@@ -97,7 +99,7 @@ class Quoter {
 
         const image = quote.attachments.size
             ? quote.attachments.first()
-            : quote.embeds[0] && quote.embeds[0].image
+            : quote.embeds[0] && quote.embeds[0].image;
 
         return {
             author: {
