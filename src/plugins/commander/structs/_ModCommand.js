@@ -1,4 +1,4 @@
-const Command = require('./Command.js');
+const Command = require('./_Command.js');
 
 class ModCommand extends Command {
     constructor(bot) {
