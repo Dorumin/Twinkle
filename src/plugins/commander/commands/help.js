@@ -1,3 +1,4 @@
+const CommandUtils = require('../structs/CommandUtils.js');
 const Command = require('../structs/Command.js');
 const Cache = require('../../../structs/Cache.js');
 
@@ -40,7 +41,7 @@ class HelpCommand extends Command {
             embed: this.buildListingEmbed(0)
         });
 
-        this.react(listing, '⬅', '➡');
+        CommandUtils.react(listing, '⬅', '➡');
 
         this.addReactionListeners(listing, message.author);
     }
@@ -136,7 +137,7 @@ class HelpCommand extends Command {
         );
 
         if (!reactions.size) {
-            this.clearReactions(message);
+            CommandUtils.clearReactions(message);
             return;
         }
 
@@ -156,8 +157,8 @@ class HelpCommand extends Command {
                 // }
 
                 // if (page == 0) {
-                //     this.clearReactions(message).then(() => {
-                //         this.react(message, '⬅', '➡');
+                //     CommandUtils.clearReactions(message).then(() => {
+                //         CommandUtils.react(message, '⬅', '➡');
                 //     });
                 // }
 
@@ -187,14 +188,6 @@ class HelpCommand extends Command {
         }
 
         this.addReactionListeners(message, author);
-    }
-
-    removeOwnReactions(message) {
-        return Promise.all(
-            message.reactions
-                .filter(reaction => reaction.me)
-                .map(reaction => reaction.remove())
-        );
     }
 }
 

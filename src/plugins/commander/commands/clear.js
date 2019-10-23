@@ -1,5 +1,6 @@
 const got = require('got');
-const ModCommand = require('../structs/ModCommand.js.js');
+const CommandUtils = require('../structs/CommandUtils.js');
+const ModCommand = require('../structs/ModCommand.js');
 
 class ClearCommand extends ModCommand {
     constructor(bot) {
@@ -56,7 +57,7 @@ class ClearCommand extends ModCommand {
 
         await Promise.all([
             confirmation.edit(countMessage),
-            this.react(confirmation, this.CHECKMARK, this.CROSS),
+            CommandUtils.react(confirmation, this.CHECKMARK, this.CROSS),
         ]);
 
         const reactions = await confirmation.awaitReactions(
@@ -72,7 +73,7 @@ class ClearCommand extends ModCommand {
         if (reactions.size === 0) {
             await Promise.all([
                 confirmation.edit('Your time ran out!'),
-                this.clearReactions(confirmation)
+                CommandUtils.clearReactions(confirmation)
             ]);
             return;
         }
@@ -84,7 +85,7 @@ class ClearCommand extends ModCommand {
                 const chunks = this.chunk(newer, 100);
                 await Promise.all([
                     confirmation.edit('Starting batch deletion, no turning back now!'),
-                    this.clearReactions(confirmation)
+                    CommandUtils.clearReactions(confirmation)
                 ]);
 
                 const [
@@ -113,7 +114,7 @@ class ClearCommand extends ModCommand {
             case this.CROSS:
                 await Promise.all([
                     confirmation.edit('Cancelled bulk deletion, cheers!'),
-                    this.clearReactions(confirmation)
+                    CommandUtils.clearReactions(confirmation)
                 ]);
                 break;
         }
