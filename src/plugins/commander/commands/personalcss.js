@@ -1,4 +1,4 @@
-const Command = require('../structs/Command.js/index.js');
+const Command = require('../structs/Command.js');
 
 class PersonalCSSCommand extends Command {
     constructor(bot) {

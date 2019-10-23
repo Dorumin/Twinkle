@@ -1,4 +1,4 @@
-const Command = require('./Command.js/index.js');
+const Command = require('./Command.js');
 
 class AdminCommand extends Command {
     constructor(bot) {
