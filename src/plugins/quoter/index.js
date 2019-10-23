@@ -77,10 +77,22 @@ class Quoter {
     }
 
     buildQuoteEmbed(message, quote) {
+        const sameChannel = message.channel.id === quote.channel.id;
+        const sameGuild = message.guild.id === quote.guild.id;
+        let name = quote.member && quote.member.nickname || quote.author.username
+
+        if (!sameChannel) {
+            if (sameGuild) {
+                name += ` @ #${quote.channel.name}`;
+            } else {
+                name += ` @ ${quote.guild.name}#${quote.channel.name}`;
+            }
+        }
+
         return {
             author: {
                 icon_url: quote.author.displayAvatarURL,
-                name: quote.member && quote.member.nickname || quote.author.username
+                name
             },
             title: 'Click to jump',
             url: `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`,
