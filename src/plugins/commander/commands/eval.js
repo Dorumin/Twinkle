@@ -84,12 +84,13 @@ class EvalCommand extends OPCommand {
             return message.channel.send(...args);
         };
         const bot = this.bot;
+        const db = bot.db;
         const client = bot.client;
         const got = require('got');
         const channel = message.channel;
         const guild = message.guild;
 
-        this.constructor.use(send, bot, client, got, channel, guild);
+        this.constructor.use(send, bot, db, client, got, channel, guild);
 
         try {
             // Weak assertions, used to restrict functionality *in case of*, not enable it
