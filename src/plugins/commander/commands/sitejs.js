@@ -5,8 +5,10 @@ class SiteJSCommand extends Command {
         super(bot);
         this.aliases = ['sitejs'];
 
-        this.shortdesc = 'Lists links to sitewide JS pages.';
-        this.desc = 'Lists all links for sitewide JS pages.\nIf a wiki is provided, links will point to it. Otherwise, dev will be used.';
+        this.shortdesc = `Lists links to sitewide JS pages.`;
+        this.desc = `
+            Lists all links for sitewide JS pages.
+            If a wiki is provided, links will point to it. Otherwise, dev will be used.`;
         this.usages = [
             '!sitejs [wiki]'
         ];

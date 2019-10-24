@@ -14,7 +14,9 @@ class CodeCommand extends Command {
         this.cache = new Cache();
 
         this.shortdesc = 'Shows statistics and a link to the bot repository.';
-        this.desc = 'Displays info about the bot.\nShows statistics like stargazers, watchers, open issues, CPU usage, RAM, and lines of code.';
+        this.desc = `
+                    Displays info about the bot.
+                    Shows statistics like stargazers, watchers, open issues, CPU usage, RAM, and lines of code.`;
         this.usages = [
             '!code'
         ];

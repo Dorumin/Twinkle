@@ -5,8 +5,10 @@ class RulesCommand extends Command {
         super(bot);
         this.aliases = ['rules', 'regulations'];
 
-        this.shortdesc = 'Links various regulation pages you should follow.';
-        this.desc = 'Lists various regulation pages you should follow.\nIncludes the info channel, Fandom community guidelines and Terms of Use, and Discord community guidelines and Terms of Use';
+        this.shortdesc = `Links various regulation pages you should follow.`;
+        this.desc = `
+            Lists various regulation pages you should follow.
+            Includes the info channel, Fandom community guidelines and Terms of Use, and Discord community guidelines and Terms of Use`;
         this.usages = [
             '!rules'
         ];

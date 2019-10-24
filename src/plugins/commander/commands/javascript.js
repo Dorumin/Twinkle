@@ -5,8 +5,10 @@ class JavaScriptCommand extends Command {
         super(bot);
         this.aliases = ['javascript', 'js'];
 
-        this.shortdesc = 'Gives you the JavaScript role.';
-        this.desc = 'Gives you the JavaScript role if you don\'t have it, or removes it if you do.\nDeletes your message afterwards.';
+        this.shortdesc = `Gives you the JavaScript role.`;
+        this.desc = `
+            Gives you the JavaScript role if you don't have it, or removes it if you do.
+            Deletes your message afterwards.`;
         this.usages = [
             '!javascript'
         ];

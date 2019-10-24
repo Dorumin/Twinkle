@@ -5,8 +5,8 @@ class ScriptsCommand extends Command {
         super(bot);
         this.aliases = ['scripts'];
 
-        this.shortdesc = 'Posts a link to the JS enhancement index.';
-        this.desc = 'Posts a link to the JavaScript enhancement page on dev wiki.';
+        this.shortdesc = `Posts a link to the JS enhancement index.`;
+        this.desc = `Posts a link to the JavaScript enhancement page on dev wiki.`;
         this.usages = [
             '!scripts'
         ];

@@ -7,8 +7,11 @@ class EvalCommand extends OPCommand {
         this.aliases = ['eval'];
         this.hidden = true;
 
-        this.shortdesc = 'Evaluates a piece of code.';
-        this.desc = 'Runs JavaScript in a non-sandboxed environment, and returns the value if it exists.\nIf you use a code block, it will get stripped out before evaluation.\nYou need to be a bot operator to use this command.';
+        this.shortdesc = `Evaluates a piece of code.`;
+        this.desc = `
+                    Runs JavaScript in a non-sandboxed environment, and returns the value if it exists.
+                    If you use a code block, it will get stripped out before evaluation.
+                    You need to be a bot operator to use this command.`;
         this.usages = [
             '!eval <code>'
         ];

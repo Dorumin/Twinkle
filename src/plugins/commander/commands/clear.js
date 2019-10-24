@@ -10,8 +10,12 @@ class ClearCommand extends ModCommand {
         this.CROSS = '❌';
         this.DISCORD_EPOCH = 1420070400000;
 
-        this.shortdesc = 'Bulk deletes messages.';
-        this.desc = 'Deletes messages in bulk from the current channel.\nYou can mention a user to only delete their messages. If you do, messages older than 2 weeks will not be able to be deleted.\nYou can also pass a message ID instead of a limit to delete messages starting from it, inclusive.\nYou need have the manage messages permission to use this command.';
+        this.shortdesc = `Bulk deletes messages.`;
+        this.desc = `
+                    Deletes messages in bulk from the current channel.
+                    You can mention a user to only delete their messages. If you do, messages older than 2 weeks will not be able to be deleted.
+                    You can also pass a message ID instead of a limit to delete messages starting from it, inclusive.
+                    You need have the manage messages permission to use this command.`;
         this.usages = [
             '!clear <count> [@users]',
             '!clear <messageId> [@users]',

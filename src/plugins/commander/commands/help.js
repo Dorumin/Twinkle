@@ -9,8 +9,8 @@ class HelpCommand extends Command {
         this.cache = new Cache();
         this.pageSize = 8;
 
-        this.shortdesc = 'Displays an interactive embed listing all commands and their descriptions.';
-        this.desc = 'You already seem to have a pretty good idea for how it works, yeah?';
+        this.shortdesc = `Displays an interactive embed listing all commands and their descriptions.`;
+        this.desc = `You already seem to have a pretty good idea for how it works, yeah?`;
         this.usages = [
             '!help [command]'
         ];
@@ -68,7 +68,7 @@ class HelpCommand extends Command {
     getField(command) {
         return {
             name: `!${command.aliases[0]}`,
-            value: command.shortdesc || command.desc || '*No description provided.*'
+            value: this.firstLine(command.shortdesc || command.desc || '*No description provided.*')
         };
     }
 
@@ -117,9 +117,17 @@ class HelpCommand extends Command {
                 url: `${this.bot.config.SOURCE.URL}/tree/master/src/plugins/commander/commands/${fileName}.js`
             },
             title: `Command description: ${command.aliases[0]}`,
-            description: command.desc || command.shortdesc || '*No description provided.*',
+            description: this.trimLines(command.desc || command.shortdesc || '*No description provided.*'),
             fields
         };
+    }
+
+    firstLine(str) {
+        return str.trim().match(/^.*/);
+    }
+
+    trimLines(str) {
+        return str.trim().replace(/^\s+/gm, '');
     }
 
     formatUsage(usage) {
