@@ -202,9 +202,14 @@ class Commander {
         } catch(e) {
             const lines = e.stack.split('\n'),
             firstRelevant = lines.findIndex(line => line.includes('Commander.callCommand')),
-            relevantLines = lines.slice(0, firstRelevant);
+            relevantLines = lines.slice(0, firstRelevant),
+            errorMessage = `${command.constructor.name}CallError: ${relevantLines.join('\n')}`;
 
-            this.bot.logger.log('commander', `${command.constructor.name}CallError: ${relevantLines.join('\n')}`);
+            this.bot.logger.log('commander', errorMessage);
+
+            if (this.config.INLINE_ERRORS) {
+                message.channel.send('```apache\n' + errorMessage + '```');
+            }
         }
     }
 }
