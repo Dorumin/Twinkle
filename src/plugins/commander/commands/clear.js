@@ -5,7 +5,7 @@ const ModCommand = require('../structs/ModCommand.js');
 class ClearCommand extends ModCommand {
     constructor(bot) {
         super(bot);
-        this.aliases = ['clear', 'clean', 'clr', 'purge', 'clair'];
+        this.aliases = ['clear', 'clean', 'clr', 'purge'];
         this.CHECKMARK = '✅';
         this.CROSS = '❌';
         this.DISCORD_EPOCH = 1420070400000;
