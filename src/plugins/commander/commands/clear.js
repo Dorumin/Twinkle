@@ -11,33 +11,44 @@ class ClearCommand extends ModCommand {
         this.DISCORD_EPOCH = 1420070400000;
 
         this.shortdesc = 'Bulk deletes messages.';
-        this.desc = 'Deletes messages in bulk from the current channel.\nYou can mention a user to only delete their messages. If you do, messages older than 2 weeks will not be able to be deleted.\nYou need have the manage messages permission to use this command.';
+        this.desc = 'Deletes messages in bulk from the current channel.\nYou can mention a user to only delete their messages. If you do, messages older than 2 weeks will not be able to be deleted.\nYou can also pass a message ID instead of a limit to delete messages starting from it, inclusive.\nYou need have the manage messages permission to use this command.';
         this.usages = [
-            '!clear <count> [@users]'
+            '!clear <count> [@users]',
+            '!clear <messageId> [@users]',
         ];
         this.examples = [
             '!clear 50',
             '!clear 50 @Doru',
-            '!clear @Kocka 50 @Doru'
+            '!clear 5368934126654455809 @Kocka',
+            '!clear @Sophie 368934126654455809 @Doru'
         ];
     }
 
     async call(message, content) {
         const userIds = message.mentions.users.array().map(user => user.id);
-        const cleanContent = content.replace(/<@!?\d+>/g, '');
-        const limit = parseInt(cleanContent.trim());
+        const cleanContent = content.replace(/<@!?\d+>/g, '').replace(/\D+/g, '');
 
-        if (!limit) {
-            await message.channel.send('You need to add a number of messages to delete!');
-            return;
+        let arg;
+        try {
+            arg = BigInt(cleanContent);
+        } catch(e) {
+            arg = 0n;
         }
+
+        if (!arg) {
+            message.channel.send('You need to add a number of messages to delete!');
+        }
+
+        const type = arg > 1000000n && await this.messageExists(message.channel.id, arg)
+            ? 'after'
+            : 'limit';
 
         const [
             confirmation,
             messages
         ] = await Promise.all([
             message.channel.send('Loading messages...'),
-            this.loadMessages(message.channel, limit, userIds, message.id)
+            this.loadMessages(type, message.channel, arg, userIds, message.id)
         ]);
 
         if (!messages.length) {
@@ -45,8 +56,14 @@ class ClearCommand extends ModCommand {
             return;
         }
 
-        const newer = [message.id];
+        const newer = [];
         const older = [];
+
+        if (type == 'after') {
+            messages.push(arg.toString());
+        } else {
+            newer.push(message.id);
+        }
 
         for (const id of messages) {
             if (this.olderThan2Weeks(id)) {
@@ -55,6 +72,8 @@ class ClearCommand extends ModCommand {
                 newer.push(id);
             }
         }
+
+        console.log(type, messages, newer);
 
         const countMessage = older.length
             ? `Loaded ${messages.length} messages, ${newer.length} of which can be batched, and ${older.length} will be slow (15/min) deleted (because they're older than 2 weeks). Confirm deletion?`
@@ -116,8 +135,10 @@ class ClearCommand extends ModCommand {
                     confirmation.delete(),
                 ]);
 
-                await this.wait(5000);
-                await result.delete();
+                if (!failures) {
+                    await this.wait(5000);
+                    await result.delete();
+                }
 
                 break;
             case this.CROSS:
@@ -129,7 +150,35 @@ class ClearCommand extends ModCommand {
         }
     }
 
-    async loadMessages(channel, limit, fromUsers, before) {
+    async messageExists(channelId, messageId) {
+        const { body: messages } = await got(`https://discordapp.com/api/v6/channels/${channelId}/messages`, {
+            json: true,
+            query: {
+                limit: 1,
+                around: messageId
+            },
+            headers: {
+                Authorization: 'Bot ' + this.bot.config.TOKEN
+            }
+        });
+
+        if (!messages.length) return false;
+
+        return messages[0].id == messageId;
+    }
+
+    loadMessages(type, channel, arg, fromUsers, messageId) {
+        switch (type) {
+            case 'limit':
+                return this.loadMessagesCount(channel, arg, fromUsers, messageId);
+            case 'after':
+                return this.loadMessagesAfter(channel, arg, fromUsers, messageId);
+            default:
+                throw new Error('Unhandled message load type');
+        }
+    }
+
+    async loadMessagesCount(channel, limit, fromUsers, before) {
         // Not using channel.fetchMessages: Idk why, messes with further reaction collecting
         const results = [];
         let lastId = before;
@@ -165,6 +214,54 @@ class ClearCommand extends ModCommand {
                 const ids = messages
                     .map(message => message.id)
                     .slice(0, limit - results.length);
+
+                results.push(...ids);
+            }
+
+            if (stopLoop) {
+                break;
+            }
+        }
+
+        return results;
+    }
+
+    async loadMessagesAfter(channel, after, fromUsers, before) {
+        // Not using channel.fetchMessages either
+        const results = [];
+        let lastId = after;
+        let stopLoop = false;
+
+        while (true) {
+            let { body: messages } = await got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
+                json: true,
+                query: {
+                    limit: 100,
+                    after: lastId,
+                    before
+                },
+                headers: {
+                    Authorization: 'Bot ' + this.bot.config.TOKEN
+                }
+            });
+
+            if (!messages.length) break;
+
+            lastId = messages[0].id;
+
+            if (fromUsers.length) {
+                messages = messages.filter(message => {
+                    return fromUsers.includes(message.author.id) && !this.olderThan2Weeks(message.id);
+                });
+
+                if (this.olderThan2Weeks(lastId)) {
+                    stopLoop = true;
+                }
+            }
+
+            if (messages.length) {
+                const ids = messages
+                    .map(message => message.id);
 
                 results.push(...ids);
             }
