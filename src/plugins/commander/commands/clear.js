@@ -13,12 +13,14 @@ class ClearCommand extends ModCommand {
         this.shortdesc = 'Bulk deletes messages.';
         this.desc = 'Deletes messages in bulk from the current channel.\nYou can mention a user to only delete their messages. If you do, messages older than 2 weeks will not be able to be deleted.\nYou need have the manage messages permission to use this command.';
         this.usages = [
-            '!clear <count> [@users]'
+            '!clear <count> [@users]',
+            '!clear <messageId> [@users]',
         ];
         this.examples = [
             '!clear 50',
             '!clear 50 @Doru',
-            '!clear @Kocka 50 @Doru'
+            '!clear 5368934126654455809 @Kocka',
+            '!clear @Sophie 368934126654455809 @Doru'
         ];
     }
 
