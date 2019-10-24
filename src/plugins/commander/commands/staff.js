@@ -5,8 +5,8 @@ class StaffCommand extends Command {
         super(bot);
         this.aliases = ['staff'];
 
-        this.shortdesc = 'Posts a link to Special:Contact.';
-        this.desc = 'Links to Special:Contact on Community Central, if no wiki is provided.';
+        this.shortdesc = `Posts a link to Special:Contact.`;
+        this.desc = `Links to Special:Contact on Community Central, if no wiki is provided.`;
         this.usages = [
             '!staff [wiki]'
         ];

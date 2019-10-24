@@ -5,8 +5,10 @@ class QuitCommand extends OPCommand {
         super(bot);
         this.aliases = ['quit', 'q', 'destroy', 'die'];
 
-        this.shortdesc = 'Kills the bot.';
-        this.desc = 'Kills the bot, destroys the client, and stops execution.\nYou need to be a bot operator to use this command.';
+        this.shortdesc = `Kills the bot.`;
+        this.desc = `
+            Kills the bot, destroys the client, and stops execution.
+            You need to be a bot operator to use this command.`;
         this.usages = [
             '!quit'
         ];

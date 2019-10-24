@@ -5,8 +5,8 @@ class IntegrationCommand extends Command {
         super(bot);
         this.aliases = ['integration', 'integrator', 'discord'];
 
-        this.shortdesc = 'Gives installation instructios for DiscordIntegrator.';
-        this.desc = 'Links to the instruction manual for DiscordIntegrator.';
+        this.shortdesc = `Gives installation instructios for DiscordIntegrator.`;
+        this.desc = `Links to the instruction manual for DiscordIntegrator.`;
         this.usages = [
             '!integration'
         ];
