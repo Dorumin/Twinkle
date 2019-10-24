@@ -12,6 +12,8 @@
             "195712766214930432"
         ],
         "COMMANDER": {
+            "MENTION": true,
+            "INLINE_ERRORS": true,
             "PREFIXES": [
                 ">"
             ]
