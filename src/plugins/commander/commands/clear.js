@@ -133,8 +133,10 @@ class ClearCommand extends ModCommand {
                     confirmation.delete(),
                 ]);
 
-                await this.wait(5000);
-                await result.delete();
+                if (!failures) {
+                    await this.wait(5000);
+                    await result.delete();
+                }
 
                 break;
             case this.CROSS:
