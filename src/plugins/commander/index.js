@@ -162,7 +162,9 @@ class Commander {
     }
 
     async getPrefixes(guild) {
-        const prefixes = await this.bot.db.get(`commander.prefixes.${guild.id}`, this.prefixes);
+        const prefixes = guild
+            ? await this.bot.db.get(`commander.prefixes.${guild.id}`, this.prefixes)
+            : this.prefixes;
 
         if (this.config.MENTION) {
             const id = this.bot.client.user.id;
