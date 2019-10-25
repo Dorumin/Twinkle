@@ -1,7 +1,14 @@
 const { Collection } = require('discord.js');
 const OPCommand = require('../structs/OPCommand.js');
+const FormatterPlugin = require('../../fmt');
 
 class EvalCommand extends OPCommand {
+    static get deps() {
+        return [
+            FormatterPlugin
+        ];
+    }
+
     constructor(bot) {
         super(bot);
         this.aliases = ['eval'];
@@ -35,7 +42,7 @@ class EvalCommand extends OPCommand {
             if (forCode) {
                 const json = JSON.stringify(val, null, 2);
 
-                return '```json\n' + json + '```';
+                return this.bot.fmt.codeBlock('json', json);
             }
 
             return val;
@@ -49,15 +56,17 @@ class EvalCommand extends OPCommand {
 
         if (String(val) == '[object Object]') {
             const json = JSON.stringify(val, null, 2);
-            return '```json\n' + json + '```';
+            return this.bot.fmt.codeBlock('json', json);
         }
 
         if (typeof val == 'string' && val === '') {
+            const json = JSON.stringify(val);
+
             if (forCode) {
-                return '```json\n' + JSON.stringify(val) + '```';
+                return this.bot.fmt.codeBlock('json', json);
             }
 
-            return JSON.stringify(val);
+            return json;
         }
 
         return val;
@@ -122,7 +131,7 @@ class EvalCommand extends OPCommand {
                 }
             }
         } catch(e) {
-            send('```http\n' + e + '```');
+            send(this.bot.fmt.codeBlock('http', e));
         }
     }
 
