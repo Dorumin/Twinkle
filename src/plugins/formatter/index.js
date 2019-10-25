@@ -26,7 +26,8 @@ class Formatter {
     }
 
     anyTokens(chars, flags) {
-        const str = chars.split('').map(this.escapeRegex.bind(this)).join('|');
+        const uniq = Array.from(new Set(chars));
+        const str = uniq.map(this.escapeRegex.bind(this)).join('|');
         return new RegExp(str, flags);
     }
 
