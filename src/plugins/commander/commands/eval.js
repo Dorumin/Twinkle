@@ -1,6 +1,6 @@
 const { Collection } = require('discord.js');
 const OPCommand = require('../structs/OPCommand.js');
-const FormatterPlugin = require('../../formatter');
+const FormatterPlugin = require('../../fmt');
 
 class EvalCommand extends OPCommand {
     static get deps() {

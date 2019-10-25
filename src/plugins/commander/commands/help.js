@@ -1,7 +1,7 @@
 const CommandUtils = require('../structs/CommandUtils.js');
 const Command = require('../structs/Command.js');
 const Cache = require('../../../structs/Cache.js');
-const FormatterPlugin = require('../../formatter');
+const FormatterPlugin = require('../../fmt');
 
 class HelpCommand extends Command {
     static get deps() {
