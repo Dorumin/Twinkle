@@ -106,12 +106,18 @@ class CodeCommand extends Command {
         }
 
         const commitMessage = this.bot.fmt.firstLine(info.lastCommit.message);
+        const pullId = commitMessage.match(/#(\d+)/);
+        const updateUrl = pullId
+            ? `${info.url}/pull/${pullId[1]}`
+            : `${info.url}/commits/${info.lastCommit.sha}`;
+
+        console.log(info.lastCommit, updateUrl);
 
         message.channel.send({
             embed: {
                 author: {
                     name: info.path,
-                    url: info.url,
+                    url: updateUrl,
                 },
                 url: info.url,
                 title: `Click here to view source code on ${info.sitename}`,
@@ -225,11 +231,12 @@ class CodeCommand extends Command {
                 const commit = commits[0];
                 if (commit) {
                     data.lastCommit = {
+                        sha: commit.sha,
+                        message: commit.commit.message,
                         author: {
                             name: commit.author.login,
                             icon: commit.author.avatar_url
                         },
-                        message: commit.commit.message
                     };
                 }
 
