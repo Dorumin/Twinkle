@@ -4,7 +4,7 @@ const Plugin = require('../../structs/Plugin.js');
 const Collection = require('../../structs/Collection.js');
 const LoggerPlugin = require('../logger');
 const DatabasePlugin = require('../db');
-const FormatterPlugin = require('../formatter');
+const FormatterPlugin = require('../fmt');
 
 class CommanderPlugin extends Plugin {
     static get deps() {
