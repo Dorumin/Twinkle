@@ -16,7 +16,7 @@ class Formatter {
     }
 
     firstLine(str) {
-        return str.trim().match(/^.*/);
+        return str.trim().match(/^.*/)[0];
     }
 
     trimLines(str) {
