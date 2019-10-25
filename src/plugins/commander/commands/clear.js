@@ -217,7 +217,7 @@ class ClearCommand extends ModCommand {
             if (messages.length) {
                 const ids = messages
                     .map(message => message.id)
-                    .slice(0, limit - results.length);
+                    .slice(0, limit - BigInt(results.length));
 
                 results.push(...ids);
             }
