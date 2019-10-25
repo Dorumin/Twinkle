@@ -3,7 +3,7 @@ const Command = require('../structs/Command.js');
 class WikitextRoleCommand extends Command {
     constructor(bot) {
         super(bot);
-        this.aliases = ['wikitext'];
+        this.aliases = ['wikitext', 'rmwikitext'];
 
         this.shortdesc = `Gives you the Wikitext role.`;
         this.desc = `

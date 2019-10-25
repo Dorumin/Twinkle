@@ -3,7 +3,7 @@ const Command = require('../structs/Command.js');
 class JavaScriptCommand extends Command {
     constructor(bot) {
         super(bot);
-        this.aliases = ['javascript', 'js'];
+        this.aliases = ['javascript', 'js', 'rmjavascript', 'rmjs'];
 
         this.shortdesc = `Gives you the JavaScript role.`;
         this.desc = `

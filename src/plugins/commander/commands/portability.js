@@ -3,7 +3,7 @@ const Command = require('../structs/Command.js');
 class PortabilityCommand extends Command {
     constructor(bot) {
         super(bot);
-        this.aliases = ['portability'];
+        this.aliases = ['portability', 'rmportability'];
 
         this.shortdesc = `Gives you the Portability role.`;
         this.desc = `

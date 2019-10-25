@@ -3,7 +3,7 @@ const Command = require('../structs/Command.js');
 class CSSRoleCommand extends Command {
     constructor(bot) {
         super(bot);
-        this.aliases = ['css'];
+        this.aliases = ['css', 'rmcss'];
 
         this.shortdesc = `Gives you the CSS role.`;
         this.desc = `
