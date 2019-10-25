@@ -1,8 +1,15 @@
 const CommandUtils = require('../structs/CommandUtils.js');
 const Command = require('../structs/Command.js');
 const Cache = require('../../../structs/Cache.js');
+const FormatterPlugin = require('../../formatter');
 
 class HelpCommand extends Command {
+    static get deps() {
+        return [
+            FormatterPlugin
+        ];
+    }
+
     constructor(bot) {
         super(bot);
         this.aliases = ['help', 'commands', 'halp', 'h'];
@@ -68,7 +75,7 @@ class HelpCommand extends Command {
     getField(command) {
         return {
             name: `!${command.aliases[0]}`,
-            value: this.firstLine(command.shortdesc || command.desc || '*No description provided.*')
+            value: this.bot.fmt.firstLine(command.shortdesc || command.desc || '*No description provided.*')
         };
     }
 
@@ -117,17 +124,9 @@ class HelpCommand extends Command {
                 url: `${this.bot.config.SOURCE.URL}/tree/master/src/plugins/commander/commands/${fileName}.js`
             },
             title: `Command description: ${command.aliases[0]}`,
-            description: this.trimLines(command.desc || command.shortdesc || '*No description provided.*'),
+            description: this.bot.fmt.trimLines(command.desc || command.shortdesc || '*No description provided.*'),
             fields
         };
-    }
-
-    firstLine(str) {
-        return str.trim().match(/^.*/);
-    }
-
-    trimLines(str) {
-        return str.trim().replace(/^\s+/gm, '');
     }
 
     formatUsage(usage) {

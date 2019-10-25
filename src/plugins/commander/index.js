@@ -4,12 +4,14 @@ const Plugin = require('../../structs/Plugin.js');
 const Collection = require('../../structs/Collection.js');
 const LoggerPlugin = require('../logger');
 const DatabasePlugin = require('../db');
+const FormatterPlugin = require('../formatter');
 
 class CommanderPlugin extends Plugin {
     static get deps() {
         return [
             LoggerPlugin,
-            DatabasePlugin
+            DatabasePlugin,
+            FormatterPlugin,
         ];
     }
 
@@ -208,7 +210,7 @@ class Commander {
             this.bot.logger.log('commander', errorMessage);
 
             if (this.config.INLINE_ERRORS) {
-                message.channel.send('```apache\n' + errorMessage + '```');
+                message.channel.send(this.bot.fmt.codeBlock('apache', errorMessage));
             }
         }
     }

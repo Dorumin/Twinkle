@@ -4,6 +4,12 @@ const OPCommand = require('../structs/OPCommand.js');
 const DatabasePlugin = require('../../db');
 
 class RestartCommand extends OPCommand {
+    static get deps() {
+        return [
+            DatabasePlugin
+        ];
+    }
+
     constructor(bot) {
         super(bot);
         this.aliases = ['restart', 'r'];
@@ -16,12 +22,6 @@ class RestartCommand extends OPCommand {
             The bot will send another message once the restart has finished.\nYou need to be a bot operator to use this command.`;
         this.usages = [
             '!restart'
-        ];
-    }
-
-    static get deps() {
-        return [
-            DatabasePlugin
         ];
     }
 
