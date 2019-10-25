@@ -6,8 +6,15 @@ const process = require('process');
 const readdir = require('recursive-readdir');
 const Command = require('../structs/Command.js');
 const Cache = require('../../../structs/Cache.js');
+const FormatterPlugin = require('../../fmt');
 
 class CodeCommand extends Command {
+    static get deps() {
+        return [
+            FormatterPlugin
+        ];
+    }
+
     constructor(bot) {
         super(bot);
         this.aliases = ['code', 'github', 'git', 'source', 'status'];
@@ -98,6 +105,8 @@ class CodeCommand extends Command {
             });
         }
 
+        const commitMessage = this.bot.fmt.firstLine(info.lastCommit.message);
+
         message.channel.send({
             embed: {
                 author: {
@@ -110,7 +119,7 @@ class CodeCommand extends Command {
                 timestamp: info.lastPush.toISOString(),
                 fields,
                 footer: {
-                    text: `${info.lastCommit.message} - ${info.lastCommit.author.name}`,
+                    text: `${commitMessage} - ${info.lastCommit.author.name}`,
                     icon_url: info.lastCommit.author.icon
                 }
             }
