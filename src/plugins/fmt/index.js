@@ -10,6 +10,8 @@ class FormatterPlugin extends Plugin {
 class Formatter {
     constructor() {
         this.tokens = new Cache();
+
+        this.ZWSP = String.fromCharCode(8203);
         this.REGEX_TOKEN_PATTERN = /[.*+?^${}()|[\]\\]/g;
     }
 
@@ -38,9 +40,12 @@ class Formatter {
 
     sugar(content, ...flags) {
         let chars = '';
+        let escapeChar;
 
         if (flags[0] instanceof Array) {
-            chars += flags.shift().join('');
+            const params = flags.shift();
+            escapeChar = params.shift();
+            chars = params.join('');
         }
 
         chars += flags.join('');
@@ -50,7 +55,7 @@ class Formatter {
             str += flags[i];
         }
 
-        str += this.escape(content, chars);
+        str += this.escape(content, chars, escapeChar);
 
         let i = flags.length;
         while (i--) {
@@ -61,7 +66,7 @@ class Formatter {
     }
 
     code(content) {
-        return this.sugar(content, '`')
+        return this.sugar(content, [ this.ZWSP ], '``')
     }
 
     italic(content) {
@@ -94,7 +99,7 @@ class Formatter {
             lang = '';
         }
 
-        return this.sugar(`${lang}\n${content}`, '```');
+        return this.sugar(`${lang}\n${content}\n`, [ this.ZWSP ], '```');
     }
 }
 
