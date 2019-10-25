@@ -6,6 +6,10 @@
             "PATH": "Dorumin/Twinkle",
             "URL": "https://github.com/Dorumin/Twinkle"
         },
+        "LOGGER": {
+            "CHANNEL": "637133740593905665",
+            "CATEGORIES": false
+        },
         "OPERATORS": [
             "148231501413089280",
             "155545848812535808",
