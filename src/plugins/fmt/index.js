@@ -94,7 +94,7 @@ class Formatter {
             lang = '';
         }
 
-        return this.sugar(`${lang}\n${content}`, '```');
+        return this.sugar(`${lang}\n${content}\n`, '```');
     }
 }
 
