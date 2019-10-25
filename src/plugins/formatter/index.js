@@ -72,6 +72,22 @@ class Formatter {
         return this.sugar(content, '**');
     }
 
+    strike(content) {
+        return this.sugar(content, '~~');
+    }
+
+    underline(content) {
+        return this.sugar(content, '__');
+    }
+
+    link(text, url) {
+        if (!url) {
+            return text;
+        }
+
+        return `[${text}](${url})`;
+    }
+
     codeBlock(lang, content) {
         if (!content) {
             content = lang;
