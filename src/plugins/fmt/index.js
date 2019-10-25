@@ -37,7 +37,7 @@ class Formatter {
     }
 
     sugar(content, ...flags) {
-        let chars;
+        let chars = '';
 
         if (flags[0] instanceof Array) {
             chars += flags.shift().join('');
