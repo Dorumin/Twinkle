@@ -68,7 +68,7 @@ class Quoter {
 
         for (const i in filtered) {
             const quote = filtered[i],
-            embed = this.buildQuoteEmbed(message, quote);
+            embed = this.buildQuoteEmbed(message, quote, i === '0'); // Go figure, array indices when for..in are strings!
 
             if (!embed) continue;
 
@@ -105,10 +105,10 @@ class Quoter {
         }
     }
 
-    buildQuoteEmbed(message, quote) {
+    buildQuoteEmbed(message, quote, includeQuoter) {
         const sameChannel = message.channel.id === quote.channel.id;
         const sameGuild = message.guild.id === quote.guild.id;
-        let name = quote.member && quote.member.nickname || quote.author.username
+        let text = quote.member && quote.member.nickname || quote.author.username
 
         if (!sameChannel) {
             if (sameGuild) {
@@ -132,18 +132,22 @@ class Quoter {
             ? quote.attachments.first()
             : quote.embeds[0] && quote.embeds[0].image;
 
+        const author = includeQuoter
+            ? {
+                icon_url: message.author.displayAvatarURL,
+                name: `Quoted by ${message.author.username}#${message.author.discriminator}`
+            }
+            : undefined;
+
         return {
-            author: {
-                icon_url: quote.author.displayAvatarURL,
-                name
-            },
+            author,
             // title: 'Click to jump',
             // url: `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`,
             description,
             image: image || undefined,
             footer: {
-                icon_url: message.author.displayAvatarURL,
-                text: `Quoted by ${message.author.username}#${message.author.discriminator}`
+                icon_url: quote.author.displayAvatarURL,
+                text
             },
             timestamp: quote.createdAt.toISOString()
         };
