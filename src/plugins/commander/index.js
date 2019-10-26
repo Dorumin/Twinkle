@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Plugin = require('../../structs/Plugin.js');
 const Collection = require('../../structs/Collection.js');
+const Cache = require('../../structs/Cache.js');
 const LoggerPlugin = require('../logger');
 const DatabasePlugin = require('../db');
 const FormatterPlugin = require('../fmt');
@@ -25,6 +26,7 @@ class Commander {
         // this.all = fs.readdirSync(path.join(path.dirname(__dirname), 'commands'))
         //     .map(name => name.slice(0, -3));
         this.commands = new Collection();
+        this.messageMatchers = new Cache();
         this.bot = bot;
         this.config = bot.config.COMMANDER;
         this.prefixes = this.config.PREFIXES;
@@ -124,23 +126,27 @@ class Commander {
         });
     }
 
-    async onMessage(message) {
+    onMessage(message) {
         // Ignore bots and self
         if (
             message.author.bot ||
             message.author.id == this.bot.client.user.id
         ) return;
 
+        return this.messageMatchers.get(message.id, () => this.tryMatchCommands(message));
+    }
+
+    async tryMatchCommands(message) {
         let text = message.content.trim(),
         prefixes = await this.getPrefixes(message.guild),
-        i = prefixes.length;
+        i = prefixes.length,
+        matched = false;
 
         while (i--) {
             const prefix = prefixes[i];
             if (text.slice(0, prefix.length) != prefix) continue;
 
             const trimmed = text.slice(prefix.length).trimLeft();
-            let matched = false;
             for (const command of this.commands.values()) {
                 const aliases = command.aliases;
                 let i = aliases.length;
@@ -167,6 +173,8 @@ class Commander {
 
             if (matched) break;
         }
+
+        return matched;
     }
 
     async getPrefixes(guild) {

@@ -39,20 +39,35 @@ class Quoter {
             message.author.id == this.bot.client.user.id
         ) return;
 
+        if (this.bot.commander) {
+            const executed = await this.bot.commander.onMessage(message);
+
+            if (executed) {
+                return;
+            }
+        }
+
         const quotes = this.matchQuotes(message.content);
         if (!quotes.length) return;
 
-        const messages = await Promise.all(quotes.map(this.tryFetchQuote.bind(this)));
+        const messages = await Promise.all(
+            quotes
+                .slice(0, 3)
+                .map(this.tryFetchQuote.bind(this))
+        );
         const filtered = messages.filter(quote => quote !== null);
         if (filtered.length === 0) return;
 
-        const shouldDelete = message.content.replace(this.QUOTE_PATTERN, '').trim() === '';
+        const shouldDelete = quotes.length <= 3 && message.content.replace(this.QUOTE_PATTERN, '').trim() === '';
 
         for (const i in filtered) {
-            const quote = filtered[i];
+            const quote = filtered[i],
+            embed = this.buildQuoteEmbed(message, quote);
+
+            if (!embed) continue;
 
             await message.channel.send({
-                embed: this.buildQuoteEmbed(message, quote)
+                embed
             });
         }
 
@@ -103,6 +118,8 @@ class Quoter {
             description = this.stringifyEmbed(quote.embeds[0]);
         }
 
+        if (description.length > 2048) return null;
+
         const image = quote.attachments.size
             ? quote.attachments.first()
             : quote.embeds[0] && quote.embeds[0].image;
@@ -137,9 +154,7 @@ class Quoter {
         const sections = new Array(4).fill(null).map(() => []);
 
         if (provider) {
-            let str = provider.name;
-
-            sections[0].push(str);
+            sections[0].push(provider.name);
         }
 
         if (author && author.name) {
