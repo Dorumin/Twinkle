@@ -39,6 +39,14 @@ class Quoter {
             message.author.id == this.bot.client.user.id
         ) return;
 
+        if (this.bot.commander) {
+            const executed = await this.bot.commander.onMessage(message);
+
+            if (executed) {
+                return;
+            }
+        }
+
         const quotes = this.matchQuotes(message.content);
         if (!quotes.length) return;
 
