@@ -50,11 +50,15 @@ class Quoter {
         const quotes = this.matchQuotes(message.content);
         if (!quotes.length) return;
 
-        const messages = await Promise.all(quotes.map(this.tryFetchQuote.bind(this)));
+        const messages = await Promise.all(
+            quotes
+                .slice(0, 3)
+                .map(this.tryFetchQuote.bind(this))
+        );
         const filtered = messages.filter(quote => quote !== null);
         if (filtered.length === 0) return;
 
-        const shouldDelete = message.content.replace(this.QUOTE_PATTERN, '').trim() === '';
+        const shouldDelete = quotes.length <= 3 && message.content.replace(this.QUOTE_PATTERN, '').trim() === '';
 
         for (const i in filtered) {
             const quote = filtered[i],
