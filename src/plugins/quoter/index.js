@@ -57,10 +57,13 @@ class Quoter {
         const shouldDelete = message.content.replace(this.QUOTE_PATTERN, '').trim() === '';
 
         for (const i in filtered) {
-            const quote = filtered[i];
+            const quote = filtered[i],
+            embed = this.buildQuoteEmbed(message, quote);
+
+            if (!embed) continue;
 
             await message.channel.send({
-                embed: this.buildQuoteEmbed(message, quote)
+                embed
             });
         }
 
@@ -110,6 +113,8 @@ class Quoter {
         if (!description && quote.embeds.length) {
             description = this.stringifyEmbed(quote.embeds[0]);
         }
+
+        if (description.length > 2048) return null;
 
         const image = quote.attachments.size
             ? quote.attachments.first()
