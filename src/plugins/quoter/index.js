@@ -154,9 +154,7 @@ class Quoter {
         const sections = new Array(4).fill(null).map(() => []);
 
         if (provider) {
-            let str = provider.name;
-
-            sections[0].push(str);
+            sections[0].push(provider.name);
         }
 
         if (author && author.name) {
