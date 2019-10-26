@@ -23,7 +23,12 @@ class AutoMod {
     }
 
     onMessage(message) {
-        if (!message.member) return;
+        // Ignore bots and self, and if there isn't a member property
+        if (
+            !message.member ||
+            message.author.bot ||
+            message.author.id == this.bot.client.user.id
+        ) return;
 
         this.filters.forEach(async (filter) => {
             const interest = filter.interested(message);
