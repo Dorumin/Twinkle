@@ -33,6 +33,12 @@ class Quoter {
     }
 
     async onMessage(message) {
+        // Ignore bots and self
+        if (
+            message.author.bot ||
+            message.author.id == this.bot.client.user.id
+        ) return;
+
         const quotes = this.matchQuotes(message.content);
         if (!quotes.length) return;
 
