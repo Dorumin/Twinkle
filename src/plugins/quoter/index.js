@@ -118,7 +118,7 @@ class Quoter {
             }
         }
 
-        let description = this.bot.fmt.link(this.bot.fmt.bold('Click to jump'), `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`);
+        let description = this.bot.fmt.bold(this.bot.fmt.link('Click to jump', `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`));
 
         if (quote.content) {
             description += '\n\n' + quote.content;
