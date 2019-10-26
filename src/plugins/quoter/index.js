@@ -1,7 +1,13 @@
-const got = require('got');
 const Plugin = require('../../structs/Plugin.js');
+const FormatterPlugin = require('../fmt');
 
 class QuoterPlugin extends Plugin {
+    static get deps() {
+        return [
+            FormatterPlugin
+        ];
+    }
+
     load() {
         this.bot.quoter = new Quoter(this.bot);
     }
@@ -112,10 +118,12 @@ class Quoter {
             }
         }
 
-        let description = quote.content;
+        let description = this.bot.fmt.link(this.bot.fmt.bold('Click to jump'), `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`);
 
-        if (!description && quote.embeds.length) {
-            description = this.stringifyEmbed(quote.embeds[0]);
+        if (quote.content) {
+            description += '\n\n' + quote.content;
+        } else if (quote.embeds.length) {
+            description += '\n\n' + this.stringifyEmbed(quote.embeds[0]);
         }
 
         if (description.length > 2048) return null;
@@ -129,8 +137,8 @@ class Quoter {
                 icon_url: quote.author.displayAvatarURL,
                 name
             },
-            title: 'Click to jump',
-            url: `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`,
+            // title: 'Click to jump',
+            // url: `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`,
             description,
             image: image || undefined,
             footer: {
