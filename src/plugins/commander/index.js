@@ -125,6 +125,12 @@ class Commander {
     }
 
     async onMessage(message) {
+        // Ignore bots and self
+        if (
+            message.author.bot ||
+            message.author.id == this.bot.client.user.id
+        ) return;
+
         let text = message.content.trim(),
         prefixes = await this.getPrefixes(message.guild),
         i = prefixes.length;
