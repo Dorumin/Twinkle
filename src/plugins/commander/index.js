@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const cleanStack = require('clean-stack');
 const Plugin = require('../../structs/Plugin.js');
 const Collection = require('../../structs/Collection.js');
 const Cache = require('../../structs/Cache.js');
@@ -219,7 +220,7 @@ class Commander {
             const lines = e.stack.split('\n'),
             firstRelevant = lines.findIndex(line => line.includes('Commander.callCommand')),
             relevantLines = lines.slice(0, firstRelevant),
-            errorMessage = `${command.constructor.name}CallError: ${relevantLines.join('\n')}`;
+            errorMessage = `${command.constructor.name}CallError: ${cleanStack(relevantLines.join('\n'))}`;
 
             this.bot.logger.log('commander', errorMessage);
 

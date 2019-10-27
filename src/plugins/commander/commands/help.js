@@ -69,7 +69,7 @@ class HelpCommand extends Command {
     }
 
     getFields(commands, offset) {
-        return commands.slice(offset, offset + this.pageSize).map(this.getField);
+        return commands.slice(offset, offset + this.pageSize).map(this.getField.bind(this));
     }
 
     getField(command) {
