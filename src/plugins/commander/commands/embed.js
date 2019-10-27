@@ -95,8 +95,6 @@ description = Ignore this update! Changes were rollbacked, wait for further news
 
         const embed = this.buildEmbed(args);
 
-        console.log(embed);
-
         await Promise.all([
             message.delete(),
             message.channel.send({ embed })
@@ -250,7 +248,6 @@ description = Ignore this update! Changes were rollbacked, wait for further news
 
                     return fieldsResult;
                 default:
-                    console.log('404 prop', key, value);
                     return new Error(`Unknown property: ${key}`);
             }
         });
@@ -362,8 +359,6 @@ description = Ignore this update! Changes were rollbacked, wait for further news
         if (embed.timestamp) {
             defaults.timestamp = new Date(embed.timestamp).toISOString();
         }
-
-        console.log(defaults);
 
         return defaults;
     }
