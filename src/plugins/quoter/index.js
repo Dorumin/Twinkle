@@ -112,9 +112,9 @@ class Quoter {
 
         if (!sameChannel) {
             if (sameGuild) {
-                name += ` @ #${quote.channel.name}`;
+                text += ` @ #${quote.channel.name}`;
             } else {
-                name += ` @ ${quote.guild.name}#${quote.channel.name}`;
+                text += ` @ ${quote.guild.name}#${quote.channel.name}`;
             }
         }
 
