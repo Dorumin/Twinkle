@@ -115,7 +115,6 @@ class Logger {
     }
 
     stringifyEmbed({ provider, author, title, url, thumbnail, description, fields, image, video, footer, timestamp }) {
-        const lines = [];
         const sections = new Array(4).fill(null).map(() => []);
 
         if (provider) {

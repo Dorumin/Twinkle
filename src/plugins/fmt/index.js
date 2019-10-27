@@ -99,7 +99,7 @@ class Formatter {
             lang = '';
         }
 
-        return this.sugar(`${lang}\n${content}\n`, [ this.ZWSP ], '```');
+        return this.sugar(`${lang}\n${content.trim()}\n`, [ this.ZWSP ], '```');
     }
 }
 
