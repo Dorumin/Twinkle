@@ -109,9 +109,7 @@ class CodeCommand extends Command {
         const pullId = commitMessage.match(/#(\d+)/);
         const updateUrl = pullId
             ? `${info.url}/pull/${pullId[1]}`
-            : `${info.url}/commits/${info.lastCommit.sha}`;
-
-        console.log(info.lastCommit, updateUrl);
+            : `${info.url}/commit/${info.lastCommit.sha}`;
 
         message.channel.send({
             embed: {
