@@ -16,6 +16,7 @@ class QuoterPlugin extends Plugin {
 class Quoter {
     constructor(bot) {
         this.bot = bot;
+        this.config = bot.config.QUOTER;
         this.QUOTE_PATTERN = /(?<!<)https?:\/\/(?:(?:canary|ptb)\.)?discordapp\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)(?!>)/g;
         bot.client.on('message', this.onMessage.bind(this));
     }
@@ -58,13 +59,13 @@ class Quoter {
 
         const messages = await Promise.all(
             quotes
-                .slice(0, 3)
+                .slice(0, this.config.MAX)
                 .map(this.tryFetchQuote.bind(this))
         );
         const filtered = messages.filter(quote => quote !== null);
         if (filtered.length === 0) return;
 
-        const shouldDelete = quotes.length <= 3 && message.content.replace(this.QUOTE_PATTERN, '').trim() === '';
+        const shouldDelete = quotes.length <= this.config.MAX && message.content.replace(this.QUOTE_PATTERN, '').trim() === '';
 
         for (const i in filtered) {
             const quote = filtered[i],
