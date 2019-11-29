@@ -1,12 +1,14 @@
-const Command = require('../structs/command.js');
+const Command = require('../structs/Command.js');
 
 class JavaScriptCommand extends Command {
     constructor(bot) {
         super(bot);
-        this.aliases = ['javascript', 'js'];
+        this.aliases = ['javascript', 'js', 'rmjavascript', 'rmjs'];
 
-        this.shortdesc = 'Gives you the JavaScript role.';
-        this.desc = 'Gives you the JavaScript role if you don\'t have it, or removes it if you do.\nDeletes your message afterwards.';
+        this.shortdesc = `Gives you the JavaScript role.`;
+        this.desc = `
+            Gives you the JavaScript role if you don't have it, or removes it if you do.
+            Deletes your message afterwards.`;
         this.usages = [
             '!javascript'
         ];

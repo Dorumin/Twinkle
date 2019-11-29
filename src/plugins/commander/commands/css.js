@@ -1,12 +1,14 @@
-const Command = require('../structs/command.js');
+const Command = require('../structs/Command.js');
 
 class CSSRoleCommand extends Command {
     constructor(bot) {
         super(bot);
-        this.aliases = ['css'];
+        this.aliases = ['css', 'rmcss'];
 
-        this.shortdesc = 'Gives you the CSS role.';
-        this.desc = 'Gives you the CSS role if you don\'t have it, or removes it if you do.\nDeletes your message afterwards.';
+        this.shortdesc = `Gives you the CSS role.`;
+        this.desc = `
+                    Gives you the CSS role if you don't have it, or removes it if you do.
+                    Deletes your message afterwards.`;
         this.usages = [
             '!css'
         ];

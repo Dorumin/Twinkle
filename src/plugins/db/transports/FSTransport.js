@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const Transport = require('./transport.js');
+const Transport = require('./Transport.js');
 
 class FSTransport extends Transport {
     constructor(config) {

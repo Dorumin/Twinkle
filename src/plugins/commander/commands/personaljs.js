@@ -1,12 +1,14 @@
-const Command = require('../structs/command.js');
+const Command = require('../structs/Command.js');
 
 class PersonalJSCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['personaljs', 'userjs'];
 
-        this.shortdesc = 'Lists links to personal JS pages.';
-        this.desc = 'Lists all links for personal JS pages.\nIf a wiki is provided, links will point to it. Otherwise, dev will be used.';
+        this.shortdesc = `Lists links to personal JS pages.`;
+        this.desc = `
+            Lists all links for personal JS pages.
+            If a wiki is provided, links will point to it. Otherwise, dev will be used.`;
         this.usages = [
             '!personaljs [wiki]'
         ];

@@ -17,10 +17,11 @@
   },
   "homepage": "https://github.com/Dorumin/Twinkle#readme",
   "dependencies": {
+    "clean-stack": "2.2.0",
     "discord.js": "11.5.1",
     "dropbox": "4.0.30",
     "got": "9.6.0",
-    "isomorphic-fetch": "2.2.1",
+    "node-fetch": "2.6.0",
     "recursive-readdir": "^2.2.2",
     "tough-cookie": "3.0.1"
   }

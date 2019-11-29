@@ -1,9 +1,16 @@
 const fs = require('fs');
 const path = require('path');
-const Plugin = require('../../structs/plugin.js');
-const Cache = require('../../structs/cache.js');
+const Plugin = require('../../structs/Plugin.js');
+const Cache = require('../../structs/Cache.js');
+const FormatterPlugin = require('../fmt');
 
 class LoggerPlugin extends Plugin {
+    static get deps() {
+        return [
+            FormatterPlugin
+        ];
+    }
+
     load() {
         this.bot.logger = new Logger(this.bot);
     }
@@ -11,6 +18,8 @@ class LoggerPlugin extends Plugin {
 
 class Logger {
     constructor(bot) {
+        this.bot = bot;
+        this.config = bot.config.LOGGER;
         this.writers = new Cache();
         this.logPath = path.join(this.climb(__dirname, 3), 'log');
 
@@ -20,6 +29,8 @@ class Logger {
     }
 
     onMessage(message) {
+        if (this.config.CHANNEL && message.channel.id == this.config.CHANNEL) return;
+
         if (message.content) {
             const place = message.channel.type == 'dm'
                 ? 'DMs'
@@ -53,11 +64,24 @@ class Logger {
             label = 'channel';
         }
 
+        const logEntry =`[${label}] ${message}`;
         const general = this.writers.get('main', () => fs.createWriteStream(path.join(this.logPath, 'main.txt'), { flags: 'a' }));
         // const channel = this.writers.get(label, () => fs.createWriteStream(path.join(this.logPath, `${label}.txt`), { flags: 'a' }));
 
-        console.log(`[${label}] ${message}`);
-        general.write(`[${label}] ${message}\n`);
+        console.log(logEntry);
+        general.write(logEntry + '\n');
+
+        if (this.config.CHANNEL) {
+            const channel = this.bot.client.channels.get(this.config.CHANNEL);
+
+            if (!channel) return;
+
+            if (this.config.CATEGORIES) {
+                throw new Error('Unimplemented category splitting');
+            } else {
+                channel.send(this.bot.fmt.codeBlock('toml', logEntry));
+            }
+        }
         // channel.write(`${message}\n`);
     }
 
@@ -91,7 +115,6 @@ class Logger {
     }
 
     stringifyEmbed({ provider, author, title, url, thumbnail, description, fields, image, video, footer, timestamp }) {
-        const lines = [];
         const sections = new Array(4).fill(null).map(() => []);
 
         if (provider) {

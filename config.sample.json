@@ -6,12 +6,18 @@
             "PATH": "Dorumin/Twinkle",
             "URL": "https://github.com/Dorumin/Twinkle"
         },
+        "LOGGER": {
+            "CHANNEL": "637133740593905665",
+            "CATEGORIES": false
+        },
         "OPERATORS": [
             "148231501413089280",
             "155545848812535808",
             "195712766214930432"
         ],
         "COMMANDER": {
+            "MENTION": true,
+            "INLINE_ERRORS": true,
             "PREFIXES": [
                 ">"
             ]
@@ -27,6 +33,9 @@
             "TYPE": "dropbox",
             "DELAY": 10000,
             "TOKEN": "Dropbox token"
+        },
+        "QUOTER": {
+            "MAX": 3
         },
         "AUTOMOD": {
             "LOGGING": "Default log channel ID",

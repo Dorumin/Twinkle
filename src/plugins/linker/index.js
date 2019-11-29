@@ -1,7 +1,8 @@
 const got = require('got');
 const { CookieJar } = require('tough-cookie');
-const Cache = require('../../structs/cache.js');
-const Plugin = require('../../structs/plugin.js');
+const Cache = require('../../structs/Cache.js');
+const Plugin = require('../../structs/Plugin.js');
+let config;
 
 class LinkerPlugin extends Plugin {
     load() {

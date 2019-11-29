@@ -35,7 +35,6 @@ class Twinkle {
         fs.readdirSync(dir).forEach(file => {
             const p = path.join(dir, file);
             const Plugin = require(p);
-            console.log(Plugin);
             this.loadPlugin(Plugin);
         });
     }

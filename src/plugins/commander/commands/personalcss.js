@@ -1,12 +1,14 @@
-const Command = require('../structs/command.js');
+const Command = require('../structs/Command.js');
 
 class PersonalCSSCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['personalcss', 'usercss'];
 
-        this.shortdesc = 'Lists links to personal CSS pages.';
-        this.desc = 'Lists all links for personal CSS pages.\nIf a wiki is provided, links will point to it. Otherwise, dev will be used.';
+        this.shortdesc = `Lists links to personal CSS pages.`;
+        this.desc = `
+            Lists all links for personal CSS pages.
+            If a wiki is provided, links will point to it. Otherwise, dev will be used.`;
         this.usages = [
             '!personalcss [wiki]'
         ];

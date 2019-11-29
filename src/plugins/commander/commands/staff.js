@@ -1,12 +1,12 @@
-const Command = require('../structs/command.js');
+const Command = require('../structs/Command.js');
 
 class StaffCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['staff'];
 
-        this.shortdesc = 'Posts a link to Special:Contact.';
-        this.desc = 'Links to Special:Contact on Community Central, if no wiki is provided.';
+        this.shortdesc = `Posts a link to Special:Contact.`;
+        this.desc = `Links to Special:Contact on Community Central, if no wiki is provided.`;
         this.usages = [
             '!staff [wiki]'
         ];

@@ -1,14 +1,24 @@
 const { Collection } = require('discord.js');
-const OPCommand = require('../structs/opcommand.js');
+const OPCommand = require('../structs/OPCommand.js');
+const FormatterPlugin = require('../../fmt');
 
 class EvalCommand extends OPCommand {
+    static get deps() {
+        return [
+            FormatterPlugin
+        ];
+    }
+
     constructor(bot) {
         super(bot);
         this.aliases = ['eval'];
         this.hidden = true;
 
-        this.shortdesc = 'Evaluates a piece of code.';
-        this.desc = 'Runs JavaScript in a non-sandboxed environment, and returns the value if it exists.\nIf you use a code block, it will get stripped out before evaluation.\nYou need to be a bot operator to use this command.';
+        this.shortdesc = `Evaluates a piece of code.`;
+        this.desc = `
+                    Runs JavaScript in a non-sandboxed environment, and returns the value if it exists.
+                    If you use a code block, it will get stripped out before evaluation.
+                    You need to be a bot operator to use this command.`;
         this.usages = [
             '!eval <code>'
         ];
@@ -32,7 +42,7 @@ class EvalCommand extends OPCommand {
             if (forCode) {
                 const json = JSON.stringify(val, null, 2);
 
-                return '```json\n' + json + '```';
+                return this.bot.fmt.codeBlock('json', json);
             }
 
             return val;
@@ -46,15 +56,17 @@ class EvalCommand extends OPCommand {
 
         if (String(val) == '[object Object]') {
             const json = JSON.stringify(val, null, 2);
-            return '```json\n' + json + '```';
+            return this.bot.fmt.codeBlock('json', json);
         }
 
         if (typeof val == 'string' && val === '') {
+            const json = JSON.stringify(val);
+
             if (forCode) {
-                return '```json\n' + JSON.stringify(val) + '```';
+                return this.bot.fmt.codeBlock('json', json);
             }
 
-            return JSON.stringify(val);
+            return json;
         }
 
         return val;
@@ -84,10 +96,13 @@ class EvalCommand extends OPCommand {
             return message.channel.send(...args);
         };
         const bot = this.bot;
+        const db = bot.db;
         const client = bot.client;
         const got = require('got');
+        const channel = message.channel;
+        const guild = message.guild;
 
-        this.constructor.use(send, bot, client, got);
+        this.constructor.use(send, bot, db, client, got, channel, guild);
 
         try {
             // Weak assertions, used to restrict functionality *in case of*, not enable it
@@ -116,7 +131,7 @@ class EvalCommand extends OPCommand {
                 }
             }
         } catch(e) {
-            send('```http\n' + e + '```');
+            send(this.bot.fmt.codeBlock('http', e));
         }
     }
 

@@ -4,17 +4,26 @@ const got = require('got');
 const path = require('path');
 const process = require('process');
 const readdir = require('recursive-readdir');
-const Command = require('../structs/command.js');
-const Cache = require('../../../structs/cache');
+const Command = require('../structs/Command.js');
+const Cache = require('../../../structs/Cache.js');
+const FormatterPlugin = require('../../fmt');
 
 class CodeCommand extends Command {
+    static get deps() {
+        return [
+            FormatterPlugin
+        ];
+    }
+
     constructor(bot) {
         super(bot);
         this.aliases = ['code', 'github', 'git', 'source', 'status'];
         this.cache = new Cache();
 
         this.shortdesc = 'Shows statistics and a link to the bot repository.';
-        this.desc = 'Displays info about the bot.\nShows statistics like stargazers, watchers, open issues, CPU usage, RAM, and lines of code.';
+        this.desc = `
+                    Displays info about the bot.
+                    Shows statistics like stargazers, watchers, open issues, CPU usage, RAM, and lines of code.`;
         this.usages = [
             '!code'
         ];
@@ -96,11 +105,17 @@ class CodeCommand extends Command {
             });
         }
 
+        const commitMessage = this.bot.fmt.firstLine(info.lastCommit.message);
+        const pullId = commitMessage.match(/#(\d+)/);
+        const updateUrl = pullId
+            ? `${info.url}/pull/${pullId[1]}`
+            : `${info.url}/commit/${info.lastCommit.sha}`;
+
         message.channel.send({
             embed: {
                 author: {
                     name: info.path,
-                    url: info.url,
+                    url: updateUrl,
                 },
                 url: info.url,
                 title: `Click here to view source code on ${info.sitename}`,
@@ -108,7 +123,7 @@ class CodeCommand extends Command {
                 timestamp: info.lastPush.toISOString(),
                 fields,
                 footer: {
-                    text: `${info.lastCommit.message} - ${info.lastCommit.author.name}`,
+                    text: `${commitMessage} - ${info.lastCommit.author.name}`,
                     icon_url: info.lastCommit.author.icon
                 }
             }
@@ -214,11 +229,12 @@ class CodeCommand extends Command {
                 const commit = commits[0];
                 if (commit) {
                     data.lastCommit = {
+                        sha: commit.sha,
+                        message: commit.commit.message,
                         author: {
                             name: commit.author.login,
                             icon: commit.author.avatar_url
                         },
-                        message: commit.commit.message
                     };
                 }
 

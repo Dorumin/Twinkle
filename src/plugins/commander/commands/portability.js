@@ -1,12 +1,14 @@
-const Command = require('../structs/command.js');
+const Command = require('../structs/Command.js');
 
 class PortabilityCommand extends Command {
     constructor(bot) {
         super(bot);
-        this.aliases = ['portability'];
+        this.aliases = ['portability', 'rmportability'];
 
-        this.shortdesc = 'Gives you the Portability role.';
-        this.desc = 'Gives you the Portability role if you don\'t have it, or removes it if you do.\nDeletes your message afterwards.';
+        this.shortdesc = `Gives you the Portability role.`;
+        this.desc = `
+            Gives you the Portability role if you don't have it, or removes it if you do.
+            Deletes your message afterwards.`;
         this.usages = [
             '!portability'
         ];

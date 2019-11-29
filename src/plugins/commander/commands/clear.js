@@ -1,5 +1,6 @@
 const got = require('got');
-const ModCommand = require('../structs/modcommand.js');
+const CommandUtils = require('../structs/CommandUtils.js');
+const ModCommand = require('../structs/ModCommand.js');
 
 class ClearCommand extends ModCommand {
     constructor(bot) {
@@ -9,30 +10,50 @@ class ClearCommand extends ModCommand {
         this.CROSS = '❌';
         this.DISCORD_EPOCH = 1420070400000;
 
-        this.shortdesc = 'Bulk deletes messages.';
-        this.desc = 'Deletes messages in bulk from the current channel.\nYou can mention a user to only delete their messages. If you do, messages older than 2 weeks will not be able to be deleted.\nYou need have the manage messages permission to use this command.';
+        this.shortdesc = `Bulk deletes messages.`;
+        this.desc = `
+                    Deletes messages in bulk from the current channel.
+                    You can mention a user to only delete their messages. If you do, messages older than 2 weeks will not be able to be deleted.
+                    You can also pass a message ID instead of a limit to delete messages starting from it, inclusive.
+                    You need have the manage messages permission to use this command.`;
         this.usages = [
-            '!clear <count> [@users]'
+            '!clear <count> [@users]',
+            '!clear <messageId> [@users]',
         ];
         this.examples = [
             '!clear 50',
             '!clear 50 @Doru',
-            '!clear @Kocka 50 @Doru'
+            '!clear 5368934126654455809 @Kocka',
+            '!clear @Sophie 368934126654455809 @Doru'
         ];
     }
 
     async call(message, content) {
         const userIds = message.mentions.users.array().map(user => user.id);
-        const cleanContent = content.replace(/<@!?\d+>/g, '');
-        const limit = parseInt(cleanContent.trim());
+        const cleanContent = content.replace(/<@!?\d+>/g, '').replace(/\D+/g, '');
 
-        if (!limit) {
-            await message.channel.send('You need to add a number of messages to delete!');
-            return;
+        let arg;
+        try {
+            arg = BigInt(cleanContent);
+        } catch(e) {
+            arg = 0n;
         }
 
-        const confirmation = await message.channel.send('Loading messages...');
-        const messages = await this.loadMessages(message.channel, limit, userIds, confirmation.id);
+        if (!arg) {
+            message.channel.send('You need to add a number of messages to delete!');
+        }
+
+        const type = arg > 1000000n && await this.messageExists(message.channel.id, arg)
+            ? 'after'
+            : 'limit';
+
+        const [
+            confirmation,
+            messages
+        ] = await Promise.all([
+            message.channel.send('Loading messages...'),
+            this.loadMessages(type, message.channel, arg, userIds, message.id)
+        ]);
 
         if (!messages.length) {
             await confirmation.edit('No messages found.');
@@ -42,6 +63,12 @@ class ClearCommand extends ModCommand {
         const newer = [];
         const older = [];
 
+        if (type == 'after') {
+            messages.push(arg.toString());
+        } else {
+            newer.push(message.id);
+        }
+
         for (const id of messages) {
             if (this.olderThan2Weeks(id)) {
                 older.push(id);
@@ -50,13 +77,15 @@ class ClearCommand extends ModCommand {
             }
         }
 
+        console.log(type, messages, newer);
+
         const countMessage = older.length
             ? `Loaded ${messages.length} messages, ${newer.length} of which can be batched, and ${older.length} will be slow (15/min) deleted (because they're older than 2 weeks). Confirm deletion?`
             : `Loaded ${messages.length} messages! Confirm deletion?`
 
         await Promise.all([
             confirmation.edit(countMessage),
-            this.react(confirmation, this.CHECKMARK, this.CROSS),
+            CommandUtils.react(confirmation, this.CHECKMARK, this.CROSS),
         ]);
 
         const reactions = await confirmation.awaitReactions(
@@ -67,66 +96,12 @@ class ClearCommand extends ModCommand {
                 time: 15000,
                 max: 1
             }
-            // why isn't this on a new line? single line {} is gross.
-            // Better?
-            // Much <3
-            // Lmao having it on a separate line feels kinda weird but sure
-            // I'm not really used to seeing single line .css({}) tbh, it's fucking disgusting
-            // Lmao this reminds me of when I first tried this out with Sophie and I did this exact same comment shit because we didn't have live share chat back then
-            // How fast did he type? ;^)
-            // Took 20 seconds to type "ok"
-            // LOL
-            // TRAGIC
-            // Also lol now you can see everything I delete smh
-            // And every typo by extension LMAO
-            // No privacy af
-            // Just how I like it ;D
-            // Then again I also make quite a few typos myself
-            // Lmao this is how chats should be tbhh, I wonder if someone'll come up with something like this
-            // That isn't like, on a fucking code editor
-            // lmao I could try to design something like that on the chat that you wanted me to design for Discord, thing is that I'd hit the ratelimits lmaoo
-            // That was actually my initial idea, to have a separate chat, not one that interfaced with Discord :P
-            // For the iPad?
-            // Yeah, and use SockJS for it, which works on ipads apparently
-            // And reaaaaact
-            // Man that's wonderful news lol, try it then, I just wanted somewhere to talk on the iPad better really :P
-            // A place we both agreed on because Twitter and Messenger are complete twats that force me to reload every time to check a new message and Discord won't even load LMAO, just a complete white screen
-            // And well you hate PS so
-            // Also if you do decide to do that make \\^^ a thing ;D
-            // Lmao you sure love those markdown thingies don't you
-            // I'll probably yoink some message parser off of npm if I have to, or make my own
-            // I'm pretty sure making some abstract syntax trees would be a really fun exercise anyway
-            // I did them for relay, yk how *this* is translated to __this__ when sent to PS?
-            // I parse every fucking token myself
-            // lmao what th efuck why did that happen ROFL
-            // Also lol watching you make typos is making me laugh incredibly hard idefk why I can't even type right
-            // Lmao is that because I usually always fix them before sending? :P
-            // Ctrl backspace does wonders in faking my actual accuracy
-            // lmao I gotta check out what that does later, but rn I need to do some dishes again :P
-            // Soup So brb :brb:
-            // Huh haven't seen you use that emote in a while, why soup?
-            // And yeah sure lmao, can't you see it in how I delete stuff, the whole word dies?
-            // Yeah I know that's a thing I just can't remember the command for it on the mac
-            // Also nah I already finished the soup I'm just washing the dishes :P
-            // Yeah lmao but why are soup dishes more time consuming?
-            // Because it uses a fucking pot :P
-            // Oh lol, so you're not really cleaning plates but the whole sink lol okay
-            // lmao yeah
-            // i also need to sleep btw, we should totally do this when I let you see the code for Para Él ;D
-            // Lmao yeah sure, if there's still things left to do :P
-            // Or you wanna see how I nitpick in real time every little line of code you wrote
-            // lmao that ^
-            // Or improve it :P
-            // I know youc an't bear to touch code I make but dw it's for the greater good ;DDDD
-            // Nighty
-            // No that's wrong you know I'm gonna put my hands all over anything you touch
-            // Especially if it's you
         );
 
         if (reactions.size === 0) {
             await Promise.all([
                 confirmation.edit('Your time ran out!'),
-                this.clearReactions(confirmation)
+                CommandUtils.clearReactions(confirmation)
             ]);
             return;
         }
@@ -138,7 +113,7 @@ class ClearCommand extends ModCommand {
                 const chunks = this.chunk(newer, 100);
                 await Promise.all([
                     confirmation.edit('Starting batch deletion, no turning back now!'),
-                    this.clearReactions(confirmation)
+                    CommandUtils.clearReactions(confirmation)
                 ]);
 
                 const [
@@ -159,21 +134,55 @@ class ClearCommand extends ModCommand {
                     resultText += `\nFailed to delete ${failures} messages.`;
                 }
 
-                await Promise.all([
-                    confirmation.delete(),
+                const [result] = await Promise.all([
                     message.channel.send(resultText),
+                    confirmation.delete(),
                 ]);
+
+                if (!failures) {
+                    await this.wait(5000);
+                    await result.delete();
+                }
+
                 break;
             case this.CROSS:
                 await Promise.all([
                     confirmation.edit('Cancelled bulk deletion, cheers!'),
-                    this.clearReactions(confirmation)
+                    CommandUtils.clearReactions(confirmation)
                 ]);
                 break;
         }
     }
 
-    async loadMessages(channel, limit, fromUsers, before) {
+    async messageExists(channelId, messageId) {
+        const { body: messages } = await got(`https://discordapp.com/api/v6/channels/${channelId}/messages`, {
+            json: true,
+            query: {
+                limit: 1,
+                around: messageId
+            },
+            headers: {
+                Authorization: 'Bot ' + this.bot.config.TOKEN
+            }
+        });
+
+        if (!messages.length) return false;
+
+        return messages[0].id == messageId;
+    }
+
+    loadMessages(type, channel, arg, fromUsers, messageId) {
+        switch (type) {
+            case 'limit':
+                return this.loadMessagesCount(channel, arg, fromUsers, messageId);
+            case 'after':
+                return this.loadMessagesAfter(channel, arg, fromUsers, messageId);
+            default:
+                throw new Error('Unhandled message load type');
+        }
+    }
+
+    async loadMessagesCount(channel, limit, fromUsers, before) {
         // Not using channel.fetchMessages: Idk why, messes with further reaction collecting
         const results = [];
         let lastId = before;
@@ -208,7 +217,55 @@ class ClearCommand extends ModCommand {
             if (messages.length) {
                 const ids = messages
                     .map(message => message.id)
-                    .slice(0, limit - results.length);
+                    .slice(0, Number(limit) - results.length);
+
+                results.push(...ids);
+            }
+
+            if (stopLoop) {
+                break;
+            }
+        }
+
+        return results;
+    }
+
+    async loadMessagesAfter(channel, after, fromUsers, before) {
+        // Not using channel.fetchMessages either
+        const results = [];
+        let lastId = after;
+        let stopLoop = false;
+
+        while (true) {
+            let { body: messages } = await got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
+                json: true,
+                query: {
+                    limit: 100,
+                    after: lastId,
+                    before
+                },
+                headers: {
+                    Authorization: 'Bot ' + this.bot.config.TOKEN
+                }
+            });
+
+            if (!messages.length) break;
+
+            lastId = messages[0].id;
+
+            if (fromUsers.length) {
+                messages = messages.filter(message => {
+                    return fromUsers.includes(message.author.id) && !this.olderThan2Weeks(message.id);
+                });
+
+                if (this.olderThan2Weeks(lastId)) {
+                    stopLoop = true;
+                }
+            }
+
+            if (messages.length) {
+                const ids = messages
+                    .map(message => message.id);
 
                 results.push(...ids);
             }

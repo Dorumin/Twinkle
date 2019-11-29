@@ -1,15 +1,23 @@
-const Command = require('../structs/command.js');
-const Cache = require('../../../structs/cache.js');
+const CommandUtils = require('../structs/CommandUtils.js');
+const Command = require('../structs/Command.js');
+const Cache = require('../../../structs/Cache.js');
+const FormatterPlugin = require('../../fmt');
 
 class HelpCommand extends Command {
+    static get deps() {
+        return [
+            FormatterPlugin
+        ];
+    }
+
     constructor(bot) {
         super(bot);
         this.aliases = ['help', 'commands', 'halp', 'h'];
         this.cache = new Cache();
         this.pageSize = 8;
 
-        this.shortdesc = 'Displays an interactive embed listing all commands and their descriptions.';
-        this.desc = 'You already seem to have a pretty good idea for how it works, yeah?';
+        this.shortdesc = `Displays an interactive embed listing all commands and their descriptions.`;
+        this.desc = `You already seem to have a pretty good idea for how it works, yeah?`;
         this.usages = [
             '!help [command]'
         ];
@@ -40,7 +48,7 @@ class HelpCommand extends Command {
             embed: this.buildListingEmbed(0)
         });
 
-        this.react(listing, '⬅', '➡');
+        CommandUtils.react(listing, '⬅', '➡');
 
         this.addReactionListeners(listing, message.author);
     }
@@ -61,13 +69,13 @@ class HelpCommand extends Command {
     }
 
     getFields(commands, offset) {
-        return commands.slice(offset, offset + this.pageSize).map(this.getField);
+        return commands.slice(offset, offset + this.pageSize).map(this.getField.bind(this));
     }
 
     getField(command) {
         return {
             name: `!${command.aliases[0]}`,
-            value: command.shortdesc || command.desc || '*No description provided.*'
+            value: this.bot.fmt.firstLine(command.shortdesc || command.desc || '*No description provided.*')
         };
     }
 
@@ -116,7 +124,7 @@ class HelpCommand extends Command {
                 url: `${this.bot.config.SOURCE.URL}/tree/master/src/plugins/commander/commands/${fileName}.js`
             },
             title: `Command description: ${command.aliases[0]}`,
-            description: command.desc || command.shortdesc || '*No description provided.*',
+            description: this.bot.fmt.trimLines(command.desc || command.shortdesc || '*No description provided.*'),
             fields
         };
     }
@@ -136,7 +144,7 @@ class HelpCommand extends Command {
         );
 
         if (!reactions.size) {
-            this.clearReactions(message);
+            CommandUtils.clearReactions(message);
             return;
         }
 
@@ -156,8 +164,8 @@ class HelpCommand extends Command {
                 // }
 
                 // if (page == 0) {
-                //     this.clearReactions(message).then(() => {
-                //         this.react(message, '⬅', '➡');
+                //     CommandUtils.clearReactions(message).then(() => {
+                //         CommandUtils.react(message, '⬅', '➡');
                 //     });
                 // }
 
@@ -187,14 +195,6 @@ class HelpCommand extends Command {
         }
 
         this.addReactionListeners(message, author);
-    }
-
-    removeOwnReactions(message) {
-        return Promise.all(
-            message.reactions
-                .filter(reaction => reaction.me)
-                .map(reaction => reaction.remove())
-        );
     }
 }
 

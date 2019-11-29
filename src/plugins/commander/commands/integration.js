@@ -1,12 +1,12 @@
-const Command = require('../structs/command.js');
+const Command = require('../structs/Command.js');
 
 class IntegrationCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['integration', 'integrator', 'discord'];
 
-        this.shortdesc = 'Gives installation instructios for DiscordIntegrator.';
-        this.desc = 'Links to the instruction manual for DiscordIntegrator.';
+        this.shortdesc = `Gives installation instructions for DiscordIntegrator.`;
+        this.desc = `Links to the instruction manual for DiscordIntegrator.`;
         this.usages = [
             '!integration'
         ];

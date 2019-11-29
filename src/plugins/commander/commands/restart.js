@@ -1,25 +1,28 @@
 const { spawn } = require('child_process');
 const got = require('got');
-const OPCommand = require('../structs/opcommand.js');
+const OPCommand = require('../structs/OPCommand.js');
 const DatabasePlugin = require('../../db');
 
 class RestartCommand extends OPCommand {
+    static get deps() {
+        return [
+            DatabasePlugin
+        ];
+    }
+
     constructor(bot) {
         super(bot);
         this.aliases = ['restart', 'r'];
         this.hidden = true;
         this.heroku = this.bot._globalConfig.HEROKU == 'true';
 
-        this.shortdesc = 'Restarts the bot.';
-        this.desc = 'Restarts the bot.\nThe bot will send another message once the restart has finished.\nYou need to be a bot operator to use this command.';
+        this.shortdesc = `Restarts the bot.`;
+        this.desc = `
+            Restarts the bot.
+            The bot will send another message once the restart has finished.
+            You need to be a bot operator to use this command.`;
         this.usages = [
             '!restart'
-        ];
-    }
-
-    static get deps() {
-        return [
-            DatabasePlugin
         ];
     }
 
