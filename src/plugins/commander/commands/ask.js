@@ -5,7 +5,7 @@ class AskCommand extends Command {
         super(bot);
         this.aliases = ['ask'];
 
-        this.shortdesc = `Please don't ask just to ask, just ask.`;
+        this.shortdesc = `Please don't ask to ask, just ask.`;
         this.desc = `Links to a website where it is advised to just ask your question and wait if someone can answer it.`;
         this.usages = [
             '!ask'
