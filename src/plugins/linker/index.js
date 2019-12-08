@@ -2,9 +2,18 @@ const got = require('got');
 const { CookieJar } = require('tough-cookie');
 const Cache = require('../../structs/Cache.js');
 const Plugin = require('../../structs/Plugin.js');
+const FandomizerPlugin = require('../fandomizer');
+const FormatterPlugin = require('../fmt');
 let config;
 
 class LinkerPlugin extends Plugin {
+    static get deps() {
+        return [
+            FormatterPlugin,
+            FandomizerPlugin
+        ];
+    }
+
     load() {
         this.bot.linker = new Linker(this.bot);
     }
@@ -22,9 +31,85 @@ class Linker {
         this.ZWSP = String.fromCharCode(8203);
         this.LINK_REGEX = /\[\[([^\[\]|]+)(?:\|([^\[\]]+))?\]\]/g;
         this.TEMPLATE_REGEX = /\{\{([^{}|]+)(\|[^{}]*)?\}\}/g;
-        this.SEARCH_REGEX = /--(.+?)--/g;
+        this.SEARCH_REGEX = /(?<!\w)--(.+?)--(?!\w)/g;
+        this.ENCODE_TABLE = {
+            '20': '_'
+        };
+
+        this.linkTargets = [];
+        this.searchTargets = [];
+        this.templateTargets = [];
+
+        this.addLinkTarget('github', (full) => `https://github.com/${this.encode(full)}`);
+        this.addLinkTarget('npm', (full) => `https://npmjs.com/${this.encode(full)}`);
+        this.addLinkTarget('mdn', (full) => `https://developer.mozilla.org/search?q=${this.encode(full, { '20': '+' })}`);
+        this.addLinkTarget('so', (full) => `https://github.com/${this.encode(full, { '20': '+' })}`);
+        this.addLinkTarget('mw', (full) => `https://mediawiki.org/wiki/${this.encode(full)}`);
+
+        this.addLinkTarget(['wp'], ['wikipedia'], (full) => `https://en.wikipedia.org/wiki/${this.encode(full)}`);
+        this.addLinkTarget(['g'], ['google'], (full) => `https://github.com/${this.encode(full)}`);
+
+        this.addLinkTarget('w', 'c', async (_, [wiki, ...rest]) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(rest.join(':'))}`);
+        this.addLinkTarget('w', (full) => `https://community.fandom.com/wiki/${this.encode(full)}`);
+
+        this.addLinkTarget(async (full, _, wiki) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(full)}`);
+
+        this.addLinkTarget('debug', (...args) => {
+            console.log(args);
+            return `https://github.com/Dorumin/Twinkle`;
+        });
+
+        this.addSearchTarget('w', 'c', (_, [wiki, ...rest]) => this.fetchFirstSearchResult(rest.join(':'), wiki));
+        this.addSearchTarget('w', (full) => this.fetchFirstSearchResult(full, 'community'));
+        this.addSearchTarget((full, _, wiki) => this.fetchFirstSearchResult(full, wiki));
+
+        this.addTemplateTarget('special', () => `You can't preview special pages!`);
+
+        this.addTemplateTarget('w', 'c', (_, [wiki, ...rest]) => this.fetchArticleEmbed(rest.join(':'), wiki));
+        this.addTemplateTarget('w', (full) => this.fetchArticleEmbed(full, 'community'));
+        this.addTemplateTarget(async (full, _, wiki) => this.fetchArticleEmbed(full, wiki));
 
         bot.client.on('message', this.onMessage.bind(this));
+    }
+
+    addLinkTarget(...args) {
+        this.addTarget(this.linkTargets, args);
+    }
+
+    addSearchTarget(...args) {
+        this.addTarget(this.searchTargets, args);
+    }
+
+    addTemplateTarget(...args) {
+        this.addTarget(this.templateTargets, args);
+    }
+
+    addTarget(targets, args) {
+        const callback = args.pop();
+        const prefixes = [];
+
+        if (args[0] instanceof Array) {
+            prefixes.push(...args);
+        } else {
+            prefixes.push(args);
+        }
+
+        prefixes.forEach(prefix => {
+            const length = prefix.reduce((sum, slice) => sum + slice.length, 0);
+
+            let i = 0;
+            for (; i < targets.length; i++) {
+                const target = targets[i],
+                pref = target[0],
+                len = pref.reduce((sum, slice) => sum + slice.length, 0);
+
+                if (len > length) {
+                    break;
+                }
+            }
+
+            targets.splice(i, 0, [ prefix, callback ]);
+        });
     }
 
     async onMessage(message) {
@@ -34,8 +119,30 @@ class Linker {
 
         const wiki = this.getWiki(message.guild);
         const promises = this.getPromises(message, wiki);
+        const results = await Promise.all(promises);
 
-        // linker.on.message(message);
+        // console.log(results);
+
+        for (const result of results) {
+            const reply = await message.channel.send(result);
+
+            Promise.all([
+                reply.react('❌'),
+                reply.awaitReactions(
+                    (reaction, reactor) => reactor.id === message.author.id && reaction.emoji.name === '❌',
+                    {
+                        time: 60000,
+                        max: 1
+                    }
+                ),
+            ]).then(([reaction, reactions]) => {
+                if (reactions.size) {
+                    reply.delete();
+                } else {
+                    reaction.remove();
+                }
+            });
+        }
     }
 
     login() {
@@ -63,19 +170,19 @@ class Linker {
         const cleaned = this.cleanText(message.cleanContent);
 
         const links = this.match(this.LINK_REGEX, cleaned);
-        const templates = this.match(this.TEMPLATE_REGEX, cleaned);
         const searches = this.match(this.SEARCH_REGEX, cleaned);
+        const templates = this.match(this.TEMPLATE_REGEX, cleaned);
 
         if (links.length) {
             promises.push(...this.getLinks(links, wiki));
         }
 
-        if (templates.length) {
-            promises.push(...this.getTemplates(templates, wiki));
-        }
-
         if (searches.length) {
             promises.push(...this.getSearches(searches, wiki));
+        }
+
+        if (templates.length) {
+            promises.push(...this.getTemplates(templates, wiki));
         }
 
         return promises.slice(0, 5);
@@ -87,6 +194,10 @@ class Linker {
             .replace(/(`{1,3})[\S\s]+?\1/gm, '')
             // Zero width spaces
             .replace(/\u200B/g, '');
+    }
+
+    wikiUrl(wiki) {
+        return this.bot.fandomizer.url(wiki);
     }
 
     match(reg, str) {
@@ -101,16 +212,16 @@ class Linker {
         return matches;
     }
 
-    decodeHex(str) {
+    decodeHex(str, table = this.ENCODE_TABLE) {
         return str.replace(/%([0-9a-f]{2})/gi,
-            (_, hex) => linker.encodeTable[hex.toLowerCase()] || String.fromCharCode(parseInt(hex, 16)) || '%' + hex
+            (_, hex) => table[hex.toLowerCase()] || String.fromCharCode(parseInt(hex, 16)) || '%' + hex
         );
     }
 
-    encode(str) {
+    encode(str, table) {
         return encodeURIComponent(str)
             // Allow :, /, " ", and # in urls
-            .replace(/%(3A|2F|20|23)/gi, this.decodeHex)
+            .replace(/%(3A|2F|20|23|2C)/gi, hex => this.decodeHex(hex, table))
             // Allow ?=s
             .replace(/(%3F|%26)([^%]+)%3D([^%]+)/gi, (_, char, key, value) => `${this.decodeHex(char)}${key}=${value}`)
             .trim();
@@ -120,20 +231,94 @@ class Linker {
         return str.replace(/@|discord\.gg/g, `$&${this.ZWSP}`);
     }
 
+    getTargetResult(targets, segments, wiki) {
+        let i = targets.length;
+
+        targetsLoop:
+        while (i--) {
+            const [ prefixes, callback ] = targets[i];
+
+            let j = prefixes.length;
+            while (j--) {
+                if (!segments[j]) continue targetsLoop;
+                if (segments[j].toLowerCase() !== prefixes[j]) continue targetsLoop;
+            }
+
+            const sliced = segments.slice(prefixes.length);
+
+            return callback(sliced.join(':'), sliced, wiki);
+        }
+    }
+
     getLinks(links, wiki) {
-        // TODO: Implement 2048 line splitting
+        // TODO: Implement 2000/2048 line splitting
         const embeds = [];
 
-        console.log(links);
+        const hyperLinks = Promise.all(
+            links
+                .map(match => this.getLink(match, wiki))
+        );
 
-        embeds.push({
-            embed: {
-                description: links
-                    .map(link => ``)
-            }
-        });
+        embeds.push(
+            hyperLinks.then(links => {
+                return links.join('\n');
+            })
+        );
+
+        // embeds.push(
+        //     hyperLinks.then(links => {
+        //         console.log(links);
+        //         return {
+        //             embed: {
+        //                 description: links.join('\n')
+        //             }
+        //         };
+        //     })
+        // );
 
         return embeds;
+    }
+
+    async getLink(match, wiki) {
+        const linked = match[1],
+        // display = match[2] || linked,
+        segments = linked.split(':').map(seg => seg.trim());
+
+        const url = await this.getTargetResult(this.linkTargets, segments, wiki);
+
+        return `<${this.bot.fmt.link(url)}>`;
+        // return this.bot.fmt.link(display, url);
+    }
+
+    getSearches(searches, wiki) {
+        console.log(searches);
+        const results = [];
+
+        const searchResults = Promise.all(
+            searches
+                .map(match => this.getSearch(match, wiki))
+        );
+
+        results.push(
+            searchResults.then(result => {
+                return result.join('\n');
+            })
+        );
+
+        return results;
+    }
+
+    async getSearch(match, wiki) {
+        const searched = match[1],
+        segments = searched.split(':').map(seg => seg.trim());
+
+        const result = await this.getTargetResult(this.searchTargets, segments, wiki);
+
+        if (typeof result === 'string') {
+            return result;
+        }
+
+        return `<${result.url}>\n${result.snippet}`;
     }
 
     getTemplates(templates) {
@@ -142,10 +327,46 @@ class Linker {
         return [];
     }
 
-    getSearches(searches) {
-        console.log(searches);
+    async fetchSearchResults(query, wiki) {
+        const { body } = await got(`${await this.wikiUrl(wiki)}/api/v1/Search/List`, {
+            query: {
+                query,
+                // Adding a limit makes the endpoint sometimes throw a 404
+                // limit,
+                namespaces: '0'
+            },
+            json: true
+        });
 
-        return [];
+        if (!body.items || !body.items.length) return [];
+
+        return body.items;
+    }
+
+    async fetchFirstSearchResult(query, wiki) {
+        const pages = await linker.fetchSearchResults(query, wiki);
+
+        if (!pages) return `No search results found for \`${query}\`.`;
+
+        const page = pages[0],
+        snippet = page.snippet
+            .replace(/<span class="searchmatch">(.+?)<\/span>/g, '**$1**')
+            .replace(/&hellip;/g, '...')
+            .trim();
+
+        return {
+            url: page.url,
+            snippet
+        };
+    }
+
+    async fetchArticleEmbed(article, wiki) {
+        return {
+            embed: {
+                title: 'Test template embed!',
+                description: `${article} @ ${wiki}`
+            }
+        };
     }
 }
 
