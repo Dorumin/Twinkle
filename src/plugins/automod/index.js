@@ -9,6 +9,7 @@ class AutoModPlugin extends Plugin {
 class AutoMod {
     constructor(bot) {
         this.bot = bot;
+        this.dev = bot.config.ENV == 'development';
         this.config = bot.config.AUTOMOD;
         this.filters = this.config.FILTERS.map((module) => {
             const Filter = require(`./filters/${module}.js`);
@@ -29,6 +30,9 @@ class AutoMod {
             message.author.bot ||
             message.author.id == this.bot.client.user.id
         ) return;
+
+        // Development mode quarantine
+        if (this.dev && this.bot.config.DEV.GUILD !== message.guild.id) return;
 
         this.filters.forEach(async (filter) => {
             const interest = filter.interested(message);
