@@ -17,7 +17,7 @@ class StaffCommand extends Command {
         ];
     }
 
-    async call(message) {
+    async call(message, content) {
         let wiki = content || 'community',
         url = await this.bot.fandomizer.url(wiki);
 

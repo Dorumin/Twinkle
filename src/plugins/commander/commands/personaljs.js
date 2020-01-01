@@ -19,7 +19,7 @@ class PersonalJSCommand extends Command {
         ];
     }
 
-    async call(message) {
+    async call(message, content) {
         let wiki = content || 'dev',
         url = await this.bot.fandomizer.url(wiki);
 
