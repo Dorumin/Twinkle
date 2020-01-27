@@ -894,6 +894,7 @@ class Linker {
         let index = -1;
         let previewing = -previewedLines - 1;
         let lastContent = '';
+        let lastLines = -1;
 
         for (const i in changes) {
             const change = changes[i];
@@ -941,13 +942,14 @@ class Linker {
                     const split = value.split('\n');
                     const lines = split.slice(0, previewing);
 
-                    if (chunks[index]) {
+                    if (chunks[index] && lastLines !== 0) {
                         chunks[index] += this.bot.fmt.indent(lines.join('\n'), 2) + '\n';
                     }
 
                     previewing -= split.length;
 
                     lastContent = value;
+                    lastLines = lines.length;
                     break;
             }
         }
