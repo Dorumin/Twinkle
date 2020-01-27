@@ -1,4 +1,3 @@
-const gitDiff = require('git-diff');
 const diff = require('diff');
 const got = require('got');
 const he = require('he');

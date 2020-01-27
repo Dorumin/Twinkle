@@ -14,7 +14,9 @@ class JavaScriptCommand extends Command {
         ];
     }
 
-    call(message) {
+    call(message, content) {
+        if (content) return;
+
         message.delete();
         if (message.member.roles.has('269869828691591169')) {
             message.member.removeRole('269869828691591169');

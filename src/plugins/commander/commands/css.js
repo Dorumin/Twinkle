@@ -14,7 +14,9 @@ class CSSRoleCommand extends Command {
         ];
     }
 
-    call(message) {
+    call(message, content) {
+        if (content) return;
+
         message.delete();
         if (message.member.roles.has('269869854440423429')) {
             message.member.removeRole('269869854440423429');
