@@ -1,3 +1,5 @@
+const gitDiff = require('git-diff');
+const diff = require('diff');
 const got = require('got');
 const he = require('he');
 const { CookieJar } = require('tough-cookie');
@@ -22,10 +24,11 @@ class LinkerPlugin extends Plugin {
 class Linker {
     constructor(bot) {
         this.bot = bot;
+        this.dev = bot.config.ENV === 'development';
         this.config = bot.config.LINKER;
-        this.cache = new Cache();
         this.replies = new Cache();
         this.namespaces = new Cache();
+        this.avatars = new Cache();
         this.jar = new CookieJar();
         this.loggingIn = this.login();
 
@@ -72,6 +75,7 @@ class Linker {
 
         // Special pages
         this.addTemplateTarget('special', 'prefixindex', ({ full, wiki }) => this.fetchPagesByPrefix(full, wiki));
+        this.addTemplateTarget('special', 'diff', ({ parts, wiki, message }) => this.fetchDiff(parts, wiki, message));
         this.addTemplateTarget('special', () => `You can't preview special pages!`);
 
         // Silly utility stuff
@@ -148,6 +152,8 @@ class Linker {
         if (
             message.author.bot
         ) return;
+
+        if (this.dev && this.bot.config.DEV.GUILD !== message.guild.id) return;
 
         const wiki = await this.getWiki(message.guild);
         const promises = this.getPromises(message, wiki);
@@ -855,6 +861,172 @@ class Linker {
         titles = result.query.allpages.map(page => page.title);
 
         return this.bot.fmt.codeBlock(titles.join('\n'));
+    }
+
+    async saveRevisions(ids, revs, wiki) {
+        const result = await this.api(wiki, {
+            action: 'query',
+            prop: 'revisions',
+            rvprop: 'user|timestamp|ids|content|comment',
+            revids: ids.join('|')
+        });
+
+        for (const pageid in result.query.pages) {
+            const page = result.query.pages[pageid];
+
+            for (const i in page.revisions) {
+                const rev = page.revisions[i];
+
+                rev.title = page.title;
+
+                revs[rev.revid] = rev;
+            }
+        }
+    }
+
+    getDiffs(old, cur, previewedLines = 1) {
+        const chunks = [];
+        const changes = diff.diffLines(old, cur);
+
+        let index = -1;
+        let previewing = -previewedLines - 1;
+        let lastContent = '';
+
+        for (const i in changes) {
+            const change = changes[i];
+            const value = change.value.trim();
+            const type = change.added
+                ? 'added'
+                : change.removed
+                    ? 'removed'
+                    : 'content';
+
+            switch (type) {
+                case 'added':
+                    if (-previewing > previewedLines) {
+                        index++;
+                        chunks[index] = '';
+                    }
+
+                    previewing = previewedLines;
+
+                    if (lastContent) {
+                        const content = lastContent.split('\n').slice(-previewing).join('\n');
+                        chunks[index] += this.bot.fmt.indent(content, 2) + '\n';
+                        lastContent = '';
+                    }
+
+                    chunks[index] += this.bot.fmt.indent(value, '+ ') + '\n';
+                    break;
+                case 'removed':
+                    if (-previewing > previewedLines) {
+                        index++;
+                        chunks[index] = '';
+                    }
+
+                    previewing = previewedLines;
+
+                    if (lastContent) {
+                        const content = lastContent.split('\n').slice(-previewing).join('\n');
+                        chunks[index] += this.bot.fmt.indent(content, 2) + '\n';
+                        lastContent = '';
+                    }
+
+                    chunks[index] += this.bot.fmt.indent(value, '- ') + '\n';
+                    break;
+                case 'content':
+                    const split = value.split('\n');
+                    const lines = split.slice(0, previewing);
+
+                    if (chunks[index]) {
+                        chunks[index] += this.bot.fmt.indent(lines.join('\n'), 2) + '\n';
+                    }
+
+                    previewing -= split.length;
+
+                    lastContent = value;
+                    break;
+            }
+        }
+
+        return chunks;
+    }
+
+    // Fetches the diff text between two revisions
+    // Special:Diff/$curid
+    // Special:Diff/$oldid/$curid
+    async fetchDiff(ids, wiki, message) {
+        if (!ids.length) {
+            return `No revision IDs to compare.`;
+        }
+
+        if (ids.some(isNaN)) {
+            return `The revision IDs look off... might want to review them?`;
+        }
+
+        const revs = {};
+        const cpy = ids.slice(0);
+        const curid = cpy.pop();
+        let oldid = cpy.pop(); // May be undefined; fetched by subsequent call if missing
+
+        if (!curid) {
+            return `No revision IDs to compare.`;
+        }
+
+        await this.saveRevisions(ids, revs, wiki);
+
+        if (!revs[curid] || oldid && !revs[oldid]) {
+            return `There don't seem to be any revisions with the provided IDs.`;
+        }
+
+        const cur = revs[curid];
+
+        if (!oldid) {
+            oldid = cur.parentid;
+            await this.saveRevisions([oldid], revs, wiki);
+        }
+
+        if (!revs[oldid]) {
+            return `There doesn't seem to be any revisions with the provided IDs.`;
+        }
+
+        const old = revs[oldid];
+
+        const url = await this.wikiUrl(wiki);
+        const avatar = await this.avatars.get(cur.user, () => this.fetchAvatar(cur.user));
+
+        const diffs = this.getDiffs(old['*'], cur['*']);
+        let description = '';
+        for (const diff of diffs) {
+            description += this.bot.fmt.codeBlock('diff', diff);
+        }
+
+        return {
+            embed: {
+                title: cur.title,
+                url: `${url}/?diff=${curid}&oldid=${oldid}`,
+                color: message.guild.me.displayColor,
+                description,
+                timestamp: cur.timestamp,
+                footer: {
+                    icon_url: avatar,
+                    text: cur.comment
+                        ? `${cur.comment} - ${cur.user}`
+                        : `Edited by ${cur.user}`
+                }
+            }
+        }
+    }
+
+    async fetchAvatar(name) {
+        const result = await got(`https://community.fandom.com/api/v1/User/Details`, {
+            searchParams: {
+                ids: name,
+                size: 150
+            }
+        }).json();
+
+        return result.items[0].avatar;
     }
 }
 

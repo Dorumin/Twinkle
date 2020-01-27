@@ -24,8 +24,11 @@ class Formatter {
     }
 
     indent(str, spaces = 2) {
-        const whitespace = new Array(spaces + 1).join(' ');
-        return whitespace + str.replace(/\n/g, `\n${whitespace}`);
+        const prefix = typeof spaces === 'string'
+            ? spaces
+            : new Array(spaces + 1).join(' ');
+
+        return prefix + str.replace(/\n/g, `\n${prefix}`);
     }
 
     escapeRegex(str) {
@@ -104,7 +107,7 @@ class Formatter {
             lang = '';
         }
 
-        return this.sugar(`${lang}\n${content.trim()}\n`, [ this.ZWSP ], '```');
+        return this.sugar(`${lang}\n${content}\n`, [ this.ZWSP ], '```');
     }
 }
 

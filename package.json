@@ -18,8 +18,10 @@
   "homepage": "https://github.com/Dorumin/Twinkle#readme",
   "dependencies": {
     "clean-stack": "2.2.0",
+    "diff": "^4.0.2",
     "discord.js": "11.5.1",
     "dropbox": "4.0.30",
+    "git-diff": "^2.0.6",
     "got": "^10.3.0",
     "he": "^1.2.0",
     "node-fetch": "2.6.0",
