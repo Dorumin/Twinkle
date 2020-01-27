@@ -307,8 +307,11 @@ class Linker {
         return params;
     }
 
-    getTargetResult(targets, segments, wiki, params, message) {
+    getTargetResult(targets, segments, wiki, source, params, message) {
+        source = source || segments.join(':');
+
         let i = targets.length;
+        let len = 0;
 
         targetsLoop:
         while (i--) {
@@ -318,12 +321,13 @@ class Linker {
             while (j--) {
                 if (!segments[j]) continue targetsLoop;
                 if (segments[j].toLowerCase() !== prefixes[j]) continue targetsLoop;
+                len += segments[j].length + 1;
             }
 
             const sliced = segments.slice(prefixes.length);
 
             return callback({
-                full: sliced.join(':'),
+                full: source.slice(len),
                 parts: sliced,
                 wiki,
                 params,
@@ -410,9 +414,9 @@ class Linker {
     async getTemplate(template, wiki, message) {
         const name = template[1],
         params = this.parseParams(template[2]),
-        segments = name.split(/:|\//).map(seg => seg.trim());
+        segments = name.split(/:|\//);
 
-        const result = await this.getTargetResult(this.templateTargets, segments, wiki, params, message);
+        const result = await this.getTargetResult(this.templateTargets, segments, wiki, name, params, message);
 
         return result;
     }
