@@ -45,15 +45,14 @@ class RestartCommand extends OPCommand {
         const name = config.IS_BACKUP ? config.BACKUP_APP_NAME : config.APP_NAME;
         const token = config.HEROKU_TOKEN;
 
-        const { body } = await got(`https://api.heroku.com/teams/apps/${name}`, {
-            json: true,
+        const app = await got(`https://api.heroku.com/teams/apps/${name}`, {
             headers: {
                 Accept: `application/vnd.heroku+json; version=3`,
                 Authorization: `Bearer ${token}`
             }
-        });
+        }).json();
 
-        await got.delete(`https://api.heroku.com/apps/${body.id}/dynos`, {
+        await got.delete(`https://api.heroku.com/apps/${app.id}/dynos`, {
             headers: {
                 Accept: `application/vnd.heroku+json; version=3`,
                 Authorization: `Bearer ${token}`

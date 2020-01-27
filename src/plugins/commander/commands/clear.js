@@ -155,16 +155,15 @@ class ClearCommand extends ModCommand {
     }
 
     async messageExists(channelId, messageId) {
-        const { body: messages } = await got(`https://discordapp.com/api/v6/channels/${channelId}/messages`, {
-            json: true,
-            query: {
+        const messages = await got(`https://discordapp.com/api/v6/channels/${channelId}/messages`, {
+            searchParams: {
                 limit: 1,
                 around: messageId
             },
             headers: {
                 Authorization: 'Bot ' + this.bot.config.TOKEN
             }
-        });
+        }).json();
 
         if (!messages.length) return false;
 
@@ -189,16 +188,15 @@ class ClearCommand extends ModCommand {
         let stopLoop = false;
 
         while (results.length < limit) {
-            let { body: messages } = await got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
-                json: true,
-                query: {
+            let messages = await got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
+                searchParams: {
                     limit: 100,
                     before: lastId
                 },
                 headers: {
                     Authorization: 'Bot ' + this.bot.config.TOKEN
                 }
-            });
+            }).json();
 
             if (!messages.length) break;
 
@@ -237,9 +235,8 @@ class ClearCommand extends ModCommand {
         let stopLoop = false;
 
         while (true) {
-            let { body: messages } = await got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
-                json: true,
-                query: {
+            let messages = await got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
+                searchParams: {
                     limit: 100,
                     after: lastId,
                     before
@@ -247,7 +244,7 @@ class ClearCommand extends ModCommand {
                 headers: {
                     Authorization: 'Bot ' + this.bot.config.TOKEN
                 }
-            });
+            }).json();
 
             if (!messages.length) break;
 
@@ -331,12 +328,11 @@ class ClearCommand extends ModCommand {
                 const res = await Promise.race([
                     this.wait(10000, 'timeout'), // TODO: Lower
                     got.delete(`https://discordapp.com/api/v6/channels/${channelId}/messages/${messageId}`, {
-                        json: true,
                         headers: {
                             Authorization: `Bot ${this.bot.config.TOKEN}`
                         }
                     })
-                ]);
+                ]).json();
 
                 if (res == 'timeout') throw 'timeout';
                 break;

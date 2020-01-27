@@ -23,6 +23,14 @@ class Formatter {
         return str.trim().replace(/^\s+/gm, '');
     }
 
+    indent(str, spaces = 2) {
+        const prefix = typeof spaces === 'string'
+            ? spaces
+            : new Array(spaces + 1).join(' ');
+
+        return prefix + str.replace(/\n/g, `\n${prefix}`);
+    }
+
     escapeRegex(str) {
         return str.replace(this.REGEX_TOKEN_PATTERN, '\\$&');
     }
@@ -99,7 +107,7 @@ class Formatter {
             lang = '';
         }
 
-        return this.sugar(`${lang}\n${content.trim()}\n`, [ this.ZWSP ], '```');
+        return this.sugar(`${lang}\n${content}\n`, [ this.ZWSP ], '```');
     }
 }
 

@@ -31,19 +31,17 @@ class Logger {
     onMessage(message) {
         if (this.config.CHANNEL && message.channel.id == this.config.CHANNEL) return;
 
+        const place = message.channel.type == 'dm'
+            ? 'DMs'
+            : `${message.guild.name}#${message.channel.name}`;
+
+        let entry = `${message.author.username}`;
+
         if (message.content) {
-            const place = message.channel.type == 'dm'
-                ? 'DMs'
-                : `${message.guild.name}#${message.channel.name}`;
-
-            let entry = `${message.author.username}`;
-
-            if (message.content) {
-                entry += `: ${message.content}`;
-            }
-
-            this.log('message', `${entry} @ ${place}`);
+            entry += `: ${message.content}`;
         }
+
+        this.log('message', `${entry} @ ${place}`);
 
         if (message.attachments.size) {
             for (const attachment of message.attachments.values()) {
@@ -158,7 +156,7 @@ class Logger {
         if (fields.length) {
             for (const field of fields) {
                 sections[1].push(`${field.name}:`);
-                sections[1].push(field.value.split('\n').map(line => `  ${line}`).join('\n'));
+                sections[1].push(this.bot.fmt.indent(field.value, 2));
             }
         }
 
@@ -168,7 +166,7 @@ class Logger {
 
         if (video) {
             if (thumbnail) {
-                sections[2].push(`${thumbnail.url}`)
+                sections[2].push(`${thumbnail.url}`);
             }
 
             sections[2].push(`${video.url}`);

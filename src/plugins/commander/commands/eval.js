@@ -131,7 +131,7 @@ class EvalCommand extends OPCommand {
                 }
             }
         } catch(e) {
-            send(this.bot.fmt.codeBlock('http', e));
+            send(this.bot.fmt.codeBlock('http', `${e}`));
         }
     }
 
