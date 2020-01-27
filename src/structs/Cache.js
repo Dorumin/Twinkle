@@ -12,13 +12,13 @@ class Cache extends Collection {
     }
 
     getAll(generators) {
-        const rets = [];
+        const object = {};
 
         for (const key in generators) {
-            rets.push(this.get(key, generators[key]));
+            object[key] = this.get(key, generators[key]);
         }
 
-        return rets;
+        return object;
     }
 }
 

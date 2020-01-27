@@ -28,12 +28,10 @@ class Commander {
         //     .map(name => name.slice(0, -3));
         this.commands = new Collection();
         this.messageMatchers = new Cache();
-
         this.bot = bot;
-        this.dev = bot.config.ENV == 'development';
+        this.dev = bot.config.ENV === 'development';
         this.config = bot.config.COMMANDER;
         this.prefixes = this.config.PREFIXES;
-
         this.whitespace = [9, 10, 11, 12, 13, 32, 160, 5760, 8192, 8193, 8194, 8195, 8196, 8197, 8198, 8199, 8200, 8201, 8202, 8232, 8233, 8239, 8287, 12288, 65279];
 
         this.log = this.bot.logger.log.bind(this.bot.logger, 'commander');
@@ -134,10 +132,9 @@ class Commander {
         // Ignore bots and self
         if (
             message.author.bot ||
-            message.author.id == this.bot.client.user.id
+            message.author.id === this.bot.client.user.id
         ) return;
 
-        // Development mode quarantine
         if (this.dev && this.bot.config.DEV.GUILD !== message.guild.id) return;
 
         return this.messageMatchers.get(message.id, () => this.tryMatchCommands(message));

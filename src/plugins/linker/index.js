@@ -1,10 +1,10 @@
 const got = require('got');
+const he = require('he');
 const { CookieJar } = require('tough-cookie');
 const Cache = require('../../structs/Cache.js');
 const Plugin = require('../../structs/Plugin.js');
 const FandomizerPlugin = require('../fandomizer');
 const FormatterPlugin = require('../fmt');
-let config;
 
 class LinkerPlugin extends Plugin {
     static get deps() {
@@ -25,6 +25,7 @@ class Linker {
         this.config = bot.config.LINKER;
         this.cache = new Cache();
         this.replies = new Cache();
+        this.namespaces = new Cache();
         this.jar = new CookieJar();
         this.loggingIn = this.login();
 
@@ -40,36 +41,69 @@ class Linker {
         this.searchTargets = [];
         this.templateTargets = [];
 
-        this.addLinkTarget('github', (full) => `https://github.com/${this.encode(full)}`);
-        this.addLinkTarget('npm', (full) => `https://npmjs.com/${this.encode(full)}`);
-        this.addLinkTarget('mdn', (full) => `https://developer.mozilla.org/search?q=${this.encode(full, { '20': '+' })}`);
-        this.addLinkTarget('so', (full) => `https://github.com/${this.encode(full, { '20': '+' })}`);
-        this.addLinkTarget('mw', (full) => `https://mediawiki.org/wiki/${this.encode(full)}`);
+        // Note: All of these target functions are ordered from longest to shortest
+        // They're also divided into sections according to their parameters and purpose
+        // In case you think that matters, *it doesn't*
+        // The [this.getTargetResult] function always gets the longest matching prefix
+        // And since prefixes can't be repeated, it's deterministic
+        this.addLinkTarget('github', ({ full }) => `https://github.com/${this.encode(full)}`);
+        this.addLinkTarget('npm', ({ full }) => `https://npmjs.com/${this.encode(full)}`);
+        this.addLinkTarget('mdn', ({ full }) => `https://developer.mozilla.org/search?q=${this.encode(full, { '20': '+' })}`);
+        this.addLinkTarget('so', ({ full }) => `https://github.com/${this.encode(full, { '20': '+' })}`);
+        this.addLinkTarget('mw', ({ full }) => `https://mediawiki.org/wiki/${this.encode(full)}`);
 
-        this.addLinkTarget(['wp'], ['wikipedia'], (full) => `https://en.wikipedia.org/wiki/${this.encode(full)}`);
-        this.addLinkTarget(['g'], ['google'], (full) => `https://github.com/${this.encode(full)}`);
+        this.addLinkTarget(['wp'], ['wikipedia'], ({ full }) => `https://en.wikipedia.org/wiki/${this.encode(full)}`);
+        this.addLinkTarget(['g'], ['google'], ({ full }) => `https://github.com/${this.encode(full)}`);
 
-        this.addLinkTarget('w', 'c', async (_, [wiki, ...rest]) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(rest.join(':'))}`);
-        this.addLinkTarget('w', (full) => `https://community.fandom.com/wiki/${this.encode(full)}`);
+        this.addLinkTarget('w', 'c', async ({ parts: [wiki, ...rest] }) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(rest.join(':'))}`);
+        this.addLinkTarget('w', ({ full }) => `https://community.fandom.com/wiki/${this.encode(full)}`);
 
-        this.addLinkTarget(async (full, _, wiki) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(full)}`);
+        this.addLinkTarget(async ({ full, wiki }) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(full)}`);
 
-        this.addLinkTarget('debug', (...args) => {
+        // lol
+        this.addLinkTarget('debug', (args) => {
             console.log(args);
             return `https://github.com/Dorumin/Twinkle`;
         });
 
-        this.addSearchTarget('w', 'c', (_, [wiki, ...rest]) => this.fetchFirstSearchResult(rest.join(':'), wiki));
-        this.addSearchTarget('w', (full) => this.fetchFirstSearchResult(full, 'community'));
-        this.addSearchTarget((full, _, wiki) => this.fetchFirstSearchResult(full, wiki));
+        // Searching, if it can even be called that considering the quality of the results
+        this.addSearchTarget('w', 'c', ({ parts: [wiki, ...rest] }) => this.fetchFirstSearchResult(rest.join(':'), wiki));
+        this.addSearchTarget('w', ({ full }) => this.fetchFirstSearchResult(full, 'community'));
+        this.addSearchTarget(({ full, wiki }) => this.fetchFirstSearchResult(full, wiki));
 
+        // Special pages
+        this.addTemplateTarget('special', 'prefixindex', ({ full, wiki }) => this.fetchPagesByPrefix(full, wiki));
         this.addTemplateTarget('special', () => `You can't preview special pages!`);
 
-        this.addTemplateTarget('w', 'c', (_, [wiki, ...rest]) => this.fetchArticleEmbed(rest.join(':'), wiki));
-        this.addTemplateTarget('w', (full) => this.fetchArticleEmbed(full, 'community'));
-        this.addTemplateTarget(async (full, _, wiki) => this.fetchArticleEmbed(full, wiki));
+        // Silly utility stuff
+        this.addTemplateTarget('lc', ({ full }) => full.toLowerCase());
+        this.addTemplateTarget('uc', ({ full }) => full.toUpperCase());
+        this.addTemplateTarget('fullurl', ({ full, params, wiki }) => this.getUrlFromParams(full, params, wiki));
+
+        // Article previews
+        this.addTemplateTarget('w', 'c', ({ parts: [wiki, ...rest], message }) => this.fetchArticleEmbed(rest, wiki, message));
+        this.addTemplateTarget('w', ({ parts, message }) => this.fetchArticleEmbed(parts, 'community', message));
+        this.addTemplateTarget(async ({ parts, wiki, message }) => this.fetchArticleEmbed(parts, wiki, message));
+
+        // Debugging
+        this.addTemplateTarget('debug', (args) => {
+            console.log(args);
+            return this.bot.fmt.codeBlock('json', JSON.stringify(args, (k, v) => {
+                if (k === 'message') return { cyclic: true };
+                if (k === 'params' && this.hasStringKeys(v)) return Object.assign({}, v);
+                return v;
+            }, 2));
+        });
 
         bot.client.on('message', this.onMessage.bind(this));
+    }
+
+    hasStringKeys(arr) {
+        for (const k in arr) {
+            if (isNaN(k)) return true;
+        }
+
+        return false;
     }
 
     addLinkTarget(...args) {
@@ -117,13 +151,15 @@ class Linker {
             message.author.bot
         ) return;
 
-        const wiki = this.getWiki(message.guild);
+        const wiki = await this.getWiki(message.guild);
         const promises = this.getPromises(message, wiki);
         const results = await Promise.all(promises);
 
         // console.log(results);
 
         for (const result of results) {
+            if (!result) continue;
+
             const reply = await message.channel.send(result);
 
             Promise.all([
@@ -147,9 +183,7 @@ class Linker {
 
     login() {
         return got.post('https://services.fandom.com/auth/token', {
-            form: true,
-            json: true,
-            body: {
+            form: {
                 username: this.config.USERNAME,
                 password: this.config.PASSWORD
             },
@@ -157,7 +191,7 @@ class Linker {
         });
     }
 
-    getWiki(guild) {
+    async getWiki(guild) {
         const wikis = this.config.WIKIS;
 
         if (!guild) return wikis.default;
@@ -174,15 +208,15 @@ class Linker {
         const templates = this.match(this.TEMPLATE_REGEX, cleaned);
 
         if (links.length) {
-            promises.push(...this.getLinks(links, wiki));
+            promises.push(...this.getLinks(links, wiki, message));
         }
 
         if (searches.length) {
-            promises.push(...this.getSearches(searches, wiki));
+            promises.push(...this.getSearches(searches, wiki, message));
         }
 
         if (templates.length) {
-            promises.push(...this.getTemplates(templates, wiki));
+            promises.push(...this.getTemplates(templates, wiki, message));
         }
 
         return promises.slice(0, 5);
@@ -194,6 +228,14 @@ class Linker {
             .replace(/(`{1,3})[\S\s]+?\1/gm, '')
             // Zero width spaces
             .replace(/\u200B/g, '');
+    }
+
+    removeNamespace(page) {
+        if (typeof page === 'string') {
+            page = page.split(':');
+        }
+
+        return page.slice(1).join(':');
     }
 
     wikiUrl(wiki) {
@@ -212,6 +254,10 @@ class Linker {
         return matches;
     }
 
+    decodeHTML(str) {
+        return he.decode(str, { isAttributeValue: true });
+    }
+
     decodeHex(str, table = this.ENCODE_TABLE) {
         return str.replace(/%([0-9a-f]{2})/gi,
             (_, hex) => table[hex.toLowerCase()] || String.fromCharCode(parseInt(hex, 16)) || '%' + hex
@@ -228,10 +274,39 @@ class Linker {
     }
 
     escape(str) {
-        return str.replace(/@|discord\.gg/g, `$&${this.ZWSP}`);
+        return String(str).replace(/@|discord\.gg/g, `$&${this.ZWSP}`);
     }
 
-    getTargetResult(targets, segments, wiki) {
+    // Returns a parsed parameter list
+    // Takes the form of an array that can also have key-value pairs
+    // Requires the initial |, and excludes everything before it (like the template name, for example)
+    // ignored|param1|param2 => [param1, param2]
+    // ignored|arg1=val1|param1|arg2=val2|param2 => [param1, param2, arg1=val1, arg2=val2]
+    parseParams(str) {
+        const params = [];
+        if (!str) return params;
+
+        const split = str.split('|').slice(1);
+
+        for (const i in split) {
+            const param = split[i];
+            const index = param.indexOf('=');
+
+            if (index === -1) {
+                const index = params.length;
+                const value = param.trim();
+                params[index] = value;
+            } else {
+                const key = param.slice(0, index).trim();
+                const value = param.slice(index + 1).trim();
+                params[key] = value;
+            }
+        }
+
+        return params;
+    }
+
+    getTargetResult(targets, segments, wiki, params, message) {
         let i = targets.length;
 
         targetsLoop:
@@ -246,7 +321,13 @@ class Linker {
 
             const sliced = segments.slice(prefixes.length);
 
-            return callback(sliced.join(':'), sliced, wiki);
+            return callback({
+                full: sliced.join(':'),
+                parts: sliced,
+                wiki,
+                params,
+                message
+            });
         }
     }
 
@@ -254,6 +335,7 @@ class Linker {
         // TODO: Implement 2000/2048 line splitting
         const embeds = [];
 
+        const shouldEmbed = links.some(match => match[2]);
         const hyperLinks = Promise.all(
             links
                 .map(match => this.getLink(match, wiki))
@@ -261,33 +343,33 @@ class Linker {
 
         embeds.push(
             hyperLinks.then(links => {
-                return links.join('\n');
+                if (shouldEmbed) {
+                    return {
+                        embed: {
+                            description: links.join('\n')
+                        }
+                    };
+                } else {
+                    return links.join('\n');
+                }
             })
         );
-
-        // embeds.push(
-        //     hyperLinks.then(links => {
-        //         console.log(links);
-        //         return {
-        //             embed: {
-        //                 description: links.join('\n')
-        //             }
-        //         };
-        //     })
-        // );
 
         return embeds;
     }
 
     async getLink(match, wiki) {
         const linked = match[1],
-        // display = match[2] || linked,
+        display = match[2],
         segments = linked.split(':').map(seg => seg.trim());
 
         const url = await this.getTargetResult(this.linkTargets, segments, wiki);
 
+        if (display) {
+            return this.bot.fmt.link(display, url);
+        }
+
         return `<${this.bot.fmt.link(url)}>`;
-        // return this.bot.fmt.link(display, url);
     }
 
     getSearches(searches, wiki) {
@@ -321,22 +403,29 @@ class Linker {
         return `<${result.url}>\n${result.snippet}`;
     }
 
-    getTemplates(templates) {
-        console.log(templates);
+    getTemplates(templates, wiki, message) {
+        return templates.map(match => this.getTemplate(match, wiki, message));
+    }
 
-        return [];
+    async getTemplate(template, wiki, message) {
+        const name = template[1],
+        params = this.parseParams(template[2]),
+        segments = name.split(/:|\//).map(seg => seg.trim());
+
+        const result = await this.getTargetResult(this.templateTargets, segments, wiki, params, message);
+
+        return result;
     }
 
     async fetchSearchResults(query, wiki) {
-        const { body } = await got(`${await this.wikiUrl(wiki)}/api/v1/Search/List`, {
-            query: {
+        const body = await got(`${await this.wikiUrl(wiki)}/api/v1/Search/List`, {
+            searchParams: {
                 query,
                 // Adding a limit makes the endpoint sometimes throw a 404
                 // limit,
                 namespaces: '0'
             },
-            json: true
-        });
+        }).json();
 
         if (!body.items || !body.items.length) return [];
 
@@ -344,9 +433,10 @@ class Linker {
     }
 
     async fetchFirstSearchResult(query, wiki) {
-        const pages = await linker.fetchSearchResults(query, wiki);
+        console.log('search', query, wiki);
+        const pages = await this.fetchSearchResults(query, wiki);
 
-        if (!pages) return `No search results found for \`${query}\`.`;
+        if (!pages || !pages[0]) return `No search results found for \`${query}\`.`;
 
         const page = pages[0],
         snippet = page.snippet
@@ -360,13 +450,446 @@ class Linker {
         };
     }
 
-    async fetchArticleEmbed(article, wiki) {
-        return {
-            embed: {
-                title: 'Test template embed!',
-                description: `${article} @ ${wiki}`
+    // API helper
+    async api(wiki, params) {
+        params.format = 'json';
+
+        const body = await got(`${await this.wikiUrl(wiki)}/api.php`, {
+            searchParams: params,
+        }).json();
+
+        return body;
+    }
+
+    async nsIsThread(ns) {
+        return [1201, 2001].includes(ns);
+    }
+
+    // @TODO: Someday will have a proper check with local thread namespace aliases
+    // But for now, it's pretty safe to just run two calls if the title without ns is a number
+    async titleIsThread(segments, wiki) {
+        return !isNaN(segments[1]);
+    }
+
+    async fetchArticleProps(segments, wiki) {
+        const promises = [];
+
+        promises.push(
+            this.api(wiki, {
+                action: 'query',
+                prop: 'categories|revisions',
+                clshow: '!hidden',
+                rvprop: 'timestamp',
+                titles: segments.join(':'),
+                redirects: true
+            })
+        );
+
+        if (await this.titleIsThread(segments, wiki)) {
+            // Fetch content alongside everything else to extract thread title from ac_metadata tag
+            promises.push(
+                this.api(wiki, {
+                    action: 'query',
+                    prop: 'categories|revisions',
+                    clshow: '!hidden',
+                    rvprop: 'content|timestamp',
+                    pageids: segments[1],
+                    redirects: true
+                })
+            );
+        }
+
+        const [result, fallback] = await Promise.all(promises);
+
+        if (result && result.query) {
+            const page = Object.values(result.query.pages)[0];
+
+            if (page && !page.hasOwnProperty('missing')) {
+                return page;
             }
+        }
+
+        if (fallback && fallback.query) {
+            const page = Object.values(fallback.query.pages)[0];
+
+            if (page && !page.hasOwnProperty('missing')) {
+                return page;
+            }
+        }
+
+        return null;
+    }
+
+    async fetchThreadData(props, wiki) {
+        if (!await this.nsIsThread(props.ns)) return null;
+
+        const promises = [];
+        const url = await this.wikiUrl(wiki);
+
+        promises.push(
+            this.api(wiki, {
+                action: 'query',
+                prop: 'revisions',
+                list: 'allpages',
+                rvdir: 'newer',
+                rvprop: 'user|timestamp',
+                pageids: props.pageid,
+                redirects: true,
+                apprefix: this.removeNamespace(props.title),
+                apnamespace: props.ns,
+                aplimit: 'max'
+            })
+        );
+
+        promises.push(
+            got(`${url}/wikia.php?controller=WallExternal&method=votersModal&format=html`, {
+                searchParams: {
+                    controller: 'WallExternal',
+                    method: 'votersModal',
+                    format: 'json',
+                    id: props.pageid
+                },
+            }).json()
+        );
+
+        const data = {};
+        const [ revisions, kudos ] = await Promise.all(promises);
+
+        const titleMatch = props.revisions && props.revisions[0]['*'].match(/<ac_metadata\s*title="([^"]+)\s*[^>]*>\s*<\/ac_metadata>/);
+
+        if (titleMatch) {
+            data.threadTitle = this.decodeHTML(titleMatch[1]);
+        }
+
+        const first = Object.values(revisions.query.pages)[0];
+
+        data.author = first.revisions[0].user;
+        data.creation = first.revisions[0].timestamp;
+        data.replyCount = revisions.query.allpages.length - 1;
+        data.kudos = Number(kudos.count);
+        data.isThread = true;
+        data.isForum = props.ns == 2001;
+        data.placement = props.title.split('/')[0].split(':')[1];
+
+        const details = await got(`${url}/api/v1/User/Details`, {
+            searchParams: {
+                ids: data.author + (data.isForum ? '' : ',' + data.placement),
+                size: 1000
+            }
+        }).json();
+
+        data.authorAvatar = details.items[0] && details.items[0].avatar;
+        data.wallAvatar = data.isForum
+            ? undefined
+            : details.items[1] && details.items[1].avatar;
+
+        return data;
+    }
+
+    // Needs not use Promise.all, as each await is run consecutively
+    // It's just cleaner this way, even if it may look like an inefficient way to do it
+    // Promises aren't constructed in the loop, just accessed
+    async awaitPromiseObject(promises) {
+        for (const key in promises) {
+            const promise = promises[key];
+            promises[key] = await promise;
+        }
+    }
+
+    // Fetches article details such as thumbnail and abstract summary
+    async fetchArticleDetails(props, wiki) {
+        const url = await this.wikiUrl(wiki);
+        const body = await got(`${url}/api/v1/Articles/Details`, {
+            searchParams: {
+                // wtf
+                ids: ',',
+                titles: props.title
+            }
+        }).json();
+
+        body.article = Object.values(body.items)[0];
+
+        if (props.ns === 2) {
+            console.log('Doing sketchy stuff with the thumbnail', body.article.thumbnail);
+            body.article.thumbnail = body.article.thumbnail.split('/').slice(0, 4).join('/');
+        }
+
+        return body;
+    }
+
+    // Fetches the simplified JSON representation of the article
+    async fetchArticleJson(props, wiki) {
+        const url = await this.wikiUrl(wiki);
+        const body = await got(`${url}/api/v1/Articles/AsSimpleJson`, {
+            searchParams: {
+                id: props.pageid
+            }
+        }).json();
+
+        return body;
+    }
+
+    // Fetches the OpenGraph data of the article, including thumbnail and description
+    async fetchArticleOpenGraph(props, wiki) {
+        const url = await this.wikiUrl(wiki);
+        const body = await got(`https://services.fandom.com/opengraph`, {
+            searchParams: {
+                uri: `${url}/wiki/${props.title}`,
+            },
+            cookieJar: this.jar
+        }).json();
+
+        return body;
+    }
+
+    // Fetches a variety of article data concurrently
+    async fetchArticleData(props, wiki) {
+        if (!props) return;
+
+        const promiseObject = {};
+
+        promiseObject.details = this.fetchArticleDetails(props, wiki);
+        promiseObject.json = this.fetchArticleJson(props, wiki);
+        promiseObject.og = this.fetchArticleOpenGraph(props, wiki);
+        promiseObject.thread = this.fetchThreadData(props, wiki);
+
+        await this.awaitPromiseObject(promiseObject);
+
+        return promiseObject;
+
+        return console.log('Reached end of function! Unfinished', promiseObject);
+
+        return {
+            data: details.body,
+            json: json.body,
+            article,
+            thumbnail: og.body.imageUrl || article.thumbnail || null,
+            author: thread ? {
+                name: author,
+                url: `https://${wiki}.wikia.com/wiki/User:${encodeURIComponent(author)}`,
+                icon_url: user && user.body.items[0] && user.body.items[0].avatar
+            } : undefined,
+            footer: thread ? {
+                text: forum ? `${placement} board` : `${placement}'s message wall`,
+                icon_url: user && user.body.items[1] && user.body.items[1].avatar
+            } : undefined,
+            description: linker.getDescription(json.body.sections, Object.values(details.body.items)[0].abstract),
         };
+    }
+
+    getDescription(sections, ...fallbacks) {
+        const first = sections
+            .map(section => section.content)
+            .filter(content => content && content.filter(elem => elem.type == 'paragraph' && elem.text.trim()).length)
+            .map(content => content.find(elem => elem.type == 'paragraph'))
+            [0];
+
+        if (first) {
+            return first.text;
+        }
+
+        return fallbacks.find(Boolean);
+    }
+
+    // Sanitizes a Discord embed structure to protect against @mentions and invite links
+    // Uses [this.escape], so they're replaced with a zero-width space
+    escapeEmbed(embed) {
+        if (embed.title) {
+            embed.title = this.escape(embed.title);
+        }
+
+        if (embed.description) {
+            embed.description = this.escape(embed.description);
+        }
+
+        if (embed.fields) {
+            for (const i in embed.fields) {
+                const field = embed.fields[i];
+
+                if (field.value) {
+                    field.value = this.escape(field.value);
+                }
+            }
+        }
+
+        if (embed.author && embed.author.name) {
+            embed.author.name = this.escape(embed.author.name);
+        }
+
+        if (embed.footer && embed.footer.text) {
+            embed.footer.text = this.escape(embed.footer.text);
+        }
+    }
+
+    async buildArticleEmbed(props, data, wiki, message) {
+        console.log('Building article embed', { props, data });
+
+        const url = await this.wikiUrl(wiki);
+        const embed = {};
+        const fields = [];
+
+        const { og, json, thread, details } = data;
+
+        embed.color = message.guild.me.displayColor;
+        embed.title = props.title;
+        embed.url = `${url}/wiki/${this.encode(props.title)}`;
+        embed.description = this.getDescription(json.sections, details.article.abstract, og.description);
+
+        const thumbnail = og.imageUrl || details.article.thumbnail;
+
+        if (thumbnail) {
+            embed.thumbnail = {
+                url: thumbnail
+            };
+        }
+
+        if (props.categories) {
+            fields.push({
+                name: `Categories [${props.categories.length}]`,
+                value: props.categories.map(cat => this.removeNamespace(cat.title)).join(', '),
+            });
+        }
+
+        if (thread) {
+            embed.title = thread.threadTitle;
+
+            embed.author = {
+                name: thread.author,
+                url: `${url}/wiki/User:${this.encode(thread.author)}`,
+                icon_url: thread.authorAvatar
+            };
+
+            embed.footer = {
+                icon_url: thread.wallAvatar,
+                text: thread.isForum
+                    ? `${thread.placement} board`
+                    : `${thread.placement}'s wall`
+            };
+
+            embed.timestamp = thread.creation;
+
+            if (thread.replyCount) {
+                fields.push({
+                    name: 'Replies',
+                    value: thread.replyCount,
+                    inline: true
+                });
+            }
+
+            if (thread.kudos) {
+                fields.push({
+                    name: 'Kudos',
+                    value: thread.kudos,
+                    inline: true
+                });
+            }
+        }
+
+        if (fields.length) {
+            embed.fields = fields;
+        }
+
+        this.escapeEmbed(embed);
+
+        return embed;
+    }
+
+    async fetchArticleEmbed(segments, wiki, message) {
+        const props = await this.fetchArticleProps(segments, wiki);
+        if (!props) return null;
+
+        const data = await this.fetchArticleData(props, wiki);
+        if (!data) return null;
+
+        const embed = await this.buildArticleEmbed(props, data, wiki, message);
+
+        // console.log('Props', props);
+        // console.log('Data', data);
+
+        return {
+            embed
+        };
+    }
+
+    async getUrlFromParams(full, params, wiki) {
+        const url = await this.wikiUrl(wiki);
+        const base = `${url}/wiki/${this.encode(full)}`;
+        let query = '?';
+
+        for (const key in params) {
+            if (isNaN(key)) {
+                query += `${this.encode(key)}=${this.encode(params[key])}&`;
+            } else {
+                query += `${this.encode(params[key])}&`;
+            }
+        }
+
+        if (query === '?') return `<${base}>`;
+
+        query = query.slice(0, -1);
+
+        return `<${base}${query}>`;
+    }
+
+    async fetchNamespaces(wiki) {
+        const result = await this.api(wiki, {
+            action: 'query',
+            meta: 'siteinfo',
+            siprop: 'namespaces|namespacealiases'
+        });
+        const namespaces = {};
+
+        for (const id in result.query.namespaces) {
+            const ns = result.query.namespaces[id];
+
+            namespaces[ns['*'].toLowerCase()] = ns.id;
+
+            if (ns.canonical) {
+                namespaces[ns.canonical.toLowerCase()] = ns.id;
+            }
+
+            if (ns.hasOwnProperty('content') && !namespaces.hasOwnProperty('$default')) {
+                namespaces.$default = ns.id;
+            }
+        }
+
+        for (const i in result.query.namespacealiases) {
+            const ns = result.query.namespacealiases[i];
+
+            namespaces[ns['*'].toLowerCase()] = ns.id;
+        }
+
+        return namespaces;
+    }
+
+    async matchNamespace(page, wiki) {
+        const namespaces = await this.namespaces.get(wiki, () => this.fetchNamespaces(wiki)),
+        split = page.split(':'),
+        ns = split.shift().toLowerCase();
+
+        if (namespaces.hasOwnProperty(ns)) {
+            return [namespaces[ns], split.join(':')];
+        } else {
+            return [namespaces.$default, page];
+        }
+    }
+
+    async fetchPagesByPrefix(name, wiki) {
+        console.log(name, wiki);
+
+        const [ns, title] = await this.matchNamespace(name, wiki),
+        result = await this.api(wiki, {
+            action: 'query',
+            list: 'allpages',
+            apnamespace: ns,
+            apprefix: title,
+            aplimit: 5
+        }),
+        titles = result.query.allpages.map(page => page.title);
+
+        console.log(ns, title);
+
+        return this.bot.fmt.codeBlock(titles.join('\n'));
     }
 }
 
@@ -438,14 +961,12 @@ const linker = {
     init: async () => {
         linker.jar = new CookieJar();
         await got.post('https://services.fandom.com/auth/token', {
-            form: true,
-            json: true,
-            body: {
+            form: {
                 username: config.USERNAME,
                 password: config.PASSWORD
             },
             cookieJar: linker.jar,
-        });
+        }).json();
     },
     check: () => {
         return config.ADMINS && config.ADMINS.length;
@@ -666,8 +1187,8 @@ const linker = {
     toId: prefix => linker.namespaceIds[prefix.trim().replace(/\s/g, '_').toLowerCase()],
     fetchByPrefix: async (wiki, prefix) => {
         const [ns, trimmed] = linker.matchNamespace(prefix),
-        { body } = await got(`https://${wiki}.wikia.com/api.php`, {
-            query: {
+        body = await got(`https://${wiki}.wikia.com/api.php`, {
+            searchParams: {
                 action: 'query',
                 list: 'allpages',
                 apnamespace: linker.toId(ns),
@@ -675,8 +1196,7 @@ const linker = {
                 aplimit: 5,
                 format: 'json',
             },
-            json: true,
-        });
+        }).json();
 
         return body.query.allpages.map(page => page.title);
     },
@@ -689,28 +1209,24 @@ const linker = {
             user
         ] = await Promise.all([
             got(`https://${wiki}.wikia.com/api/v1/Articles/Details`, {
-                query: {
+                searchParams: {
                     ids: ',',
                     titles: title,
                 },
-                json: true,
-            }),
+            }).json(),
             got(`https://${wiki}.wikia.com/api/v1/Articles/AsSimpleJson`, {
-                query: {
+                searchParams: {
                     id: pageid
                 },
-                json: true
-            }),
+            }).json(),
             got(`https://services.fandom.com/opengraph`, {
-                query: {
+                searchParams: {
                     uri: `https://${wiki}.wikia.com/wiki/${title}`,
                 },
-                json: true,
                 cookieJar: linker.jar,
-
-            }),
+            }).json(),
             thread ? got(`https://${wiki}.wikia.com/api/v1/User/Details`, {
-                query: {
+                searchParams: {
                     ids: author + (forum ? '' : ',' + placement),
                     size: 1000
                 },
@@ -742,7 +1258,7 @@ const linker = {
     },
     fetchArticleCategories: async (wiki, name) => {
         const { body } = await got(`https://${wiki}.wikia.com/api.php`, {
-            query: {
+            searchParams: {
                 action: 'query',
                 prop: 'categories|revisions',
                 clshow: '!hidden',
@@ -763,7 +1279,7 @@ const linker = {
         const id = parseInt(name.split(':').slice(1).join(':'));
         if (!id) return { missing: '' };
         const { body } = await got(`https://${wiki}.wikia.com/api.php`, {
-            query: {
+            searchParams: {
                 action: 'query',
                 prop: 'categories|revisions',
                 clshow: '!hidden',
@@ -777,14 +1293,14 @@ const linker = {
         page = Object.values(body.query.pages)[0];
         console.log(page);
 
-        if (page.hasOwnProperty('mising')) return page;
+        if (page.hasOwnProperty('missing')) return page;
 
         const [
             res,
             kudos,
         ] = await Promise.all([
             got(`https://${wiki}.wikia.com/api.php`, {
-                query: {
+                searchParams: {
                     action: 'query',
                     prop: 'revisions',
                     list: 'allpages',
@@ -800,7 +1316,7 @@ const linker = {
                 json: true,
             }),
             got(`https://${wiki}.wikia.com/wikia.php?controller=WallExternal&method=votersModal&format=html`, {
-                query: {
+                searchParams: {
                     controller: 'WallExternal',
                     method: 'votersModal',
                     format: 'json',
@@ -900,7 +1416,7 @@ const linker = {
     fetchSearchResults: async (wiki, query, limit = 1) => {
         try {
             const { body } = await got(`https://${wiki}.wikia.com/api/v1/Search/List`, {
-                query: {
+                searchParams: {
                     query,
                     // Adding a limit makes the endpoint sometimes throw a 404
                     // limit,

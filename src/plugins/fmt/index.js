@@ -23,6 +23,11 @@ class Formatter {
         return str.trim().replace(/^\s+/gm, '');
     }
 
+    indent(str, spaces = 2) {
+        const whitespace = new Array(spaces + 1).join(' ');
+        return whitespace + str.replace(/\n/g, `\n${whitespace}`);
+    }
+
     escapeRegex(str) {
         return str.replace(this.REGEX_TOKEN_PATTERN, '\\$&');
     }

@@ -196,21 +196,19 @@ class CodeCommand extends Command {
         switch (TYPE) {
             case 'github':
                 const [
-                    { body: repo },
-                    { body: commits }
+                    repo,
+                    commits
                 ] = await Promise.all([
                     got(`https://api.github.com/repos/${PATH}`, {
-                        json: true,
                         headers: {
                             'User-Agent': PATH
                         }
-                    }),
+                    }).json(),
                     got(`https://api.github.com/repos/${PATH}/commits`, {
-                        json: true,
                         headers: {
                             'User-Agent': PATH
                         }
-                    })
+                    }).json()
                 ]);
 
                 data.sitename = 'GitHub';
