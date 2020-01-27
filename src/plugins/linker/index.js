@@ -83,9 +83,9 @@ class Linker {
         this.addTemplateTarget('fullurl', ({ full, params, wiki }) => this.getUrlFromParams(full, params, wiki));
 
         // Article previews
-        this.addTemplateTarget('w', 'c', ({ parts: [wiki, ...rest], message }) => this.fetchArticleEmbed(rest, wiki, message));
-        this.addTemplateTarget('w', ({ parts, message }) => this.fetchArticleEmbed(parts, 'community', message));
-        this.addTemplateTarget(async ({ parts, wiki, message }) => this.fetchArticleEmbed(parts, wiki, message));
+        this.addTemplateTarget('w', 'c', ({ full, parts: [wiki], message }) => this.fetchArticleEmbed(full.slice(wiki + 1), wiki, message));
+        this.addTemplateTarget('w', ({ full, message }) => this.fetchArticleEmbed(full, 'community', message));
+        this.addTemplateTarget(async ({ full, wiki, message }) => this.fetchArticleEmbed(full, wiki, message));
 
         // Debugging
         // this.addTemplateTarget('debug', (args) => {
@@ -470,11 +470,11 @@ class Linker {
 
     // @TODO: Someday will have a proper check with local thread namespace aliases
     // But for now, it's pretty safe to just run two calls if the title without ns is a number
-    async titleIsThread(segments, wiki) {
-        return !isNaN(segments[1]);
+    async titleIsThread(title, wiki) {
+        return !isNaN(title.split(':')[1]);
     }
 
-    async fetchArticleProps(segments, wiki) {
+    async fetchArticleProps(title, wiki) {
         const promises = [];
 
         promises.push(
@@ -483,12 +483,12 @@ class Linker {
                 prop: 'categories|revisions',
                 clshow: '!hidden',
                 rvprop: 'timestamp',
-                titles: segments.join(':'),
+                titles: title,
                 redirects: true
             })
         );
 
-        if (await this.titleIsThread(segments, wiki)) {
+        if (await this.titleIsThread(title, wiki)) {
             // Fetch content alongside everything else to extract thread title from ac_metadata tag
             promises.push(
                 this.api(wiki, {
@@ -496,7 +496,7 @@ class Linker {
                     prop: 'categories|revisions',
                     clshow: '!hidden',
                     rvprop: 'content|timestamp',
-                    pageids: segments[1],
+                    pageids: title.split(':')[1],
                     redirects: true
                 })
             );
@@ -775,8 +775,8 @@ class Linker {
         return embed;
     }
 
-    async fetchArticleEmbed(segments, wiki, message) {
-        const props = await this.fetchArticleProps(segments, wiki);
+    async fetchArticleEmbed(title, wiki, message) {
+        const props = await this.fetchArticleProps(title, wiki);
         if (!props) return null;
 
         const data = await this.fetchArticleData(props, wiki);
