@@ -191,6 +191,11 @@ got@^10.3.0:
     to-readable-stream "^2.0.0"
     type-fest "^0.9.0"
 
+he@1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/he/-/he-1.1.1.tgz#93410fd21b009735151f8868c2f271f3427e23fd"
+  integrity sha1-k0EP0hsAlzUVH4howvJx80J+I/0=
+
 he@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
@@ -259,6 +264,13 @@ node-fetch@2.6.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
   integrity sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
+
+node-html-parser@^1.1.19:
+  version "1.1.19"
+  resolved "https://registry.yarnpkg.com/node-html-parser/-/node-html-parser-1.1.19.tgz#551ddbea531433d849da98a31d7421c96f9df318"
+  integrity sha512-X7spStiBKw9HQfUdBpT8v4MZf2x4qCLu9w31meeqM9Egpne2B78bxZjC4b1ie6NgFMvyY1qdgjI9+scieXmkeA==
+  dependencies:
+    he "1.1.1"
 
 normalize-url@^4.1.0:
   version "4.5.0"

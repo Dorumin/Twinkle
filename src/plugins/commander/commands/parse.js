@@ -1,4 +1,5 @@
 const got = require('got');
+const { parse, HTMLElement } = require('node-html-parser');
 const Command = require('../structs/Command.js');
 const FandomizerPlugin = require('../../fandomizer');
 const FormatterPlugin = require('../../fmt');
@@ -29,21 +30,33 @@ class ParseCommand extends Command {
     }
 
     async call(message, content) {
-        const wiki = 'dev', // @Hardcoded
-        url = await this.bot.fandomizer.url(wiki),
-        result = await got(`${url}/api.php`, {
-            json: true,
-            query: {
+        const wiki = 'dev'; // @Hardcoded
+        const url = await this.bot.fandomizer.url(wiki);
+        const result = await got(`${url}/api.php`, {
+            searchParams: {
                 action: 'parse',
                 prop: 'text',
                 text: content,
                 disablepp: true,
                 format: 'json'
             }
-        }),
-        text = result.body.parse.text['*'];
+        }).json();
+        const text = result.parse.text['*'];
+        const tree = parse(text);
 
-        message.channel.send(this.bot.fmt.codeBlock('html', text));
+        let html = text;
+
+        if (tree instanceof HTMLElement) {
+            if (tree.tagName === null && tree.childNodes.length === 1) {
+                const firstChild = tree.childNodes[0];
+
+                if (firstChild.tagName === 'p') {
+                    html = firstChild.innerHTML;
+                }
+            }
+        }
+
+        message.channel.send(this.bot.fmt.codeBlock('html', html));
     }
 }
 
