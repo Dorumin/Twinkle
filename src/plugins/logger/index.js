@@ -77,7 +77,10 @@ class Logger {
             if (this.config.CATEGORIES) {
                 throw new Error('Unimplemented category splitting');
             } else {
-                channel.send(this.bot.fmt.codeBlock('toml', logEntry));
+                const message = this.bot.fmt.codeBlock('toml', logEntry);
+                if (message.length <= 2000) {
+                    channel.send(message);
+                }
             }
         }
         // channel.write(`${message}\n`);

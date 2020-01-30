@@ -82,9 +82,16 @@ class Linker {
         this.addTemplateTarget('uc', ({ full }) => full.toUpperCase());
         this.addTemplateTarget('fullurl', ({ full, params, wiki }) => this.getUrlFromParams(full, params, wiki));
 
+        // Redirect w: and w:c:wiki paths to other template handlers
+        // This strategy could be applied to the other handlers, but they're pretty simple for now
+        this.addTemplateTarget('w', 'c', ({ parts: [wiki, ...rest], full, params, message }) => {
+            return this.getTargetResult(this.templateTargets, rest, wiki, full.slice(wiki.length + 1), params, message);
+        });
+        this.addTemplateTarget('w', ({ parts, full, params, message }) => {
+            return this.getTargetResult(this.templateTargets, parts, 'community', full, params, message);
+        });
+
         // Article previews
-        this.addTemplateTarget('w', 'c', ({ full, parts: [wiki], message }) => this.fetchArticleEmbed(full.slice(wiki + 1), wiki, message));
-        this.addTemplateTarget('w', ({ full, message }) => this.fetchArticleEmbed(full, 'community', message));
         this.addTemplateTarget(async ({ full, wiki, message }) => this.fetchArticleEmbed(full, wiki, message));
 
         // Debugging
@@ -1001,9 +1008,33 @@ class Linker {
         const avatar = await this.avatars.get(cur.user, () => this.fetchAvatar(cur.user));
 
         const diffs = this.getDiffs(old['*'], cur['*']);
-        let description = '';
+        const shownDiffs = [];
+        const CHARS_PER_DIFF = 3 + 4 + 1 + 3;
+        const DESC_LIMIT = 2048;
+        let currentLength = 0;
         for (const diff of diffs) {
-            description += this.bot.fmt.codeBlock('diff', diff);
+            const added = diff.length + CHARS_PER_DIFF;
+            if (currentLength + added > DESC_LIMIT) break;
+            currentLength += added;
+            shownDiffs.push(diff);
+        }
+
+        let description = '';
+
+        if (!shownDiffs.length) {
+            description = 'The diff is too big to display.';
+        } else {
+            for (const diff of shownDiffs) {
+                description += this.bot.fmt.codeBlock('diff', diff);
+            }
+        }
+
+        if (shownDiffs.length < diffs.length) {
+            const skippedDiffs = diffs.length - shownDiffs.length;
+            const addendum = `(+${skippedDiffs} more changes)`;
+            if (description.length + addendum.length <= DESC_LIMIT) {
+                description += addendum;
+            }
         }
 
         return {
