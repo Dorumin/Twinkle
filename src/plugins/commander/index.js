@@ -188,7 +188,7 @@ class Commander {
 
         if (this.config.MENTION) {
             const id = this.bot.client.user.id;
-            prefixes.push(`<@${id}>`, `<@!${id}>`);
+            return prefixes.concat([`<@${id}>`, `<@!${id}>`]);
         }
 
         return prefixes;
