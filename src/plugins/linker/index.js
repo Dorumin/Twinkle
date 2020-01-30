@@ -82,9 +82,16 @@ class Linker {
         this.addTemplateTarget('uc', ({ full }) => full.toUpperCase());
         this.addTemplateTarget('fullurl', ({ full, params, wiki }) => this.getUrlFromParams(full, params, wiki));
 
+        // Redirect w: and w:c:wiki paths to other template handlers
+        // This strategy could be applied to the other handlers, but they're pretty simple for now
+        this.addTemplateTarget('w', 'c', ({ parts: [wiki, ...rest], full, params, message }) => {
+            return this.getTargetResult(this.templateTargets, rest, wiki, full.slice(wiki.length + 1), params, message);
+        });
+        this.addTemplateTarget('w', ({ parts, full, params, message }) => {
+            return this.getTargetResult(this.templateTargets, parts, 'community', full, params, message);
+        });
+
         // Article previews
-        this.addTemplateTarget('w', 'c', ({ full, parts: [wiki], message }) => this.fetchArticleEmbed(full.slice(wiki + 1), wiki, message));
-        this.addTemplateTarget('w', ({ full, message }) => this.fetchArticleEmbed(full, 'community', message));
         this.addTemplateTarget(async ({ full, wiki, message }) => this.fetchArticleEmbed(full, wiki, message));
 
         // Debugging
