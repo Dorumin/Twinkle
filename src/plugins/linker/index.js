@@ -740,6 +740,7 @@ class Linker {
 
         if (thread) {
             embed.title = thread.threadTitle;
+            embed.url = `${url}/wiki/Thread:${props.pageid}`;
 
             embed.author = {
                 name: thread.author,
