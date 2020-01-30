@@ -21,6 +21,7 @@
   "homepage": "https://github.com/Dorumin/Twinkle#readme",
   "dependencies": {
     "clean-stack": "2.2.0",
+    "confusables": "^1.0.0",
     "diff": "^4.0.2",
     "discord.js": "11.5.1",
     "dropbox": "4.0.30",
