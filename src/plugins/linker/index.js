@@ -1008,9 +1008,33 @@ class Linker {
         const avatar = await this.avatars.get(cur.user, () => this.fetchAvatar(cur.user));
 
         const diffs = this.getDiffs(old['*'], cur['*']);
-        let description = '';
+        const shownDiffs = [];
+        const CHARS_PER_DIFF = 3 + 4 + 1 + 3;
+        const DESC_LIMIT = 2048;
+        let currentLength = 0;
         for (const diff of diffs) {
-            description += this.bot.fmt.codeBlock('diff', diff);
+            const added = diff.length + CHARS_PER_DIFF;
+            if (currentLength + added > DESC_LIMIT) break;
+            currentLength += added;
+            shownDiffs.push(diff);
+        }
+
+        let description = '';
+
+        if (!shownDiffs.length) {
+            description = 'The diff is too big to display.';
+        } else {
+            for (const diff of shownDiffs) {
+                description += this.bot.fmt.codeBlock('diff', diff);
+            }
+        }
+
+        if (shownDiffs.length < diffs.length) {
+            const skippedDiffs = diffs.length - shownDiffs.length;
+            const addendum = `(+${skippedDiffs} more changes)`;
+            if (description.length + addendum.length <= DESC_LIMIT) {
+                description += addendum;
+            }
         }
 
         return {
