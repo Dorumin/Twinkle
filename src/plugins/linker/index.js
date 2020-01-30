@@ -446,7 +446,7 @@ class Linker {
     async fetchFirstSearchResult(query, wiki) {
         const pages = await this.fetchSearchResults(query, wiki);
 
-        if (!pages || !pages[0]) return `No search results found for ${this.bot.fmt.code(query)}.`;
+        if (!pages || !pages[0]) return `No search results found for ${this.bot.fmt.code(this.escape(query))}.`;
 
         const page = pages[0],
         snippet = page.snippet
@@ -456,7 +456,7 @@ class Linker {
 
         return {
             url: page.url,
-            snippet
+            snippet: this.escape(snippet)
         };
     }
 
