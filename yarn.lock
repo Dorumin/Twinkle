@@ -116,6 +116,11 @@ concat-map@0.0.1:
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
   integrity sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=
 
+confusables@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/confusables/-/confusables-1.0.0.tgz#b962cad8a6b49bd22c31423a581f2f6a68ad4ac6"
+  integrity sha512-HdrRONFehJdy173Heqosrsy5JLwUjH5A2/Q1xHHmDTp089YWgkSmU7aiRCprqHSz/Le5fThaOnU9WSj70BUvAw==
+
 decompress-response@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/decompress-response/-/decompress-response-5.0.0.tgz#7849396e80e3d1eba8cb2f75ef4930f76461cb0f"
