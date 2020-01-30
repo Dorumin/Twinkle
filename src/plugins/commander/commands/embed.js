@@ -373,7 +373,7 @@ description = Ignore this update! Changes were rollbacked, wait for further news
     }
 
     buildEmbed(props, defaults = {}) {
-        defaults.fields = [];
+        defaults.fields = defaults.fields || [];
 
         props.forEach(([key, val]) => {
             switch (key) {
