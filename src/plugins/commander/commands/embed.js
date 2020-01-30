@@ -44,7 +44,7 @@ description = Example
 fields[0] = Field title:
 You can add newlines between fields
 fields[1] = ~Inline field
-Mixing inline and block fields is a bad idea
+Mixing inline and block fields is usually a bad idea
 fields[2] = ~Second inline field:
 But you can do it, if you so desire
 image = https://i.ytimg.com/vi/SN9IZ86evb4/maxresdefault.jpg
@@ -255,7 +255,14 @@ description = Ignore this update! Changes were rollbacked, wait for further news
                     const fieldMatch = key.match(/^fields\[(\d+)\]$/i);
                     if (fieldMatch) {
                         const index = fieldMatch[1];
-                        return [`field`, `${index}\n${value}`];
+                        const lines = value.trim().split('\n');
+
+                        if (lines.length === 1) {
+                            return new Error(`${key}: Missing field content, make sure the first line is the field title and the rest is the field content`);
+                        }
+
+
+                        return [`field`, `${index}\n${value.trim()}`];
                     }
 
                     return new Error(`Unknown property: ${key}`);
