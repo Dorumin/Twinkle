@@ -41,23 +41,21 @@ title = Exhaustive
 url = https://youtu.be/SN9IZ86evb4
 thumbnail = https://i.vgy.me/HkNnkH.png
 description = Example
-fields =
-  Field title:
-    You can add newlines between fields
-
-  ~Inline field:
-    Mixing inline and block fields is a bad idea
-  ~Second inline field:
-    But you can do it, if you so desire
+fields[0] = Field title:
+You can add newlines between fields
+fields[1] = ~Inline field
+Mixing inline and block fields is usually a bad idea
+fields[2] = ~Second inline field:
+But you can do it, if you so desire
 image = https://i.ytimg.com/vi/SN9IZ86evb4/maxresdefault.jpg
-footer=
+footer =
   text: Wait what
 timestamp = 2019-10-30T11:00:00.000Z
                 `
             )}`,
             `!embed update https://discordapp.com/channels/246075715714416641/246663167537709058/269876798953750528 ${fmt.codeBlock('ini', `
-title=
-url=;
+title =
+url =
 description = Ignore this update! Changes were rollbacked, wait for further news...
                 `
             )}`
@@ -88,7 +86,7 @@ description = Ignore this update! Changes were rollbacked, wait for further news
         if (!args.length) {
             const lol = await message.channel.send('No arguments detected! Do you... want an empty embed? ok den, sure');
             await message.channel.send({ embed: {} });
-            await this.wait(3000);
+            await this.wait(2000);
             lol.delete();
             return;
         }
@@ -123,7 +121,7 @@ description = Ignore this update! Changes were rollbacked, wait for further news
             }
 
             if (message.author.id != this.bot.client.user.id) {
-                return invoker.channel.send(`Sorry, but I can't update others' messages!`);
+                return invoker.channel.send(`Sorry, but I can't update others' messages.`);
             }
 
             content = content.slice(0, quoteMatch.index) + content.slice(quoteMatch.index + quoteMatch[0].length);
@@ -164,17 +162,17 @@ description = Ignore this update! Changes were rollbacked, wait for further news
         let entries = [];
 
         if (codeBlock) {
-            entries = this.groupLines(string, line => /^\s*\w+\s*=/.test(line));
+            entries = this.groupLines(string, line => /^\s*[\w\[\]]+\s*=/.test(line));
         } else {
             entries = string.split(/(?<!(?<!\\)\\);/g);
         }
 
         const keyValuePairs = entries.map(entry => {
             const standardized = entry.trim().replace(/;$/, '');
-            const match = standardized.match(/(\w+)\s*=\s*([\s\S]*)/);
+            const match = standardized.match(/([\w\[\]]+)\s*=\s*([\s\S]*)/);
             if (!match) return null;
 
-            const [ _, key, value ] = standardized.match(/(\w+)\s*=\s*([\s\S]*)/);
+            const [ _, key, value ] = standardized.match(/([\w\[\]]+)\s*=\s*([\s\S]*)/);
 
             return [key.toLowerCase(), value];
         });
@@ -191,6 +189,7 @@ description = Ignore this update! Changes were rollbacked, wait for further news
                     if (value.split('\n').length > 1) {
                         return new Error(`url can't be multiline.`);
                     }
+
                     // TODO: Validate url
                     return [key, value];
                 case 'color':
@@ -205,12 +204,14 @@ description = Ignore this update! Changes were rollbacked, wait for further news
                     if (value.split('\n').length > 1) {
                         return new Error(`image url can't be multiline.`);
                     }
+
                     // TODO: Validate url
                     return [key, { url: value }];
                 case 'thumbnail':
                     if (value.split('\n').length > 1) {
                         return new Error(`thumbnail url can't be multiline.`);
                     }
+
                     // TODO: Validate url
                     return [key, { url: value }];
                 case 'timestamp':
@@ -218,10 +219,11 @@ description = Ignore this update! Changes were rollbacked, wait for further news
                     if (isNaN(date)) {
                         return new Error(`Invalid timestamp.`);
                     }
+
                     // TODO: Validate url
                     return [key, value];
                 case 'description':
-                    // No need to check for length, I guess
+                    // No need to check for length, I guess; messages can't be longer than 2000
                     return [key, value];
                 case 'author':
                     const authorResult = this.parseSubArgs(key, value);
@@ -240,14 +242,29 @@ description = Ignore this update! Changes were rollbacked, wait for further news
 
                     return footerResult;
                 case 'fields':
-                    const fieldsResult = this.parseSubArgs(key, value, false);
+                    return new Error(`You can't set fields directly! Try setting your first field as fields[0]`);
 
-                    if (Object.keys(fieldsResult[1]).length === 0) {
-                        return new Error('Detected no fields! Please ensure you formatted it correctly.');
+                    // const fieldsResult = this.parseSubArgs(key, value, false);
+
+                    // if (Object.keys(fieldsResult[1]).length === 0) {
+                    //     return new Error('Detected no fields! Please ensure you formatted it correctly.');
+                    // }
+
+                    // return fieldsResult;
+                default:
+                    const fieldMatch = key.match(/^fields\[(\d+)\]$/i);
+                    if (fieldMatch) {
+                        const index = fieldMatch[1];
+                        const lines = value.trim().split('\n');
+
+                        if (lines.length === 1) {
+                            return new Error(`${key}: Missing field content, make sure the first line is the field title and the rest is the field content`);
+                        }
+
+
+                        return [`field`, `${index}\n${value.trim()}`];
                     }
 
-                    return fieldsResult;
-                default:
                     return new Error(`Unknown property: ${key}`);
             }
         });
@@ -258,7 +275,6 @@ description = Ignore this update! Changes were rollbacked, wait for further news
     parseSubArgs(key, value, lc = true) {
         const args = {};
         const grouped = this.groupLines(value, line => /\s*.+?\s*:/.test(line));
-
 
         grouped.forEach(entry => {
             const standardized = entry.trim();
@@ -364,24 +380,51 @@ description = Ignore this update! Changes were rollbacked, wait for further news
     }
 
     buildEmbed(props, defaults = {}) {
+        defaults.fields = defaults.fields || [];
+
         props.forEach(([key, val]) => {
             switch (key) {
-                case 'fields':
-                    const fields = [];
+                // case 'fields':
+                //     const fields = [];
 
-                    for (const key in val) {
-                        const value = val[key];
-                        const inline = key.startsWith('~');
-                        const name = inline ? key.slice(1) : key;
+                //     for (const key in val) {
+                //         const value = val[key];
+                //         const inline = key.startsWith('~');
+                //         const name = inline ? key.slice(1) : key;
 
-                        fields.push({
-                            name,
-                            value,
-                            inline
-                        });
+                //         fields.push({
+                //             name,
+                //             value,
+                //             inline
+                //         });
+                //     }
+
+                //     defaults.fields = fields;
+                //     break;
+                case 'field':
+                    let [index, title, ...rest] = val.split('\n');
+                    const content = rest.join('\n');
+                    let inline = false;
+
+                    index = Number(index);
+
+                    // No content was provided, so we remove the field
+                    // index is there no matter what
+                    if (!title) {
+                        defaults.fields[index] = null;
+                        return;
                     }
 
-                    defaults.fields = fields;
+                    if (title.charAt(0) === '~') {
+                        title = title.slice(1);
+                        inline = true;
+                    }
+
+                    defaults.fields[index] = {
+                        name: title,
+                        value: content,
+                        inline
+                    };
                     break;
                 case 'author':
                 case 'footer':
@@ -390,7 +433,6 @@ description = Ignore this update! Changes were rollbacked, wait for further news
                         delete val.icon;
                     }
 
-                    // How interesting, fallthrough would be useful here; but I don't think it's worth the linter's soul
                     defaults[key] = val;
                     break;
                 default:
@@ -398,6 +440,8 @@ description = Ignore this update! Changes were rollbacked, wait for further news
                     break;
             }
         });
+
+        defaults.fields = defaults.fields.filter(Boolean);
 
         return defaults;
     }
