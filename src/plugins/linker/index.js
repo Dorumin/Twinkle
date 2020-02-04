@@ -56,7 +56,7 @@ class Linker {
 
         this.addLinkTarget(['wp'], ['wikipedia'], ({ full }) => `https://en.wikipedia.org/wiki/${this.encode(full)}`);
         this.addLinkTarget(['g'], ['google'], ({ full }) => `https://www.google.com/#q=${this.encode(full, { '20': '+' })}`);
-        this.addLinkTarget(['lmgtfy'], ({ full }) => `https://lmgtfy.com/?q=${this.encode(full)}`);
+        this.addLinkTarget(['lmgtfy'], ({ full }) => `https://lmgtfy.com/?q=${this.encode(full, { '20': '+' })}`);
 
         this.addLinkTarget('w', 'c', async ({ parts: [wiki, ...rest] }) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(rest.join(':'))}`);
         this.addLinkTarget('w', ({ full }) => `https://community.fandom.com/wiki/${this.encode(full)}`);
