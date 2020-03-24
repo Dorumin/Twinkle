@@ -1,4 +1,5 @@
-const { Collection } = require('discord.js');
+const util = require('util');
+const { Collection, Message } = require('discord.js');
 const OPCommand = require('../structs/OPCommand.js');
 const FormatterPlugin = require('../../fmt');
 
@@ -52,14 +53,45 @@ class EvalCommand extends OPCommand {
             if (forCode) return null;
 
             return val;
+		}
+
+		if (val instanceof Function) {
+			const stringified = val.toString();
+			const lastLine = stringified.slice(stringified.lastIndexOf('\n') + 1);
+			const indent = lastLine.match(/^\s*/)[0]; // Will always match due to zero-width *
+
+			return this.bot.fmt.codeBlock('js', indent + stringified);
+		}
+
+		if (val instanceof Map) {
+			let str = '';
+			let depth = 3;
+
+			while (depth--) {
+				str = this.bot.fmt.codeBlock('js',
+					util.inspect(val, {
+						depth,
+						compact: false
+					})
+				);
+
+				if (str.length < 2000) break;
+			}
+
+			return str;
+		}
+
+        if (String(val) === '[object Object]') {
+			try {
+				const json = JSON.stringify(val, null, 2);
+				return this.bot.fmt.codeBlock('json', json);
+			} catch(e) {
+				const formatted = util.inspect(val, { compact: false });
+				return this.bot.fmt.codeBlock('js', formatted);
+			}
         }
 
-        if (String(val) == '[object Object]') {
-            const json = JSON.stringify(val, null, 2);
-            return this.bot.fmt.codeBlock('json', json);
-        }
-
-        if (typeof val == 'string' && val === '') {
+        if (typeof val === 'string' && val === '') {
             const json = JSON.stringify(val);
 
             if (forCode) {
@@ -67,7 +99,11 @@ class EvalCommand extends OPCommand {
             }
 
             return json;
-        }
+		}
+
+		if (typeof val === 'boolean') {
+			return String(val);
+		}
 
         return val;
     }
@@ -117,16 +153,19 @@ class EvalCommand extends OPCommand {
 
                 if (result !== undefined) {
                     const message = this.stringify(result, true);
+
                     if (message) {
-                        send(message);
+                        await send(message);
                     }
                 }
             } else {
                 const result = eval(code);
+
                 if (result !== undefined) {
                     const message = this.stringify(result, true);
+
                     if (message) {
-                        send(message);
+                        await send(message);
                     }
                 }
             }
