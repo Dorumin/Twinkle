@@ -897,8 +897,10 @@ class Linker {
     }
 
     getDiffs(old, cur, previewedLines = 1) {
-        const chunks = [];
-        const changes = diff.diffLines(old, cur);
+		const chunks = [];
+		// Append a newline at the end because the engine thinks "line" and "line\n" are different
+		// MW doesn't play nice and doesn't have a newline at the end of page contents
+        const changes = diff.diffLines(old + '\n', cur + '\n');
 
         let index = -1;
         let previewing = -previewedLines - 1;

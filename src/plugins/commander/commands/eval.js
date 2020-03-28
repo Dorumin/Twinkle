@@ -1,5 +1,5 @@
 const util = require('util');
-const { Collection, Message } = require('discord.js');
+const { Collection } = require('discord.js');
 const OPCommand = require('../structs/OPCommand.js');
 const FormatterPlugin = require('../../fmt');
 
@@ -28,7 +28,25 @@ class EvalCommand extends OPCommand {
             '!eval 2 + 2 * 2 ** 2',
             '!eval ```js\nawait message.react("🤔");```'
         ];
-    }
+	}
+
+	inspect(object) {
+		let str = '';
+		let depth = 3;
+
+		while (depth--) {
+			str = this.bot.fmt.codeBlock('js',
+				util.inspect(object, {
+					depth,
+					compact: false
+				})
+			);
+
+			if (str.length < 2000) break;
+		}
+
+		return str;
+	}
 
     stringify(val, forCode) {
         if (val instanceof Collection) {
@@ -64,21 +82,7 @@ class EvalCommand extends OPCommand {
 		}
 
 		if (val instanceof Map) {
-			let str = '';
-			let depth = 3;
-
-			while (depth--) {
-				str = this.bot.fmt.codeBlock('js',
-					util.inspect(val, {
-						depth,
-						compact: false
-					})
-				);
-
-				if (str.length < 2000) break;
-			}
-
-			return str;
+			return this.inspect(val);
 		}
 
         if (String(val) === '[object Object]') {
@@ -86,8 +90,7 @@ class EvalCommand extends OPCommand {
 				const json = JSON.stringify(val, null, 2);
 				return this.bot.fmt.codeBlock('json', json);
 			} catch(e) {
-				const formatted = util.inspect(val, { compact: false });
-				return this.bot.fmt.codeBlock('js', formatted);
+				return this.inspect(val);
 			}
         }
 

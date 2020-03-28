@@ -29,7 +29,8 @@ class Logger {
     }
 
     onMessage(message) {
-        if (this.config.CHANNEL && message.channel.id == this.config.CHANNEL) return;
+		if (message.author.id === this.bot.client.user.id) return;
+		// if (this.config.CHANNEL && message.channel.id == this.config.CHANNEL) return;
 
         const place = message.channel.type == 'dm'
             ? 'DMs'
