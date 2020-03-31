@@ -1,0 +1,14 @@
+name: PR self gratification
+on: 
+ pull_request:
+    types: [closed] 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: alstol/Self-Reward-Actions@v1
+      env:
+       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       IMAGE_URL: https://i.kym-cdn.com/entries/icons/facebook/000/030/329/cover1.jpg
+       MEME_HEADER: <NAME> merged his own PR again
