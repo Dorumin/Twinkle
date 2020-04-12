@@ -8,27 +8,55 @@ class JoinLeavePlugin extends Plugin {
 
 class JoinLeave {
     constructor(bot) {
-        return;
+        this.config = bot.config.JOIN_LEAVE;
+
         bot.client.on('guildMemberAdd', this.onJoin.bind(this));
         bot.client.on('guildMemberRemove', this.onLeave.bind(this));
     }
 
-    getDefaultChannel(guild) {
-        if (guild.channels.has(guild.id)) {
-            return guild.channels.get(guild.id);
-        }
+    // getDefaultChannel(guild) {
+    //     if (guild.channels.has(guild.id)) {
+    //         return guild.channels.get(guild.id);
+    //     }
 
-        return guild.channels.sort((a, b) => a.id - b.id).first();
+    //     return guild.channels.sort((a, b) => a.id - b.id).first();
+    // }
+
+    getChannel(guild) {
+        return guild.channels.get(this.config.CHANNEL);
+    }
+
+    getVars(member) {
+        return {
+            USERID: member.user.id,
+            USERNAME: member.user.username,
+            USERDISCRIM: member.user.discriminator
+        }
+    }
+
+    formatMessage(message, member) {
+        const vars = this.getVars(member);
+        return message.replace(/\$([A-Z]+)/g, (full, name) => {
+            if (vars[name]) {
+                return vars[name];
+            }
+
+            return full;
+        });
     }
 
     onJoin(member) {
-        const channel = this.getDefaultChannel(member.guild);
-        channel.send(`Hello <@${member.id}> and welcome to the Fandom Developers server! You can read useful information about the server in <#246663167537709058>`);
+        const channel = this.getChannel(member.guild);
+        if (!channel) return;
+
+        channel.send(this.formatMessage(this.config.JOIN_MESSAGE, member));
     }
 
     onLeave(member) {
-        const channel = this.getDefaultChannel(member.guild);
-        channel.send(`client.emit(Events.GUILD_LEAVE, "${member.user.username}#${member.user.discriminator}");`);
+        const channel = this.getChannel(member.guild);
+        if (!channel) return;
+
+        channel.send(this.formatMessage(this.config.LEAVE_MESSAGE, member));
     }
 }
 
