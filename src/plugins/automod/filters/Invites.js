@@ -44,11 +44,11 @@ class InvitesFilter extends Filter {
         message.author.send(`Here's a copy of your message:\`\`\`${message.content}\`\`\``);
         message.delete();
 
-        const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
+        // const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
         (this.automod.logchan() || message.channel).send({
             embed: {
                 author: {
-                    name: `${message.author.username}#${message.author.discriminator} has been warned ${muteResult}`,
+                    name: `${message.author.username}#${message.author.discriminator} has been warned`,
                     icon_url: message.author.displayAvatarURL
                 },
                 color: message.guild.me.displayColor,

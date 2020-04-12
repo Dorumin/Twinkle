@@ -22,13 +22,20 @@ class AutoMod {
         return this.bot.client.channels.get(this.config.LOGGING);
     }
 
-    onMessage(message) {
+    async onMessage(message) {
         // Ignore bots and self, and if there isn't a member property
         if (
-            !message.member ||
+            !message.guild ||
             message.author.bot ||
             message.author.id == this.bot.client.user.id
         ) return;
+
+        // Fetch members not already in member cache
+        if (!message.member) {
+            const member = await message.guild.fetchMember(message.author.id);
+
+            message.member = member;
+        }
 
         this.filters.forEach(async (filter) => {
             const interest = filter.interested(message);
