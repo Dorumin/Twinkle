@@ -1,6 +1,12 @@
 {
     "TWINKLE": {
         "TOKEN": "Discord bot token",
+        "ENV": "production",
+		"PRELOAD": {
+			"GUILDS": [
+				"246075715714416641"
+			]
+		},
         "SOURCE": {
             "TYPE": "github",
             "PATH": "Dorumin/Twinkle",
@@ -19,6 +25,7 @@
             "MENTION": true,
             "INLINE_ERRORS": true,
             "PREFIXES": [
+                "!",
                 ">"
             ]
         },
@@ -29,13 +36,18 @@
             "USERNAME": "Wikia username",
             "PASSWORD": "Wikia password"
         },
+        "QUOTER": {
+            "MAX": 3
+        },
         "DB": {
             "TYPE": "dropbox",
             "DELAY": 10000,
             "TOKEN": "Dropbox token"
         },
-        "QUOTER": {
-            "MAX": 3
+        "JOIN_LEAVE": {
+            "CHANNEL": "246075715714416641",
+            "JOIN_MESSAGE": "Hello <@$USERID> and welcome to the Fandom Developers server! You can read useful information about the server in <#246663167537709058>",
+            "LEAVE_MESSAGE": "client.emit(Events.GUILD_LEAVE, $USERID); // $USERNAME#$USERDISCRIM"
         },
         "AUTOMOD": {
             "LOGGING": "Default log channel ID",
