@@ -1,12 +1,12 @@
 const Plugin = require('../../structs/Plugin.js');
 
-class RemindersPlugin extends Plugin {
+class PreloadPlugin extends Plugin {
 	load() {
-		this.bot.preload = new Reminders(this.bot);
+		this.bot.preload = new Preload(this.bot);
 	}
 }
 
-class Reminders {
+class Preload {
 	constructor(bot) {
 		this.bot = bot;
 		this.config = bot.config.PRELOAD;
@@ -27,4 +27,4 @@ class Reminders {
 	}
 }
 
-module.exports = RemindersPlugin;
+module.exports = PreloadPlugin;
