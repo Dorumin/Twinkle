@@ -166,8 +166,12 @@ class Linker {
         const promises = this.getPromises(message, wiki);
         const results = await Promise.all(promises);
 
-        for (const result of results) {
+        for (let result of results) {
             if (!result) continue;
+
+            if (typeof result === 'string') {
+                result = this.killMentions(result, message);
+            }
 
             const reply = await message.channel.send(result);
 
@@ -210,7 +214,7 @@ class Linker {
 
     getPromises(message, wiki) {
         const promises = [];
-        const cleaned = this.cleanText(message.cleanContent);
+        const cleaned = this.cleanText(message.content);
 
         const links = this.match(this.LINK_REGEX, cleaned);
         const searches = this.match(this.SEARCH_REGEX, cleaned);
@@ -237,6 +241,38 @@ class Linker {
             .replace(/(`{1,3})[\S\s]+?\1/gm, '')
             // Zero width spaces
             .replace(/\u200B/g, '');
+    }
+
+    // TODO: straight outta Discord.js, will most likely need updating
+    killMentions(text, message) {
+        return text
+            .replace(/<@!?[0-9]+>/g, input => {
+                const id = input.replace(/<|!|>|@/g, '');
+                if (message.channel.type === 'dm' || message.channel.type === 'group') {
+                    return message.client.users.has(id) ? `@${message.client.users.get(id).username}` : input;
+                }
+
+                const member = message.channel.guild.members.get(id);
+                if (member) {
+                    if (member.nickname) return `@${member.nickname}`;
+                    return `@${member.user.username}`;
+                } else {
+                    const user = message.client.users.get(id);
+                    if (user) return `@${user.username}`;
+                    return input;
+                }
+            })
+            .replace(/<#[0-9]+>/g, input => {
+                const channel = message.client.channels.get(input.replace(/<|#|>/g, ''));
+                if (channel) return `#${channel.name}`;
+                    return input;
+                })
+            .replace(/<@&[0-9]+>/g, input => {
+                if (message.channel.type === 'dm' || message.channel.type === 'group') return input;
+                const role = message.guild.roles.get(input.replace(/<|@|>|&/g, ''));
+                if (role) return `@${role.name}`;
+                return input;
+            });
     }
 
     removeNamespace(page) {
