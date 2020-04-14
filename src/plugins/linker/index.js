@@ -169,9 +169,9 @@ class Linker {
         for (let result of results) {
             if (!result) continue;
 
-            if (typeof result === 'string') {
-                result = this.killMentions(result, message);
-            }
+            // if (typeof result === 'string') {
+            //     result = this.killMentions(result, message);
+            // }
 
             const reply = await message.channel.send(result);
 
@@ -245,6 +245,8 @@ class Linker {
 
     // TODO: straight outta Discord.js, will most likely need updating
     killMentions(text, message) {
+        if (!text) return text;
+
         return text
             .replace(/<@!?[0-9]+>/g, input => {
                 const id = input.replace(/<|!|>|@/g, '');
@@ -380,14 +382,14 @@ class Linker {
         }
     }
 
-    getLinks(links, wiki) {
+    getLinks(links, wiki, message) {
         // TODO: Implement 2000/2048 line splitting
         const embeds = [];
 
         const shouldEmbed = links.some(match => match[2]);
         const hyperLinks = Promise.all(
             links
-                .map(match => this.getLink(match, wiki))
+                .map(match => this.getLink(match, wiki, message))
         );
 
         embeds.push(
@@ -407,9 +409,9 @@ class Linker {
         return embeds;
     }
 
-    async getLink(match, wiki) {
-        const linked = match[1],
-        display = match[2],
+    async getLink(match, wiki, message) {
+        const linked = this.killMentions(match[1], message),
+        display = this.killMentions(match[2], message),
         segments = linked.split(':').map(seg => seg.trim());
 
         const url = await this.getTargetResult(this.linkTargets, segments, wiki);
@@ -421,12 +423,12 @@ class Linker {
         return `<${this.bot.fmt.link(url)}>`;
     }
 
-    getSearches(searches, wiki) {
+    getSearches(searches, wiki, message) {
         const results = [];
 
         const searchResults = Promise.all(
             searches
-                .map(match => this.getSearch(match, wiki))
+                .map(match => this.getSearch(match, wiki, message))
         );
 
         results.push(
@@ -438,8 +440,8 @@ class Linker {
         return results;
     }
 
-    async getSearch(match, wiki) {
-        const searched = match[1],
+    async getSearch(match, wiki, message) {
+        const searched = this.killMentions(match[1], message),
         segments = searched.split(':').map(seg => seg.trim());
 
         const result = await this.getTargetResult(this.searchTargets, segments, wiki);
@@ -933,9 +935,9 @@ class Linker {
     }
 
     getDiffs(old, cur, previewedLines = 1) {
-		const chunks = [];
-		// Append a newline at the end because the engine thinks "line" and "line\n" are different
-		// MW doesn't play nice and doesn't have a newline at the end of page contents
+        const chunks = [];
+        // Append a newline at the end because the engine thinks "line" and "line\n" are different
+        // MW doesn't play nice and doesn't have a newline at the end of page contents
         const changes = diff.diffLines(old + '\n', cur + '\n');
 
         let index = -1;
