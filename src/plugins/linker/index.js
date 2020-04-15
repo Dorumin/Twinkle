@@ -61,7 +61,7 @@ class Linker {
         this.addLinkTarget('w', 'c', async ({ parts: [wiki, ...rest] }) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(rest.join(':'))}`);
         this.addLinkTarget('w', ({ full }) => `https://community.fandom.com/wiki/${this.encode(full)}`);
 
-        this.addLinkTarget(async ({ full, wiki }) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(full)}`);
+        this.addLinkTarget(async ({ full, wiki }) => this.makeWikiLink(await this.wikiUrl(wiki), `/wiki/${this.encode(full)}`));
 
         // lol
         // this.addLinkTarget('debug', (args) => {
@@ -318,6 +318,23 @@ class Linker {
             // Allow ?=s
             .replace(/(%3F|%26)([^%]+)%3D([^%]+)/gi, (_, char, key, value) => `${this.decodeHex(char)}${key}=${value}`)
             .trim();
+    }
+
+    makeWikiLink(domain, path) {
+        const url = new URL(domain + path);
+
+        if (url.hash.length !== 0) {
+            url.hash = '#' + this.sanitizeHash(url.hash.slice(1));
+        }
+
+        return url.toString();
+    }
+
+    sanitizeHash(hash) {
+        // Valid hashname characters: ., -, _, :, \d, A-z
+        const sanitized = hash.replace(/[^0-9a-zA-Z\.\_\-\:]/g, char => `.${char.charCodeAt(0).toString(16)}`);
+
+        return sanitized;
     }
 
     escape(str) {
