@@ -332,7 +332,9 @@ class Linker {
 
     sanitizeHash(hash) {
         // Valid hashname characters: ., -, _, :, \d, A-z
-        const sanitized = hash.replace(/[^0-9a-zA-Z\.\_\-\:]/g, char => `.${char.charCodeAt(0).toString(16)}`);
+        const sanitized = hash
+            .replace(/%([0-9a-zA-Z]{2})/g, (_, c) => String.fromCharCode(parseInt(c, 16)))
+            .replace(/[^0-9a-zA-Z\.\_\-\:]/g, char => `.${char.charCodeAt(0).toString(16)}`);
 
         return sanitized;
     }
