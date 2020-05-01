@@ -26,6 +26,7 @@ class AutoMod {
         // Ignore bots and self, and if there isn't a member property
         if (
             !message.guild ||
+            !this.config.GUILDS.includes(message.guild.id) |
             message.author.bot ||
             message.author.id == this.bot.client.user.id
         ) return;
