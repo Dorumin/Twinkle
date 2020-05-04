@@ -18,7 +18,7 @@ class Quoter {
         this.bot = bot;
         this.dev = bot.config.ENV === 'development';
         this.config = bot.config.QUOTER;
-        this.QUOTE_PATTERN = /(?<!<)https?:\/\/(?:(?:canary|ptb)\.)?discordapp\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)(?!>)/g;
+        this.QUOTE_PATTERN = /(?<!<)https?:\/\/(?:(?:canary|ptb)\.)?discord(?:app)?\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)(?!>)/g;
         bot.client.on('message', this.onMessage.bind(this));
     }
 
