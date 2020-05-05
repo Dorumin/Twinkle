@@ -11,8 +11,8 @@ class UCPCommand extends Command {
 
     async call(message) {
         message.channel.send(`
-- Information - https://fandom.zendesk.com/hc/articles/360044776693
-- Bugs, features, changes - https://c.fandom.com/User:Noreplyz/UCP
+- Information - <https://fandom.zendesk.com/hc/articles/360044776693>
+- Bugs, features, changes - <https://c.fandom.com/User:Noreplyz/UCP>
         `);
     }
 }
