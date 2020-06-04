@@ -155,10 +155,11 @@ class ClearCommand extends ModCommand {
     }
 
     async messageExists(channelId, messageId) {
+        const id = String(messageId);
         const messages = await got(`https://discordapp.com/api/v6/channels/${channelId}/messages`, {
             searchParams: {
                 limit: 1,
-                around: messageId
+                around: id
             },
             headers: {
                 Authorization: 'Bot ' + this.bot.config.TOKEN
@@ -167,7 +168,7 @@ class ClearCommand extends ModCommand {
 
         if (!messages.length) return false;
 
-        return messages[0].id == messageId;
+        return messages[0].id == id;
     }
 
     loadMessages(type, channel, arg, fromUsers, messageId) {
