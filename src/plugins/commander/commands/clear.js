@@ -264,7 +264,7 @@ class ClearCommand extends ModCommand {
             if (messages.length) {
                 const ids = messages
                     .map(message => message.id)
-                    .filter(id => id < before);
+                    .filter(id => id <= before);
 
                 results.push(...ids);
             }
