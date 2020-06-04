@@ -136,12 +136,12 @@ class ClearCommand extends ModCommand {
 
                 const [result] = await Promise.all([
                     message.channel.send(resultText),
-                    confirmation.delete(),
+                    confirmation.delete().catch(() => {}),
                 ]);
 
                 if (!failures) {
                     await this.wait(5000);
-                    await result.delete();
+                    await result.delete().catch(() => {});
                 }
 
                 break;
@@ -185,7 +185,7 @@ class ClearCommand extends ModCommand {
     async loadMessagesCount(channel, limit, fromUsers, before) {
         // Not using channel.fetchMessages: Idk why, messes with further reaction collecting
         const results = [];
-        let lastId = before;
+        let lastId = String(before);
         let stopLoop = false;
 
         while (results.length < limit) {
