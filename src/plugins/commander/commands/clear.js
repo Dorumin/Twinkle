@@ -240,7 +240,7 @@ class ClearCommand extends ModCommand {
                 searchParams: {
                     limit: 100,
                     after: lastId,
-                    before
+                    // before
                 },
                 headers: {
                     Authorization: 'Bot ' + this.bot.config.TOKEN
@@ -263,7 +263,8 @@ class ClearCommand extends ModCommand {
 
             if (messages.length) {
                 const ids = messages
-                    .map(message => message.id);
+                    .map(message => message.id)
+                    .filter(id => id < before);
 
                 results.push(...ids);
             }
