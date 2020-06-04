@@ -231,7 +231,7 @@ class ClearCommand extends ModCommand {
     async loadMessagesAfter(channel, after, fromUsers, before) {
         // Not using channel.fetchMessages either
         const results = [];
-        let lastId = after;
+        let lastId = String(after);
         let stopLoop = false;
 
         while (true) {
@@ -332,7 +332,7 @@ class ClearCommand extends ModCommand {
                             Authorization: `Bot ${this.bot.config.TOKEN}`
                         }
                     })
-                ]).json();
+                ]);
 
                 if (res == 'timeout') throw 'timeout';
                 break;
