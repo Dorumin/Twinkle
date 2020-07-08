@@ -53,7 +53,7 @@ class Linker {
         this.addLinkTarget('mdn', ({ full }) => `https://developer.mozilla.org/search?q=${this.encode(full, { '20': '+' })}`);
         this.addLinkTarget('so', ({ full }) => `https://stackoverflow.com/search?q={this.encode(full, { '20': '+' })}`);
         this.addLinkTarget('mw', ({ full }) => `https://mediawiki.org/wiki/${this.encode(full)}`);
-        this.addLinkTarget('jquery', ({ full }} => `https://api.jquery.com/?s=${this.encode(full, { '20': '+' })}`);
+        this.addLinkTarget('jquery', ({ full }) => `https://api.jquery.com/?s=${this.encode(full, { '20': '+' })}`);
 
         this.addLinkTarget(['wp'], ['wikipedia'], ({ full }) => `https://en.wikipedia.org/wiki/${this.encode(full)}`);
         this.addLinkTarget(['g'], ['google'], ({ full }) => `https://www.google.com/#q=${this.encode(full, { '20': '+' })}`);
