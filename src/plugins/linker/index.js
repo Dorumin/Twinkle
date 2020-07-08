@@ -51,7 +51,7 @@ class Linker {
         this.addLinkTarget('github', ({ full }) => `https://github.com/${this.encode(full)}`);
         this.addLinkTarget('npm', ({ full }) => `https://npmjs.com/${this.encode(full)}`);
         this.addLinkTarget('mdn', ({ full }) => `https://developer.mozilla.org/search?q=${this.encode(full, { '20': '+' })}`);
-        this.addLinkTarget('so', ({ full }) => `https://stackoverflow.com/search?q={this.encode(full, { '20': '+' })}`);
+        this.addLinkTarget('so', ({ full }) => `https://stackoverflow.com/search?q=${this.encode(full, { '20': '+' })}`);
         this.addLinkTarget('mw', ({ full }) => `https://mediawiki.org/wiki/${this.encode(full)}`);
         this.addLinkTarget('jquery', ({ full }) => `https://api.jquery.com/?s=${this.encode(full, { '20': '+' })}`);
 
