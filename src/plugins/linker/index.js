@@ -56,7 +56,7 @@ class Linker {
         this.addLinkTarget('jquery', ({ full }) => `https://api.jquery.com/?s=${this.encode(full, { '20': '+' })}`);
 
         this.addLinkTarget(['wp'], ['wikipedia'], ({ full }) => `https://en.wikipedia.org/wiki/${this.encode(full)}`);
-        this.addLinkTarget(['g'], ['google'], ({ full }) => `https://www.google.com/#q=${this.encode(full, { '20': '+' })}`);
+        this.addLinkTarget(['g'], ['google'], ({ full }) => `https://www.google.com/search?q=${this.encode(full, { '20': '+' })}`);
         this.addLinkTarget(['lmgtfy'], ({ full }) => `https://lmgtfy.com/?q=${this.encode(full, { '20': '+' })}`);
 
         this.addLinkTarget('w', 'c', async ({ parts: [wiki, ...rest] }) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(rest.join(':'))}`);
