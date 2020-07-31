@@ -28,29 +28,42 @@ class HelpCommand extends Command {
     }
 
     async call(message, content) {
+        const mentionedUsers = message.mentions.users;
+        const target = mentionedUsers.size > 0
+            ? mentionedUsers.first()
+            : message.author;
+
+        const creator = message.author;
+        const controllers = [creator];
+        if (mentionedUsers.size > 0) {
+            const user = mentionedUsers.first();
+            controllers.push(user);
+            content = content.replace(new RegExp(`<@!?${user.id}>`), '').trim();
+        }
+
         message.delete().catch(this.bot.logger.suppress);
 
         if (content) {
             const command = this.bot.commander.getAlias(content.toLowerCase());
 
             if (!command) {
-                message.author.send(`There is no existing command with the \`${content.toLowerCase()}\` alias!`);
+                creator.send(`There is no existing command with the \`${content.toLowerCase()}\` alias!`);
                 return;
             }
 
-            message.author.send({
+            target.send({
                 embed: this.buildCommandEmbed(command)
             });
             return;
         }
 
-        const listing = await message.author.send({
+        const listing = await target.send({
             embed: this.buildListingEmbed(0)
         });
 
         CommandUtils.react(listing, '⬅', '➡');
 
-        this.addReactionListeners(listing, message.author);
+        this.addReactionListeners(listing, controllers);
     }
 
     getSortedCommands() {
@@ -135,11 +148,11 @@ class HelpCommand extends Command {
             .replace(/\[[^\]]+\]/, '*$&*');
     }
 
-    async addReactionListeners(message, author) {
+    async addReactionListeners(message, controllers) {
         const commands = this.cache.get('commands', () => this.getSortedCommands());
         const page = this.cache.get(message.id, () => 0);
         const reactions = await message.awaitReactions(
-            (reaction, user) => user.id == author.id && ['⬅', '➡'].includes(reaction.emoji.name),
+            (reaction, user) => controllers.some(controller => controller.id === user.id) && ['⬅', '➡'].includes(reaction.emoji.name),
             { time: 60000, max: 1 }
         );
 
@@ -194,7 +207,7 @@ class HelpCommand extends Command {
                 break;
         }
 
-        this.addReactionListeners(message, author);
+        this.addReactionListeners(message, controllers);
     }
 }
 
