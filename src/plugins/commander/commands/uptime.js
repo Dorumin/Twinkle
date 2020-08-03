@@ -20,14 +20,14 @@ class RuntimeCommand extends Command {
             h = f(m / 60),
             d = f(h / 24);
 
-        const p = (s) => s > 1 ? 's' : '';
+        const p = (n, singular, plural) => n === 1 ? singular : plural;
 
-        const seconds = `${s % 60} second${p(s)}`;
-        const minutes = `${m % 60} minute${p(m)}`;
-        const hours = `${h % 24} hour${p(h)}`;
+        const seconds = `${s % 60} ${p(s, 'second', 'seconds')}`;
+        const minutes = `${m % 60} ${p(m, 'minute', 'hours')}`;
+        const hours = `${h % 24} ${p(h, 'hour', 'hours')}`;
 
         if (d) {
-            const days = `${d} day${p(d)}`;
+            const days = `${d} day${p(d, 'day', 'days')}`;
 
             return `${days}, ${hours}, ${minutes} and ${seconds} `;
         }
@@ -36,7 +36,7 @@ class RuntimeCommand extends Command {
     }
 
     call(message) {
-        const uptime = this.toTimeString(bot.client.uptime);
+        const uptime = this.toTimeString(this.bot.client.uptime);
 
         message.channel.send(`Bot has been up and running for ${uptime}!`);
     }
