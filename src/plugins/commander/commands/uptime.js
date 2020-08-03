@@ -24,12 +24,14 @@ class RuntimeCommand extends Command {
                 h = f(m / 60),
                 d = f(h / 24);
 
-            const seconds = `${s % 60} second${s > 1 ? `s` : ''}`;
-            const minutes = `${m % 60} minute${m > 1 ? `s`: ''}`;
-            const hours = `${h % 24} hour${h > 1 ? `s` : ''}`;
+            const p = (s) => s > 1 ? 's' : '';
+
+            const seconds = `${s % 60} second${p(s)}`;
+            const minutes = `${m % 60} minute${p(m)}`;
+            const hours = `${h % 24} hour${p(h)}`;
 
             if (d) {
-                const days = `${d} day${d > 1 ? `s` : ''}`;
+                const days = `${d} day${p(d)}`;
 
                 return `${days}, ${hours}, ${minutes} and ${seconds} `;
             }
