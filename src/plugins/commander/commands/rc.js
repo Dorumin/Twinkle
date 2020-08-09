@@ -23,7 +23,7 @@ class RCCommand extends Command {
 
     async call(message, content) {
         const link = content
-            ? `<${await this.bot.fandomizer.url(content)}.fandom.com/wiki/Special:RecentChanges?feed=rss>`
+            ? `<${await this.bot.fandomizer.url(content)}/wiki/Special:RecentChanges?feed=rss>`
             : this.bot.fmt.code('https://<yourwiki>.fandom.com/wiki/Special:RecentChanges?feed=rss');
 
         message.channel.send(`
