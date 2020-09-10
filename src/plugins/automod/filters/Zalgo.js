@@ -26,7 +26,7 @@ class ZalgoFilter extends Filter {
     }
 
     async handle(message) {
-        const muteAction = message.member..roles.add('401231955741507604');
+        const muteAction = message.member.roles.add('401231955741507604');
         message.author.send(`Hey! Please don't abuse zalgo/spammy text in ${message.guild.name}.`); // TODO # of offenses
         message.delete();
 

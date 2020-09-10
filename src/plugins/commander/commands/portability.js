@@ -19,9 +19,9 @@ class PortabilityCommand extends Command {
 
         message.delete();
         if (message.member.roles.cache.has('311612168061714432')) {
-            message.member..roles.remove('311612168061714432');
+            message.member.roles.remove('311612168061714432');
         } else {
-            message.member..roles.add('311612168061714432');
+            message.member.roles.add('311612168061714432');
         }
     }
 }

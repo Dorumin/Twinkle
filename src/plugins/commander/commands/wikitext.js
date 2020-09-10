@@ -19,9 +19,9 @@ class WikitextRoleCommand extends Command {
 
         message.delete();
         if (message.member.roles.cache.has('269869867123867650')) {
-            message.member..roles.remove('269869867123867650');
+            message.member.roles.remove('269869867123867650');
         } else {
-            message.member..roles.add('269869867123867650');
+            message.member.roles.add('269869867123867650');
         }
     }
 }

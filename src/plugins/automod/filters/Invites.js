@@ -39,7 +39,7 @@ class InvitesFilter extends Filter {
     }
 
     async handle(message) {
-        const muteAction = message.member..roles.add('401231955741507604');
+        const muteAction = message.member.roles.add('401231955741507604');
         message.author.send(`Hey! Please don't link outside servers in ${message.guild.name}.`); // TODO # of offenses
         message.author.send(`Here's a copy of your message:\`\`\`${message.content}\`\`\``);
         message.delete();

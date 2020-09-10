@@ -19,9 +19,9 @@ class LuaRoleCommand extends Command {
 
         message.delete();
         if (message.member.roles.cache.has('269869890087682049')) {
-            message.member..roles.remove('269869890087682049');
+            message.member.roles.remove('269869890087682049');
         } else {
-            message.member..roles.add('269869890087682049');
+            message.member.roles.add('269869890087682049');
         }
     }
 }

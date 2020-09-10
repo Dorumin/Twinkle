@@ -20,7 +20,7 @@ class MassMentionFilter extends Filter {
     }
 
     async handle(message) {
-        const muteAction = message.member..roles.add('401231955741507604');
+        const muteAction = message.member.roles.add('401231955741507604');
 
         const suppressed = this.suppressMentions(message.content);
         let deleted = !suppressed.trim();

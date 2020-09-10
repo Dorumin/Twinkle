@@ -29,7 +29,7 @@ class BadWordsFilter extends Filter {
     }
 
     async handle(message) {
-        const muteAction = message.member..roles.add('401231955741507604');
+        const muteAction = message.member.roles.add('401231955741507604');
         message.author.send(`Hey! Watch your language! You've been grounded from ${message.guild.name}; message someone with the **@Server Moderator** role to talk this out.`); // TODO # of offenses
         message.author.send(`Here's a copy of your message:\`\`\`${message.content}\`\`\``);
         message.delete();
