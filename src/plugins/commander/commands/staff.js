@@ -10,7 +10,7 @@ class StaffCommand extends Command {
     }
 
     async call(message) {
-        message.channel.send(`You can contact FANDOM Staff through the contact form at <https://fandom.zendesk.com/hc/en-us/requests/new>`);
+        message.channel.send(`You can contact FANDOM Staff through the contact form at <https://fandom.zendesk.com/hc/requests/new>.`);
     }
 }
 

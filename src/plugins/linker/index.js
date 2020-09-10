@@ -51,11 +51,12 @@ class Linker {
         this.addLinkTarget('github', ({ full }) => `https://github.com/${this.encode(full)}`);
         this.addLinkTarget('npm', ({ full }) => `https://npmjs.com/${this.encode(full)}`);
         this.addLinkTarget('mdn', ({ full }) => `https://developer.mozilla.org/search?q=${this.encode(full, { '20': '+' })}`);
-        this.addLinkTarget('so', ({ full }) => `https://github.com/${this.encode(full, { '20': '+' })}`);
+        this.addLinkTarget('so', ({ full }) => `https://stackoverflow.com/search?q=${this.encode(full, { '20': '+' })}`);
         this.addLinkTarget('mw', ({ full }) => `https://mediawiki.org/wiki/${this.encode(full)}`);
+        this.addLinkTarget('jquery', ({ full }) => `https://api.jquery.com/?s=${this.encode(full, { '20': '+' })}`);
 
         this.addLinkTarget(['wp'], ['wikipedia'], ({ full }) => `https://en.wikipedia.org/wiki/${this.encode(full)}`);
-        this.addLinkTarget(['g'], ['google'], ({ full }) => `https://www.google.com/#q=${this.encode(full, { '20': '+' })}`);
+        this.addLinkTarget(['g'], ['google'], ({ full }) => `https://www.google.com/search?q=${this.encode(full, { '20': '+' })}`);
         this.addLinkTarget(['lmgtfy'], ({ full }) => `https://lmgtfy.com/?q=${this.encode(full, { '20': '+' })}`);
 
         this.addLinkTarget('w', 'c', async ({ parts: [wiki, ...rest] }) => `${await this.wikiUrl(wiki)}/wiki/${this.encode(rest.join(':'))}`);
@@ -236,11 +237,47 @@ class Linker {
     }
 
     cleanText(str) {
-        return str
+        return this.stripBlockQuotes(str)
             // Code blocks, ```a```, ``b``, `c`
             .replace(/(`{1,3})[\S\s]+?\1/gm, '')
             // Zero width spaces
             .replace(/\u200B/g, '');
+    }
+
+    // Totally necessary regexless version to strip blockquotes from a message
+    stripBlockQuotes(str) {
+        const indices = [];
+        let i = 0;
+        while (true) {
+            const next = str.indexOf('\n', i + 1);
+
+            if (str.slice(i, i + 2) === '> ') {
+                if (next === -1) {
+                    indices.push([i, str.length]);
+                } else {
+                    indices.push([i, next + 1]);
+                }
+            } else if (str.slice(i, i + 4) === '>>> ') {
+                indices.push([i, str.length]);
+                break;
+            }
+
+            if (next === -1) break;
+
+            i = next + 1;
+        }
+
+        if (indices.length === 0) return str;
+
+        let s = '';
+        let j = 0;
+        for (let [start, end] of indices) {
+            s += str.slice(j, start);
+            j = end;
+        }
+        s += str.slice(j, str.length);
+
+        return s;
     }
 
     // TODO: straight outta Discord.js, will most likely need updating
