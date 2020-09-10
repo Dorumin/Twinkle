@@ -23,7 +23,7 @@ class JoinLeave {
     // }
 
     getChannel(guild) {
-        return guild.channels.get(this.config.CHANNEL);
+        return guild.channels.fetch(this.config.CHANNEL);
     }
 
     getVars(member) {
@@ -45,15 +45,15 @@ class JoinLeave {
         });
     }
 
-    onJoin(member) {
-        const channel = this.getChannel(member.guild);
+    async onJoin(member) {
+        const channel = await this.getChannel(member.guild);
         if (!channel) return;
 
         channel.send(this.formatMessage(this.config.JOIN_MESSAGE, member));
     }
 
-    onLeave(member) {
-        const channel = this.getChannel(member.guild);
+    async onLeave(member) {
+        const channel = await this.getChannel(member.guild);
         if (!channel) return;
 
         channel.send(this.formatMessage(this.config.LEAVE_MESSAGE, member));

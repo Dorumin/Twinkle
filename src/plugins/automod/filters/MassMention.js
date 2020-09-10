@@ -20,7 +20,7 @@ class MassMentionFilter extends Filter {
     }
 
     async handle(message) {
-        const muteAction = message.member.addRole('401231955741507604');
+        const muteAction = message.member..roles.add('401231955741507604');
 
         const suppressed = this.suppressMentions(message.content);
         let deleted = !suppressed.trim();
@@ -38,7 +38,7 @@ class MassMentionFilter extends Filter {
         message.author.send(warning);
 
         const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
-        (this.automod.logchan() || message.channel).send({
+        (await this.automod.logchan() || message.channel).send({
             embed: {
                 author: {
                     name: `${message.author.username}#${message.author.discriminator} has been warned ${muteResult}`,

@@ -7,7 +7,7 @@ class CommandUtils {
 
     static async clearReactions(message) {
         try {
-            await message.clearReactions();
+            await message.reactions.removeAll();
         } catch(e) {
             await this.removeOwnReactions(message);
         }
@@ -15,7 +15,7 @@ class CommandUtils {
 
     static async removeOwnReactions(message) {
         return Promise.all(
-            message.reactions
+            message.reactions.cache
                 .filter(reaction => reaction.me)
                 .map(reaction => reaction.remove())
         );

@@ -254,24 +254,24 @@ class Linker {
                     return message.client.users.has(id) ? `@${message.client.users.get(id).username}` : input;
                 }
 
-                const member = message.channel.guild.members.get(id);
+                const member = message.channel.guild.members.cache.get(id);
                 if (member) {
                     if (member.nickname) return `@${member.nickname}`;
                     return `@${member.user.username}`;
                 } else {
-                    const user = message.client.users.get(id);
+                    const user = message.client.users.cache.get(id);
                     if (user) return `@${user.username}`;
                     return input;
                 }
             })
             .replace(/<#[0-9]+>/g, input => {
-                const channel = message.client.channels.get(input.replace(/<|#|>/g, ''));
+                const channel = message.client.channels.cache.get(input.replace(/<|#|>/g, ''));
                 if (channel) return `#${channel.name}`;
                     return input;
                 })
             .replace(/<@&[0-9]+>/g, input => {
                 if (message.channel.type === 'dm' || message.channel.type === 'group') return input;
-                const role = message.guild.roles.get(input.replace(/<|@|>|&/g, ''));
+                const role = message.guild.roles.cache.get(input.replace(/<|@|>|&/g, ''));
                 if (role) return `@${role.name}`;
                 return input;
             });

@@ -28,8 +28,7 @@ class PingCommand extends Command {
 	}
 
 	getPing() {
-		// TODO: client.ws.ping when updating to Discord.js 12
-		return this.bot.client.ping;
+		return this.bot.client.ws.ping;
 	}
 }
 

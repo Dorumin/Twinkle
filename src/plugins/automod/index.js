@@ -19,7 +19,7 @@ class AutoMod {
     }
 
     logchan() {
-        return this.bot.client.channels.get(this.config.LOGGING);
+        return this.bot.client.channels.fetch(this.config.LOGGING);
     }
 
     async onMessage(message) {

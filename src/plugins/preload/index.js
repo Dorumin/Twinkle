@@ -18,12 +18,11 @@ class Preload {
 		this.config.GUILDS.forEach(this.preloadUsers.bind(this));
 	}
 
-	preloadUsers(guildId) {
-		const guild = this.bot.client.guilds.get(guildId);
+	async preloadUsers(guildId) {
+		const guild = await this.bot.client.guilds.fetch(guildId);
 		if (!guild) return;
 
-		// TODO: for Discord.js move to guild.members.fetch()
-		guild.fetchMembers();
+		guild.members.fetch();
 	}
 }
 

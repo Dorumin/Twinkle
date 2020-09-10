@@ -18,10 +18,10 @@ class JavaScriptCommand extends Command {
         if (content) return;
 
         message.delete();
-        if (message.member.roles.has('269869828691591169')) {
-            message.member.removeRole('269869828691591169');
+        if (message.member.roles.cache.has('269869828691591169')) {
+            message.member.roles.add('269869828691591169');
         } else {
-            message.member.addRole('269869828691591169');
+            message.member.roles.remove('269869828691591169');
         }
     }
 }

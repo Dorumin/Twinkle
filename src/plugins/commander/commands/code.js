@@ -29,6 +29,13 @@ class CodeCommand extends Command {
         ];
     }
 
+    fetchOperators() {
+        return Promise.all(
+            this.bot.operators
+                .map(id => this.bot.client.users.fetch(id))
+        );
+    }
+
     async call(message) {
         const [
             lines,
@@ -66,8 +73,7 @@ class CodeCommand extends Command {
 
         fields.push({
             name: 'Operators',
-            value: this.bot.operators
-                .map(id => this.bot.client.users.get(id))
+            value: (await this.fetchOperators())
                 .map(user => `${user.username}`)
                 .join('\n'),
             inline: true,
