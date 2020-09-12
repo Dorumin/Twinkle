@@ -29,7 +29,7 @@ class BadWordsFilter extends Filter {
     }
 
     async handle(message) {
-        const muteAction = message.member.addRole('401231955741507604');
+        const muteAction = message.member.roles.add('401231955741507604');
         message.author.send(`Hey! Watch your language! You've been grounded from ${message.guild.name}; message someone with the **@Server Moderator** role to talk this out.`); // TODO # of offenses
         message.author.send(`Here's a copy of your message:\`\`\`${message.content}\`\`\``);
         message.delete();
@@ -38,7 +38,7 @@ class BadWordsFilter extends Filter {
         const postCcnormPatternsDesc = describeMatchedPatterns('\nThe following post-ccnorm patterns were matched:\n', this.postCcnormPatterns, remove(message.content));
 
         const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
-        (this.automod.logchan() || message.channel).send({
+        (await this.automod.logchan() || message.channel).send({
             embed: {
                 author: {
                     name: `${message.author.username}#${message.author.discriminator} has been warned ${muteResult}`,

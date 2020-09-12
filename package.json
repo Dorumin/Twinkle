@@ -23,11 +23,11 @@
     "clean-stack": "2.2.0",
     "confusables": "^1.0.0",
     "diff": "^4.0.2",
-    "discord.js": "11.5.1",
+    "discord.js": "^12.3.1",
     "dropbox": "4.0.30",
     "got": "^10.3.0",
     "he": "^1.2.0",
-    "node-fetch": "2.6.0",
+    "node-fetch": "^2.6.1",
     "node-html-parser": "^1.1.19",
     "recursive-readdir": "^2.2.2",
     "tough-cookie": "3.0.1"

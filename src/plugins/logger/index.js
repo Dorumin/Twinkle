@@ -76,6 +76,10 @@ class Logger {
         general.write(logEntry + '\n');
 
         if (this.config.CHANNEL) {
+            const channel = this.bot.client.channels.cache.get(this.config.CHANNEL);
+
+            if (!channel) return;
+
             if (this.config.CATEGORIES) {
                 throw new Error('Unimplemented category splitting');
             } else {
@@ -109,7 +113,7 @@ class Logger {
     flushLogs() {
         this.logTimeout = -1;
 
-        const channel = this.bot.client.channels.get(this.config.CHANNEL);
+        const channel = this.bot.client.channels.cache.get(this.config.CHANNEL);
         if (channel) {
             channel.send(this.getBuffer());
         }

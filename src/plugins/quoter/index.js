@@ -94,7 +94,7 @@ class Quoter {
         if (guildId == '@me') return null;
 
         try {
-            const channel = this.bot.client.channels.get(channelId);
+            const channel = await this.bot.client.channels.fetch(channelId);
             if (!channel) return null;
 
             const messages = await channel.fetchMessages({ limit: 1, around: messageId });

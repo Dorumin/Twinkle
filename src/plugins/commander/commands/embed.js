@@ -106,7 +106,7 @@ description = Ignore this update! Changes were rollbacked, wait for further news
         let message;
 
         if (quoteMatch) {
-            channel = this.bot.client.channels.get(quoteMatch[2]);
+            channel = await this.bot.client.channels.fetch(quoteMatch[2]);
 
             if (!channel) {
                 return invoker.channel.send(`Could not find channel with id: ${quoteMatch[2]}`);

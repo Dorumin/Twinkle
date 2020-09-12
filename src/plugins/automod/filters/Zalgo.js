@@ -26,12 +26,12 @@ class ZalgoFilter extends Filter {
     }
 
     async handle(message) {
-        const muteAction = message.member.addRole('401231955741507604');
+        const muteAction = message.member.roles.add('401231955741507604');
         message.author.send(`Hey! Please don't abuse zalgo/spammy text in ${message.guild.name}.`); // TODO # of offenses
         message.delete();
 
         const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
-        (this.automod.logchan() || message.channel).send({
+        (await this.automod.logchan() || message.channel).send({
             embed: {
                 author: {
                     name: `${message.author.username}#${message.author.discriminator} has been warned ${muteResult}`,
