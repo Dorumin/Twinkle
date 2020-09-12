@@ -288,7 +288,7 @@ class Linker {
             .replace(/<@!?[0-9]+>/g, input => {
                 const id = input.replace(/<|!|>|@/g, '');
                 if (message.channel.type === 'dm' || message.channel.type === 'group') {
-                    return message.client.users.has(id) ? `@${message.client.users.get(id).username}` : input;
+                    return message.client.users.cache.has(id) ? `@${message.client.users.cache.get(id).username}` : input;
                 }
 
                 const member = message.channel.guild.members.cache.get(id);
