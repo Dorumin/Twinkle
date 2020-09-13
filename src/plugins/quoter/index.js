@@ -138,7 +138,7 @@ class Quoter {
 
         const author = includeQuoter
             ? {
-                icon_url: message.author.displayAvatarURL,
+                icon_url: message.author.displayAvatarURL(),
                 name: `Quoted by ${message.author.username}#${message.author.discriminator}`
             }
             : undefined;
@@ -150,7 +150,7 @@ class Quoter {
             description,
             image: image || undefined,
             footer: {
-                icon_url: quote.author.displayAvatarURL,
+                icon_url: quote.author.displayAvatarURL(),
                 text
             },
             timestamp: quote.createdAt.toISOString()

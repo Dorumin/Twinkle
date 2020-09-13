@@ -42,7 +42,7 @@ class MassMentionFilter extends Filter {
             embed: {
                 author: {
                     name: `${message.author.username}#${message.author.discriminator} has been warned ${muteResult}`,
-                    icon_url: message.author.displayAvatarURL
+                    icon_url: message.author.displayAvatarURL()
                 },
                 color: message.guild.me.displayColor,
                 description: `**Reason**: Mass mention (${message.mentions.users.size} users)\n<@${message.author.id}>\n`, // TODO: # of offenses

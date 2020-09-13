@@ -42,7 +42,7 @@ class BadWordsFilter extends Filter {
             embed: {
                 author: {
                     name: `${message.author.username}#${message.author.discriminator} has been warned ${muteResult}`,
-                    icon_url: message.author.displayAvatarURL
+                    icon_url: message.author.displayAvatarURL()
                 },
                 color: message.guild.me.displayColor,
                 description: `**Reason**: Bad words matched${patternsDesc}${postCcnormPatternsDesc}\n<@${message.author.id}>`, // TODO: # of offenses
