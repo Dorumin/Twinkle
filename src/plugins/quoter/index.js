@@ -97,7 +97,7 @@ class Quoter {
             const channel = await this.bot.client.channels.fetch(channelId);
             if (!channel) return null;
 
-            const messages = await channel.fetchMessages({ limit: 1, around: messageId });
+            const messages = await channel.messsage.fetch({ limit: 1, around: messageId });
             if (!messages.size) return null;
 
             const message = messages.first();
