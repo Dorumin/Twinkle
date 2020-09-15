@@ -11,11 +11,11 @@ class UCPCommand extends Command {
     
 	constructor(bot) {
         super(bot);
-		this.aliases = ['ucp'];
+	this.aliases = ['ucp'];
 
-		this.shortdesc = `Posts links to UCP info.`;
-		this.desc = `Posts links to information about Fandom's UCP platform. You can optionally get info on a specified script/stylesheet's compatibility status by providing it as an argument.`;
-		this.usages = [
+	this.shortdesc = `Posts links to UCP info.`;
+	this.desc = `Posts links to information about Fandom's UCP platform. You can optionally get info on a specified script/stylesheet's compatibility status by providing it as an argument.`;
+	this.usages = [
             '!ucp [script/stylesheet]'
         ];
         this.examples = [
