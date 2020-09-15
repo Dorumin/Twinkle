@@ -5,7 +5,9 @@ const config = require('./util/config.js');
 
 class Twinkle {
     constructor()  {
-        this.client = new Discord.Client();
+        this.client = new Discord.Client({
+            disableMentions: 'everyone'
+        });
         this.config = config.TWINKLE;
         this.operators = this.config.OPERATORS;
         this._globalConfig = config;
