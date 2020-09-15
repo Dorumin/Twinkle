@@ -26,8 +26,9 @@ class UCPCommand extends Command {
         this.linksString = `
 - Help - <https://c.fandom.com/Help:UCP>
 - Information - <https://fandom.zendesk.com/hc/articles/360044776693>
-- Bugs, features, changes - <https://c.fandom.com/User:Noreplyz/UCP>`;
-		this.validStatuses = ['Ready', 'Awaiting', 'Delete', 'Blocked', 'Unknown'];
+- Bugs, features, changes - <https://c.fandom.com/User:Noreplyz/UCP>
+- Content compatibility information - <https://dev.fandom.com/wiki/Dev_Wiki:UCP>`;
+		this.validStatuses = ['Ready', 'Awaiting', 'Delete', 'Blocked', 'Broken', 'Unknown'];
 	}
 
 	call(message, content) {
@@ -48,7 +49,7 @@ class UCPCommand extends Command {
 				for (const button of data.buttons) {
 					if (!this.validStatuses.includes(button.name)) continue;
 					status = button.name;
-					result = `UCP compatability status for ${this.bot.fmt.bold(content)} is: ${status}`;
+					result = `UCP compatibility status for ${this.bot.fmt.bold(content)} is: ${status}`;
 				}
 
 				return message.channel.send(result);
