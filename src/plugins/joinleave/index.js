@@ -23,7 +23,7 @@ class JoinLeave {
     // }
 
     getChannel(guild) {
-        return guild.channels.fetch(this.config.CHANNEL);
+        return guild.channels.cache.get(this.config.CHANNEL);
     }
 
     getVars(member) {
