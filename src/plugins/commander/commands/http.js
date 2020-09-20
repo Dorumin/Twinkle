@@ -33,7 +33,7 @@ class HTTPCommand extends Command {
             return;
         }
 
-        await message.channel.send(`Status code ${this.bot.fmt(content)} not found.`);
+        await message.channel.send(`Status code ${this.bot.fmt.code(content)} not found.`);
     }
 }
 
