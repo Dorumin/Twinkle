@@ -113,11 +113,24 @@ class EvalCommand extends OPCommand {
         return val;
     }
 
-    require(send, name) {
+    require(channel, name) {
         try {
             return require(name);
         } catch(e) {
-            send(`Dynamically loading ${name}...`);
+            // This is a HACK to essentially send a message on another thread
+            // I use curl because I can't be assed to spawn a small js file to post with got
+            // I tried to make this look as pretty as possible
+            const url = `https://discord.com/api/v6/channels/${channel.id}/messages`;
+            const body = JSON.stringify({
+                content: `Dynamically loading ${name}...`
+            });
+            const headers = [
+                ['Content-Type', 'application/json'],
+                ['Authorization', `Bot ${this.bot.client.token}`]
+            ].map(([k, v]) => `-H "${k}: ${v}"`).join(' ');
+
+            // curl will start on another thread, and npm install with block this thread
+            child_process.exec(`curl --data '${body}' ${headers} ${url}`);
             child_process.execSync(`npm install ${name}`);
 
             return require(name);
@@ -147,15 +160,17 @@ class EvalCommand extends OPCommand {
 
             return message.channel.send(...args);
         };
-        const require = this.require.bind(this, send);
         const bot = this.bot;
-        const db = bot.db;
-        const client = bot.client;
-        const got = require('got');
         const { channel, member, author, guild } = message;
+        const { client, commander, fmt, db } = bot;
+        const require = this.require.bind(this, channel);
+        const got = require('got');
         let module = { exports: null };
 
-        this.constructor.use(send, bot, db, client, got, channel, member, author, guild);
+        this.constructor.use(
+            send, bot, channel, member, author, guild,
+            client, commander, fmt, db, require, got, module
+        );
 
         try {
             // Weak assertions, used to restrict functionality *in case of*, not enable it
