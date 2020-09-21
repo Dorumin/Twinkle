@@ -1,5 +1,7 @@
 const util = require('util');
+const child_process = require('child_process');
 const { Collection } = require('discord.js');
+const Command = require('../structs/Command.js');
 const OPCommand = require('../structs/OPCommand.js');
 const FormatterPlugin = require('../../fmt');
 
@@ -111,6 +113,17 @@ class EvalCommand extends OPCommand {
         return val;
     }
 
+    require(send, name) {
+        try {
+            return require(name);
+        } catch(e) {
+            send(`Dynamically loading ${name}...`);
+            child_process.execSync(`npm install ${name}`);
+
+            return require(name);
+        }
+    }
+
     async call(message, content) {
         let code = content;
         if (code.startsWith('```') && code.endsWith('```')) {
@@ -138,10 +151,11 @@ class EvalCommand extends OPCommand {
         const db = bot.db;
         const client = bot.client;
         const got = require('got');
-        const channel = message.channel;
-        const guild = message.guild;
+        const { channel, member, author, guild } = message;
+        const require = this.require.bind(this, send);
+        let module = { exports: null };
 
-        this.constructor.use(send, bot, db, client, got, channel, guild);
+        this.constructor.use(send, bot, db, client, got, channel, member, author, guild);
 
         try {
             // Weak assertions, used to restrict functionality *in case of*, not enable it
@@ -173,7 +187,12 @@ class EvalCommand extends OPCommand {
                 }
             }
         } catch(e) {
-            send(this.bot.fmt.codeBlock('http', `${e}`));
+            await send(this.bot.fmt.codeBlock('http', `${e}`));
+        }
+
+        if (module.exports instanceof Command) {
+            bot.commander.loadCommand(module.exports, 'eval');
+            await send(`Registered new command ${module.exports.name}`);
         }
     }
 
