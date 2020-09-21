@@ -205,7 +205,7 @@ class EvalCommand extends OPCommand {
             await send(this.bot.fmt.codeBlock('http', `${e}`));
         }
 
-        if (module.exports instanceof Command) {
+        if (Command.isPrototypeOf(module.exports)) {
             bot.commander.loadCommand(module.exports, 'eval');
             await send(`Registered new command ${module.exports.name}`);
         }
