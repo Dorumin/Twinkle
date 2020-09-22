@@ -206,8 +206,8 @@ class EvalCommand extends OPCommand {
         }
 
         if (Command.isPrototypeOf(module.exports)) {
-            bot.commander.loadCommand(module.exports, 'eval');
-            await send(`Registered new command ${module.exports.name}`);
+            bot.commander.loadCommand(module.exports, module.exports.name);
+            await send(`Registered a new command: ${module.exports.name}`);
         }
     }
 
