@@ -27,7 +27,7 @@ class RCCommand extends Command {
             : this.bot.fmt.code('https://<yourwiki>.fandom.com/wiki/Special:RecentChanges?feed=rss');
 
         message.channel.send(`
-The easiest way to set up a Recent Changes-to-Discord system is by inviting and configuring an RSS bot for your server. A popular one is <https://discordrss.xyz/>.
+The easiest way to set up a Recent Changes-to-Discord system is by inviting and configuring an RSS bot for your server. A popular one is <https://monitorss.xyz/>.
 When the bot prompts you for the RSS feed/url, enter ${link} in. Note that, unlike <#246076868560814080>, the bot will have a small delay, usually around 10 minutes.
         `);
     }
