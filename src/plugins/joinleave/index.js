@@ -1,4 +1,5 @@
 const Plugin = require('../../structs/Plugin.js');
+const Cache = require('../../structs/Cache.js');
 
 class JoinLeavePlugin extends Plugin {
     load() {
@@ -8,10 +9,71 @@ class JoinLeavePlugin extends Plugin {
 
 class JoinLeave {
     constructor(bot) {
+        this.bot = bot;
         this.config = bot.config.JOIN_LEAVE;
+        this.specials = this.config.SPECIAL_JOIN_CODES;
+        this.cache = new Map();
 
+        bot.client.on('ready', this.populateCache.bind(this));
         bot.client.on('guildMemberAdd', this.onJoin.bind(this));
         bot.client.on('guildMemberRemove', this.onLeave.bind(this));
+    }
+
+    populateCache() {
+        this.bot.client.guilds.array().map(async guild => {
+            const invites = await guild.fetchInvites();
+
+            this.cache.set(guild.id, invites);
+        });
+    }
+
+    // Compares two invite collections and filters out the two who have changed
+    // If one is in old and missing in cur it's not counted even though it could've been a one-use invite
+    diffInvites(old, cur) {
+        const diffed = [];
+
+        for (const oldInvite of old) {
+            const curInvite = cur.get(oldInvite.code);
+
+            // Invite died between last cache; maybe it expired from usage or was deleted? Ignore it
+            if (!curInvite) continue;
+
+            if (oldInvite.uses <= curInvite.uses) continue;
+
+            diffed.push(oldInvite);
+        }
+
+        for (const curInvite of cur) {
+            const oldInvite = old.get(curInvite.code);
+
+            // We never had it cached, ignore it
+            if (curInvite) continue;
+            if (oldInvite.uses <= curInvite.uses) continue;
+
+            // Since we're the 2nd pass, we should make sure they aren't repeated
+            if (diffed.some(inv => inv.code === curInvite.code)) continue;
+
+            diffed.push(curInvite);
+        }
+
+        return diffed;
+    }
+
+    // Fetches the invite that was updated since the cache was used
+    // Will return null when more than one invite has been updated, or the cache was empty
+    async resolveInvite(guild) {
+        if (!this.cache.has(guild.id)) return null;
+
+        const cached = this.cache.get(guild.id);
+        const current = await guild.fetchInvites();
+
+        const diff = this.diffInvites(cached, current);
+
+        this.cache.set(guild.id, current);
+
+        if (diff.length !== 1) return null;
+
+        return diff[0];
     }
 
     // getDefaultChannel(guild) {
@@ -46,10 +108,19 @@ class JoinLeave {
     }
 
     async onJoin(member) {
-        const channel = await this.getChannel(member.guild);
+        const [channel, invite] = await Promise.all([
+            this.getChannel(member.guild),
+            this.resolveInvite(member.guild)
+        ]);
         if (!channel) return;
 
-        channel.send(this.formatMessage(this.config.JOIN_MESSAGE, member));
+        let message = this.config.JOIN_MESSAGE;
+
+        if (invite !== null && this.specials.hasOwnProperty(invite.code)) {
+            message = this.specials[invite.code];
+        }
+
+        channel.send(this.formatMessage(message, member));
     }
 
     async onLeave(member) {
