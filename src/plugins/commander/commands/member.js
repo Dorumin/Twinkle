@@ -1,7 +1,7 @@
 const Command = require('../structs/Command.js');
 const got = require('got');
 
-class MemberCommand extends Command {
+class MembersCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['member', 'verify'];
@@ -13,33 +13,49 @@ class MemberCommand extends Command {
         ];
     }
 
-    call(message, content) {
-        if (content) return;
-        
-        var edits = await got('https://dev.fandom.com/api.php', {
+    getEditCountAndID (username) {
+        return got('https://dev.fandom.com/api.php', {
             searchParams: {
                 action: 'query',
                 list: 'users',
                 usprop: 'editcount',
-                ususers: content,
+                ususers: username,
                 format: 'json'
             }
         }).json();
-        
-        if (edits.query.users[0]) {
-            if (edits.query.users[0].editcount >= 1) {
-                if (message.member.roles.cache.has('246302564625285121')) {
-                    message.member.roles.add('246302564625285121');
-                } else {
-                    message.channel.send('You already have the role.');
-                }
-            } else {
-                message.channel.send('You do not have enough edits.');
-            }
-        } else {
-            message.channel.send('That user does not exist.');
+    }
+
+    getMastheadDiscord (userid) {
+        return got(`https://services.fandom.com/user-attribute/user/${userid}/attr/discordHandle`).json();
+    }
+
+    async call(message, content) {
+        if (!content) {
+            return message.channel.send('You need to specify a username.');
         }
+
+        if (message.member.roles.cache.has('246302564625285121')) {
+            return message.channel.send('You already have the role.');
+        }
+
+        const editsAndID = await this.getEditCountAndID(content);
+
+        if (editsAndID.query.users[0]) {
+            return message.channel.send('That user does not exist.');
+        }
+
+        if (editsAndID.query.users[0].editcount <= 1) {
+            return message.channel.send('You do not have enough edits.');
+        }
+
+        const verifyUser = await this.getMastheadDiscord(editsAndID.query.users[0].userid);
+
+        if (verifyUser.value !== `${message.author.username}#${message.author.discriminator}`) {
+            return message.channel.send('Verification failed.');
+        }
+
+        message.member.roles.add('246302564625285121');
     }
 }
 
-module.exports = JavaScriptCommand;
+module.exports = MembersCommand;
