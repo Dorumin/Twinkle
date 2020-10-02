@@ -1,7 +1,7 @@
 const Command = require('../structs/Command.js');
 const got = require('got');
 
-class MembersCommand extends Command {
+class MemberCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['member', 'verify'];
@@ -58,4 +58,4 @@ class MembersCommand extends Command {
     }
 }
 
-module.exports = MembersCommand;
+module.exports = MemberCommand;
