@@ -13,7 +13,7 @@ class MembersCommand extends Command {
         ];
     }
 
-    getEditCountAndID (username) {
+    getEditCountAndID(username) {
         return got('https://dev.fandom.com/api.php', {
             searchParams: {
                 action: 'query',
@@ -25,7 +25,7 @@ class MembersCommand extends Command {
         }).json();
     }
 
-    getMastheadDiscord (userid) {
+    getMastheadDiscord(userid) {
         return got(`https://services.fandom.com/user-attribute/user/${userid}/attr/discordHandle`).json();
     }
 
@@ -44,14 +44,14 @@ class MembersCommand extends Command {
             return message.channel.send('That user does not exist.');
         }
 
-        if (editsAndID.query.users[0].editcount <= 1) {
+        if (editsAndID.query.users[0].editcount === 0) {
             return message.channel.send('You do not have enough edits.');
         }
 
         const verifyUser = await this.getMastheadDiscord(editsAndID.query.users[0].userid);
 
         if (verifyUser.value !== `${message.author.username}#${message.author.discriminator}`) {
-            return message.channel.send('Verification failed.');
+            return message.channel.send('The username and tag in the masthead does not match the username and tag of the message author.');
         }
 
         message.member.roles.add('246302564625285121');
