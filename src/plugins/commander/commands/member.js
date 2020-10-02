@@ -40,7 +40,7 @@ class MembersCommand extends Command {
 
         const editsAndID = await this.getEditCountAndID(content);
 
-        if (editsAndID.query.users[0]) {
+        if (!editsAndID.query.users[0]) {
             return message.channel.send('That user does not exist.');
         }
 
