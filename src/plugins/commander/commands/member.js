@@ -55,6 +55,7 @@ class MemberCommand extends Command {
         }
 
         message.member.roles.add('246302564625285121');
+        message.channel.send('Role has been added.');
     }
 }
 
