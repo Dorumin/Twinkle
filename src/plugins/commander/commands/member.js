@@ -50,7 +50,7 @@ class MemberCommand extends Command {
 
         const verifyUser = await this.getMastheadDiscord(editsAndID.query.users[0].userid);
 
-        if (verifyUser.value !== `${message.author.username}#${message.author.discriminator}`) {
+        if (verifyUser.value !== message.author.tag) {
             return message.channel.send('The username and tag in the masthead does not match the username and tag of the message author.');
         }
 
