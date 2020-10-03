@@ -26,7 +26,11 @@ class MemberCommand extends Command {
     }
 
     getMastheadDiscord(userid) {
-        return got(`https://services.fandom.com/user-attribute/user/${userid}/attr/discordHandle`).json();
+        return got(`https://services.fandom.com/user-attribute/user/${userid}/attr/discordHandle`, {
+            headers: {
+                accept: '*/*'
+            }
+        }).json();
     }
 
     async call(message, content) {
