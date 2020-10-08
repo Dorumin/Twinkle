@@ -50,7 +50,7 @@ class JoinLeave {
     diffInvites(old, cur) {
         const diffed = [];
 
-        for (const code of old) {
+        for (const code in old) {
             const oldInvite = old[code];
             const curInvite = cur[code];
 
@@ -62,7 +62,7 @@ class JoinLeave {
             diffed.push(oldInvite);
         }
 
-        for (const code of cur) {
+        for (const code in cur) {
             const oldInvite = old[code];
             const curInvite = cur[code];
 
