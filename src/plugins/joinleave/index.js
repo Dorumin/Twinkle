@@ -57,9 +57,9 @@ class JoinLeave {
             // Invite died between last cache; maybe it expired from usage or was deleted? Ignore it
             if (!curInvite) continue;
 
-            if (oldInvite.uses <= curInvite.uses) continue;
-
-            diffed.push(oldInvite);
+            if (curInvite.uses > oldInvite.uses) {
+                diffed.push(oldInvite);
+            }
         }
 
         for (const code in cur) {
@@ -68,12 +68,14 @@ class JoinLeave {
 
             // We never had it cached, ignore it
             if (!oldInvite) continue;
-            if (oldInvite.uses <= curInvite.uses) continue;
 
-            // Since we're the 2nd pass, we should make sure they aren't repeated
-            if (diffed.some(inv => inv.code === curInvite.code)) continue;
+            if (curInvite.uses > oldInvite.uses) {
+                const already = diffed.some(inv => inv.code === curInvite.code);
 
-            diffed.push(curInvite);
+                if (!already) {
+                    diffed.push(curInvite);
+                }
+            }
         }
 
         return diffed;
