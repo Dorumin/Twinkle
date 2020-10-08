@@ -96,8 +96,6 @@ class JoinLeave {
 
         const diff = this.diffInvites(cached, current);
 
-        this.debug(cached, current, diff);
-
         this.cache.set(guild.id, current);
 
         if (diff.length !== 1) return null;
@@ -134,14 +132,6 @@ class JoinLeave {
 
             return full;
         });
-    }
-
-    async debug(old, cur, diff) {
-        const channel = this.bot.client.channels.cache.get('476452336282107925');
-
-        channel.send('Cached invites' + this.bot.fmt.codeBlock('json', JSON.stringify(old, null, 4)));
-        channel.send('Current invites' + this.bot.fmt.codeBlock('json', JSON.stringify(cur, null, 4)));
-        channel.send('Diffed invites' + this.bot.fmt.codeBlock('json', JSON.stringify(diff, null, 4)));
     }
 
     async onJoin(member) {
