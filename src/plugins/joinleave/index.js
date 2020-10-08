@@ -20,12 +20,27 @@ class JoinLeave {
         bot.client.on('guildMemberRemove', this.onLeave.bind(this));
     }
 
+    serialize(inviteCollection) {
+        const object = {};
+
+        for (const invite of inviteCollection.values()) {
+            const { code, uses } = invite;
+
+            object[invite.code] = {
+                code,
+                uses
+            };
+        }
+
+        return object;
+    }
+
     populateCache() {
         this.bot.client.guilds.cache.array().map(async guild => {
             try {
                 const invites = await guild.fetchInvites();
 
-                this.cache.set(guild.id, invites);
+                this.cache.set(guild.id, this.serialize(invites));
             } catch(e) {}
         });
     }
@@ -35,8 +50,9 @@ class JoinLeave {
     diffInvites(old, cur) {
         const diffed = [];
 
-        for (const oldInvite of old.values()) {
-            const curInvite = cur.get(oldInvite.code);
+        for (const code of old) {
+            const oldInvite = old[code];
+            const curInvite = cur[code];
 
             // Invite died between last cache; maybe it expired from usage or was deleted? Ignore it
             if (!curInvite) continue;
@@ -46,11 +62,12 @@ class JoinLeave {
             diffed.push(oldInvite);
         }
 
-        for (const curInvite of cur.values()) {
-            const oldInvite = old.get(curInvite.code);
+        for (const code of cur) {
+            const oldInvite = old[code];
+            const curInvite = cur[code];
 
             // We never had it cached, ignore it
-            if (curInvite) continue;
+            if (!oldInvite) continue;
             if (oldInvite.uses <= curInvite.uses) continue;
 
             // Since we're the 2nd pass, we should make sure they aren't repeated
@@ -70,7 +87,7 @@ class JoinLeave {
         const cached = this.cache.get(guild.id);
         let current;
         try {
-            current = await guild.fetchInvites();
+            current = this.serialize(await guild.fetchInvites());
         } catch(e) {
             return null;
         }
@@ -115,8 +132,20 @@ class JoinLeave {
         });
     }
 
+    async debug(member) {
+        const channel = this.bot.client.channels.cache.get('476452336282107925');
+        const old = this.cache.get(member.guild.id);
+        const cur = this.serialize(await member.guild.fetchInvites());
+
+        channel.send(`User joined: ${member.id}`);
+        channel.send('Cached invites' + this.bot.fmt.codeBlock('json', JSON.stringify(cur, null, 4)));
+        channel.send('Current invites' + this.bot.fmt.codeBlock('json', JSON.stringify(old, null, 4)));
+    }
+
     async onJoin(member) {
         if (this.dev && this.bot.config.DEV.GUILD !== member.guild.id) return;
+
+        this.debug(member);
 
         const [channel, invite] = await Promise.all([
             this.getChannel(member.guild),
