@@ -55,8 +55,7 @@ class MemberCommand extends Command {
         const verifyUser = await this.getMastheadDiscord(editsAndID.query.users[0].userid);
 
         if (verifyUser.value !== message.author.tag) {
-            return message.channel.send(`The username and tag in the masthead do
- not match the username and tag of the message author. Use <https://dev.fandom.com/wiki/Special:VerifyUser/${encodeURIComponent(content)}?user=${encodeURIComponent(message.author.username)}&tag=${message.author.discriminator}&c=!member&ch=lobby> to remedy this.`);
+            return message.channel.send(`The username and tag in the masthead do not match the username and tag of the message author. Use <https://dev.fandom.com/wiki/Special:VerifyUser/${encodeURIComponent(content)}?user=${encodeURIComponent(message.author.username)}&tag=${message.author.discriminator}&c=!member&ch=lobby> to remedy this.`);
         }
 
         message.member.roles.add('246302564625285121');
