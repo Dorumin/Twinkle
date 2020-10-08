@@ -94,6 +94,8 @@ class JoinLeave {
 
         const diff = this.diffInvites(cached, current);
 
+        this.debug(cached, current, diff);
+
         this.cache.set(guild.id, current);
 
         if (diff.length !== 1) return null;
@@ -118,7 +120,7 @@ class JoinLeave {
             USERID: member.user.id,
             USERNAME: member.user.username,
             USERDISCRIM: member.user.discriminator
-        }
+        };
     }
 
     formatMessage(message, member) {
@@ -132,20 +134,16 @@ class JoinLeave {
         });
     }
 
-    async debug(member) {
+    async debug(old, cur, diff) {
         const channel = this.bot.client.channels.cache.get('476452336282107925');
-        const old = this.cache.get(member.guild.id);
-        const cur = this.serialize(await member.guild.fetchInvites());
 
-        channel.send(`User joined: ${member.id}`);
-        channel.send('Cached invites' + this.bot.fmt.codeBlock('json', JSON.stringify(cur, null, 4)));
-        channel.send('Current invites' + this.bot.fmt.codeBlock('json', JSON.stringify(old, null, 4)));
+        channel.send('Cached invites' + this.bot.fmt.codeBlock('json', JSON.stringify(old, null, 4)));
+        channel.send('Current invites' + this.bot.fmt.codeBlock('json', JSON.stringify(cur, null, 4)));
+        channel.send('Diffed invites' + this.bot.fmt.codeBlock('json', JSON.stringify(diff, null, 4)));
     }
 
     async onJoin(member) {
         if (this.dev && this.bot.config.DEV.GUILD !== member.guild.id) return;
-
-        this.debug(member);
 
         const [channel, invite] = await Promise.all([
             this.getChannel(member.guild),
