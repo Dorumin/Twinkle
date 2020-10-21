@@ -3,7 +3,7 @@ const Command = require('../structs/Command.js');
 class StaffCommand extends Command {
     constructor(bot) {
         super(bot);
-        this.aliases = ['staff'];
+        this.aliases = ['staff', 'sc'];
 
         this.shortdesc = `Posts a link to the Zendesk contact form.`;
         this.desc = `Links to the Zendesk contact form.`;
