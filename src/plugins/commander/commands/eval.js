@@ -1,6 +1,6 @@
 const util = require('util');
 const child_process = require('child_process');
-const { Collection } = require('discord.js');
+const { BaseManager, Collection } = require('discord.js');
 const Command = require('../structs/Command.js');
 const OPCommand = require('../structs/OPCommand.js');
 const FormatterPlugin = require('../../fmt');
@@ -137,6 +137,16 @@ class EvalCommand extends OPCommand {
         }
     }
 
+    patchManagerClasses() {
+        BaseManager.prototype.get = function(key) {
+            return this.cache.get(key);
+        };
+    }
+
+    unpatchManagerClasses() {
+        delete BaseManager.prototype.get;
+    }
+
     async call(message, content) {
         let code = content;
         if (code.startsWith('```') && code.endsWith('```')) {
@@ -172,6 +182,8 @@ class EvalCommand extends OPCommand {
             client, commander, fmt, db, require, got, module
         );
 
+        this.patchManagerClasses();
+
         try {
             // Weak assertions, used to restrict functionality *in case of*, not enable it
             const isAsync = code.includes('await');
@@ -204,6 +216,8 @@ class EvalCommand extends OPCommand {
         } catch(e) {
             await send(this.bot.fmt.codeBlock('http', `${e}`));
         }
+
+        this.unpatchManagerClasses();
 
         if (Command.isPrototypeOf(module.exports)) {
             bot.commander.loadCommand(module.exports, module.exports.name);
