@@ -9,6 +9,7 @@ class ClearCommand extends ModCommand {
         this.CHECKMARK = '✅';
         this.CROSS = '❌';
         this.DISCORD_EPOCH = 1420070400000;
+        this.MESSAGES_RETRY_AFTER = 4000;
 
         this.shortdesc = `Bulk deletes messages.`;
         this.desc = `
@@ -189,15 +190,25 @@ class ClearCommand extends ModCommand {
         let stopLoop = false;
 
         while (results.length < limit) {
-            let messages = await got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
-                searchParams: {
-                    limit: 100,
-                    before: lastId
-                },
-                headers: {
-                    Authorization: 'Bot ' + this.bot.config.TOKEN
-                }
-            }).json();
+            let messages;
+            try {
+                messages = await Promise.race([
+                    got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
+                        searchParams: {
+                            limit: 100,
+                            before: lastId
+                        },
+                        headers: {
+                            Authorization: 'Bot ' + this.bot.config.TOKEN
+                        }
+                    }).json(),
+                    this.errorAfterTimeout(this.MESSAGES_RETRY_AFTER)
+                ]);
+            } catch(e) {
+                if (e === 'timeout') continue;
+
+                throw e;
+            }
 
             if (!messages.length) break;
 
@@ -229,6 +240,10 @@ class ClearCommand extends ModCommand {
         return results;
     }
 
+    errorAfterTimeout(ms) {
+        return new Promise((_, reject) => setTimeout(reject.bind(this, 'timeout'), ms));
+    }
+
     async loadMessagesAfter(channel, after, fromUsers, before) {
         // Not using channel.fetchMessages either
         const results = [];
@@ -236,16 +251,25 @@ class ClearCommand extends ModCommand {
         let stopLoop = false;
 
         while (true) {
-            let messages = await got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
-                searchParams: {
-                    limit: 100,
-                    after: lastId,
-                    // before
-                },
-                headers: {
-                    Authorization: 'Bot ' + this.bot.config.TOKEN
-                }
-            }).json();
+            let messages;
+            try {
+                messages = await Promise.race([
+                    got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
+                        searchParams: {
+                            limit: 100,
+                            before: lastId
+                        },
+                        headers: {
+                            Authorization: 'Bot ' + this.bot.config.TOKEN
+                        }
+                    }).json(),
+                    this.errorAfterTimeout(this.MESSAGES_RETRY_AFTER)
+                ]);
+            } catch(e) {
+                if (e === 'timeout') continue;
+
+                throw e;
+            }
 
             if (!messages.length) break;
 
