@@ -7,79 +7,58 @@ class FSTransport extends Transport {
         super(config);
 
         this.delay = config.DELAY || 1000;
+        this.queue = [];
         this.path = config.PATH;
         this.cache = new Map();
         this.query = new Map();
+        this.saving = false;
     }
 
     getPath(...sub) {
         return path.join(this.path, ...sub);
     }
 
-    list() {
-        return new Promise((res, rej) => {
-            fs.readdir(this.path, (err, files) => {
-                if (err) {
-                    return rej(err);
-                }
-
-                res(files);
-            });
-        });
+    async list() {
+        return fs.promises.readdir(this.path);
     }
 
-    get(key, def = null) {
-        return new Promise(async (res, rej) => {
-            if (this.cache.has(key)) {
-                return res(this.cache.get(key));
-            }
-
-            if (!this.query.has(key)) {
-                this.query.set(key, new Promise((res, rej) => {
-                    fs.readFile(this.getPath(key), (err, data) => {
-                        if (err) {
-                            return rej(err);
-                        }
-
-                        res(data.toString());
-                    });
-                }));
-            }
-
-            let file;
-
+    async get(key, def = null) {
+        if (this.cache.has(key)) {
+            return this.cache.get(key);
+        }
+        if (!this.query.has(key)) {
             try {
-                file = await this.query.get(key);
-            } catch(e) {
-                this.cache.set(key, def);
-                return res(def);
+                this.query.set(key, await fs.promises.readFile(this.getPath(key), {
+                    encoding: 'utf-8'
+                }));
+            } catch {
+                return def;
             }
+        }
+        let file;
 
-            const result = this.toJson(file.fileBinary.toString()) || def;
-            this.cache.set(key, result);
+        try {
+            file = await this.query.get(key);
+        } catch(e) {
+            this.cache.set(key, def);
+            return def;
+        }
 
-            res(result);
-        });
+        const result = this.toJson(file) || def;
+        this.cache.set(key, result);
+
+        return result;
     }
 
     set(key, object) {
         this.cache.set(key, object);
-        this.queueSave(key, object);
+        return this.queueSave(key, object);
     }
 
-    delete(key) {
-        return new Promise((res, rej) => {
-            this.query.delete(key);
-            this.cache.delete(key);
-
-            fs.unlink(this.getPath(key), (err) => {
-                if (err) {
-                    return rej(err);
-                }
-
-                res();
-            });
-        })
+    async delete(key) {
+        this.query.delete(key);
+        this.cache.delete(key);
+        await fs.promises.unlink(this.getPath(key));
     }
 
     async queueSave(key) {
@@ -91,9 +70,13 @@ class FSTransport extends Transport {
 
         this.saving = true;
 
+        const filename = this.getPath(key);
+        await fs.promises.mkdir(path.dirname(filename), {
+            recursive: true
+        });
         await Promise.all([
             this.wait(this.delay),
-            this.write(key, this.cache.get(key))
+            fs.promises.writeFile(filename, this.toBase64(this.cache.get(key)))
         ]);
 
         this.saving = false;
@@ -102,18 +85,6 @@ class FSTransport extends Transport {
         if (this.queue.length) {
             this.queueSave();
         }
-    }
-
-    write(key, object) {
-        return new Promise((res, rej) => {
-            fs.writeFile(this.getPath(key), this.toBase64(object), (err) => {
-                if (err) {
-                    return rej(err);
-                }
-
-                res();
-            })
-        });
     }
 
     toJson(base64) {

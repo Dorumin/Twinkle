@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const path = require('path');
 const Twinkle = require('./src/Twinkle.js');
 const client = new Twinkle();
