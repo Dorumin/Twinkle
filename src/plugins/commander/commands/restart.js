@@ -1,4 +1,4 @@
-const { HEROKU } = require('../../../../config.json');
+const { HEROKU, SYSTEMD } = require('../../../../config.json');
 const { spawn } = require('child_process');
 const fs = require('fs');
 const got = require('got');
@@ -7,7 +7,7 @@ const DatabasePlugin = require('../../db');
 
 class RestartCommand extends OPCommand {
     static get deps() {
-        return HEROKU == 'true' ? [
+        return (HEROKU == 'true' || SYSTEMD) ? [
             DatabasePlugin
         ] : [];
     }
@@ -80,7 +80,7 @@ class RestartCommand extends OPCommand {
     }
 
     async restartSystemd(channelId) {
-        await fs.promises.writeFile('/tmp/twinkle.chan', channelId);
+        await this.bot.db.set('lastRestartChannel', channelId);
         process.exit(1);
     }
 }
