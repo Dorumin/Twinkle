@@ -72,8 +72,17 @@ class Commander {
     }
 
     loadCommandDir(dir) {
+        const wl = this.config.WHITELIST;
+        const bl = this.config.BLACKLIST;
         fs.readdirSync(dir).forEach(file => {
             const p = path.join(dir, file);
+            const name = file.replace(/\.js$/, '');
+            if (wl instanceof Array && !wl.includes(name)) {
+                return;
+            }
+            if (bl instanceof Array && bl.includes(name)) {
+                return;
+            }
             try {
                 const Command = require(p);
                 this.loadCommand(Command, file.slice(0, -3));

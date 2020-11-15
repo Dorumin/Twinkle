@@ -33,8 +33,16 @@ class Twinkle {
     }
 
     loadPluginDir(dir) {
+        const wl = this.config.PLUGINS.WHITELIST;
+        const bl = this.config.PLUGINS.BLACKLIST;
         fs.readdirSync(dir).forEach(file => {
             const p = path.join(dir, file);
+            if (wl instanceof Array && !wl.includes(file)) {
+                return;
+            }
+            if (bl instanceof Array && bl.includes(file)) {
+                return;
+            }
             const Plugin = require(p);
             this.loadPlugin(Plugin);
         });
