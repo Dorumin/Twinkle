@@ -1,7 +1,6 @@
 const { createServer } = require('net');
 const fs = require('fs');
 const Plugin = require('../../structs/Plugin.js');
-const SOCKET_PATH = '/tmp/twinkle.sock';
 
 class IPCPlugin extends Plugin {
     load() {
@@ -25,15 +24,20 @@ class IPC {
         // but expects these handlers to terminate the process if they have. The right solution
         // to this is to have Twinkle clean up all resources in all plugins.
         process.on('SIGINT', this.cleanup.bind(this));
-        process.on('SIGTERM', this.cleanup.bind(this));
+    }
+
+    async unlinkSocket() {
+        if (typeof path === 'string') {
+            try {
+                await fs.promises.unlink(this.config.SOCKET_PATH);
+            } catch {}
+        }
     }
 
     async onReady() {
         this.channel = await this.bot.client.channels.fetch(this.config.CHANNEL);
-        try {
-            await fs.promises.unlink(SOCKET_PATH);
-        } catch {}
-        this.server = createServer(this.listener.bind(this)).listen(SOCKET_PATH);
+        await this.unlinkSocket();
+        this.server = createServer(this.listener.bind(this)).listen(this.config.SOCKET_PATH);
     }
 
     async onMessage(message) {
@@ -87,9 +91,7 @@ class IPC {
             this.connections[id].end();
         }
         this.server.close();
-        try {
-            await fs.promises.unlink(SOCKET_PATH);
-        } catch {}
+        await this.unlinkSocket();
     }
 }
 
