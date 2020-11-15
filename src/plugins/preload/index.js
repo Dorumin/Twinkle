@@ -22,7 +22,11 @@ class Preload {
 		const guild = await this.bot.client.guilds.fetch(guildId);
 		if (!guild) return;
 
-		guild.members.fetch();
+		try {
+			await guild.members.fetch();
+		} catch (error) {
+			console.error('Failed to preload guild', guildId, 'have you enabled the guild members intent?', error);
+		}
 	}
 }
 
