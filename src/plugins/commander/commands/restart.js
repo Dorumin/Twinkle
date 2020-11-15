@@ -1,6 +1,5 @@
-const { HEROKU, SYSTEMD } = require('../../../../config.json');
+const { HEROKU, SYSTEMD } = require('../../../util/config.js');
 const { spawn } = require('child_process');
-const fs = require('fs');
 const got = require('got');
 const OPCommand = require('../structs/OPCommand.js');
 const DatabasePlugin = require('../../db');
