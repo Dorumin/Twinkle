@@ -17,6 +17,7 @@ class IPC {
         this.config = bot.config.IPC;
         this.connections = {};
         this.connectionCount = 0;
+        this.buffer = '';
         bot.client.on('ready', this.onReady.bind(this));
         bot.client.on('message', this.onMessage.bind(this));
         // TODO: This will cause Twinkle not to stop on the first CTRL+C but rather on the second.
@@ -37,9 +38,7 @@ class IPC {
 
     async onMessage(message) {
         for (const id in this.connections) {
-            await this.sendToSocket(this.connections[id], 'message', {
-                content: message.content
-            });
+            await this.sendToSocket(this.connections[id], 'message', message);
         }
     }
 
@@ -51,27 +50,35 @@ class IPC {
     }
 
     sendToSocket(socket, type, data) {
-        socket.write(JSON.stringify({
+        socket.write(`${JSON.stringify({
             type,
             ...data
-        }))
+        })}\n`);
     }
 
     async ipcMessage(connectionId, buffer) {
-        const message = JSON.parse(buffer.toString());
-        switch (message.type) {
-            case 'delete':
-                const messageToDelete = await this.channel.messages.fetch(message.message);
-                if (messageToDelete) {
-                    await messageToDelete.delete();
-                }
-                break;
-            case 'message':
-                await this.channel.send(message.content, message.options);
-                break;
-            case 'ping':
-                await this.sendToSocket(this.connections[connectionId], 'pong');
-                break;
+        for (let chunk of buffer.toString().split('\n')) {
+            if (!chunk.startsWith('{')) {
+                chunk = `${this.buffer}${chunk}`;
+            }
+            if (!chunk.endsWith('}')) {
+                this.buffer = chunk;
+                continue;
+            }
+            const message = JSON.parse(chunk);
+            switch (message.type) {
+                case 'delete':
+                    try {
+                        await (await this.channel.messages.fetch(message.message)).delete();
+                    } catch {}
+                    break;
+                case 'message':
+                    await this.channel.send(message.content, message.options);
+                    break;
+                case 'ping':
+                    await this.sendToSocket(this.connections[connectionId], 'pong');
+                    break;
+            }
         }
     }
 
