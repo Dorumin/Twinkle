@@ -9,3 +9,6 @@ log/
 
 # Workspace settings
 .vscode/
+
+# We use Yarn
+package-lock.json
