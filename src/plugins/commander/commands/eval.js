@@ -179,8 +179,8 @@ class EvalCommand extends OPCommand {
         let module = { exports: null };
 
         this.constructor.use(
-            send, bot, channel, member, author, guild,
-            client, commander, fmt, db, require, got, module
+            send, bot, channel, member, author, guild, client,
+            commander, fmt, db, _require, require, got, module
         );
 
         this.patchManagerClasses();
