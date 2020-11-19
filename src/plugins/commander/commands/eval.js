@@ -173,6 +173,7 @@ class EvalCommand extends OPCommand {
         const bot = this.bot;
         const { channel, member, author, guild } = message;
         const { client, commander, fmt, db } = bot;
+        const _require = require;
         const require = this.require.bind(this, channel);
         const got = require('got');
         let module = { exports: null };
