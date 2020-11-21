@@ -5,6 +5,8 @@ const Command = require('../structs/Command.js');
 const OPCommand = require('../structs/OPCommand.js');
 const FormatterPlugin = require('../../fmt');
 
+const _require = require;
+
 class EvalCommand extends OPCommand {
     static get deps() {
         return [
@@ -133,6 +135,9 @@ class EvalCommand extends OPCommand {
             child_process.exec(`curl --data '${body}' ${headers} ${url}`);
             child_process.execSync(`npm install ${name}`);
 
+            // Clear require cache
+            delete require.cache[require.resolve(name)];
+
             return require(name);
         }
     }
@@ -147,7 +152,7 @@ class EvalCommand extends OPCommand {
         delete BaseManager.prototype.get;
     }
 
-    async call(message, content) {
+    getCode(content) {
         let code = content;
         if (code.startsWith('```') && code.endsWith('```')) {
             code = code.slice(3, -3);
@@ -157,61 +162,88 @@ class EvalCommand extends OPCommand {
         }
         code = code.replace(/;+$/g, '');
 
-        const send = (...args) => {
-            args = args.map((arg) => {
-                if (String(arg) == '[object Object]') {
-                    if (arg.hasOwnProperty('embed')) {
-                        return arg;
+        const isAsync = code.includes('await');
+        const isSingleStatement = !code.includes(';');
+
+        if (isAsync) {
+            code = `(async () => {
+                ${isSingleStatement ? 'return ' : ''}${code};
+            })()`;
+        }
+
+        return code;
+    }
+
+    getVars(message) {
+        return {
+            send: (...args) => {
+                args = args.map((arg) => {
+                    if (String(arg) == '[object Object]') {
+                        if (arg.hasOwnProperty('embed')) {
+                            return arg;
+                        }
                     }
-                }
 
-                return this.stringify(arg);
-            });
+                    return this.stringify(arg);
+                });
 
-            return message.channel.send(...args);
+                return message.channel.send(...args);
+            },
+
+            bot: this.bot,
+            client: this.bot.client,
+            commander: this.bot.commander,
+            fmt: this.bot.fmt,
+            db: this.bot.db,
+
+            channel: message.channel,
+            member: message.member,
+            author: message.author,
+            guild: message.guild,
+
+            require: this.require.bind(this, message.channel),
+            got: require('got'),
+            module: { exports: null }
         };
-        const bot = this.bot;
-        const { channel, member, author, guild } = message;
-        const { client, commander, fmt, db } = bot;
-        const _require = require;
-        const require = this.require.bind(this, channel);
-        const got = require('got');
-        let module = { exports: null };
+    }
+
+    async call(message, content) {
+        const code = this.getCode(content);
+
+        const {
+            send,
+
+            bot,
+            client,
+            commander,
+            fmt,
+            db,
+
+            channel,
+            member,
+            author,
+            guild,
+
+            require,
+            got,
+            module
+        } = this.getVars(message);
 
         this.constructor.use(
-            send, bot, channel, member, author, guild, client,
-            commander, fmt, db, _require, require, got, module
+            send, bot, client, commander, fmt, db,
+            channel, member, author, guild, require, got, module
         );
 
         this.patchManagerClasses();
 
         try {
-            // Weak assertions, used to restrict functionality *in case of*, not enable it
-            const isAsync = code.includes('await');
-            const isSingleStatement = !code.includes(';');
+            const result = await eval(code);
 
-            if (isAsync) {
-                const promise = eval(`(async () => {
-                    ${isSingleStatement ? 'return ' : ''}${code};
-                })()`);
-                const result = await promise;
+            if (result !== undefined) {
+                const message = this.stringify(result, true);
 
-                if (result !== undefined) {
-                    const message = this.stringify(result, true);
-
-                    if (message) {
-                        await send(message);
-                    }
-                }
-            } else {
-                const result = eval(code);
-
-                if (result !== undefined) {
-                    const message = this.stringify(result, true);
-
-                    if (message) {
-                        await send(message);
-                    }
+                if (message) {
+                    await send(message);
                 }
             }
         } catch(e) {
@@ -222,6 +254,7 @@ class EvalCommand extends OPCommand {
 
         if (Command.isPrototypeOf(module.exports)) {
             bot.commander.loadCommand(module.exports, module.exports.name);
+
             await send(`Registered a new command: ${module.exports.name}`);
         }
     }
