@@ -157,7 +157,7 @@ class ClearCommand extends ModCommand {
 
     async messageExists(channelId, messageId) {
         const id = String(messageId);
-        const messages = await got(`https://discordapp.com/api/v6/channels/${channelId}/messages`, {
+        const messages = await got(`https://discord.com/api/v6/channels/${channelId}/messages`, {
             searchParams: {
                 limit: 1,
                 around: id
@@ -193,7 +193,7 @@ class ClearCommand extends ModCommand {
             let messages;
             try {
                 messages = await Promise.race([
-                    got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
+                    got(`https://discord.com/api/v6/channels/${channel.id}/messages`, {
                         searchParams: {
                             limit: 100,
                             before: lastId
@@ -254,10 +254,10 @@ class ClearCommand extends ModCommand {
             let messages;
             try {
                 messages = await Promise.race([
-                    got(`https://discordapp.com/api/v6/channels/${channel.id}/messages`, {
+                    got(`https://discord.com/api/v6/channels/${channel.id}/messages`, {
                         searchParams: {
                             limit: 100,
-                            before: lastId
+                            after: lastId
                         },
                         headers: {
                             Authorization: 'Bot ' + this.bot.config.TOKEN
@@ -353,7 +353,7 @@ class ClearCommand extends ModCommand {
             try {
                 const res = await Promise.race([
                     this.wait(10000, 'timeout'), // TODO: Lower
-                    got.delete(`https://discordapp.com/api/v6/channels/${channelId}/messages/${messageId}`, {
+                    got.delete(`https://discord.com/api/v6/channels/${channelId}/messages/${messageId}`, {
                         headers: {
                             Authorization: `Bot ${this.bot.config.TOKEN}`
                         }
