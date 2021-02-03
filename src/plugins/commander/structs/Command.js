@@ -14,7 +14,7 @@ class Command {
     }
 
     isModerator(message) {
-        return message.guild && message.member.hasPermission('MANAGE_MESSAGES');
+        return message.guild && message.channel.permissionsFor(message.member.user).any('MANAGE_MESSAGES');
     }
 
     isAdmin(message) {
