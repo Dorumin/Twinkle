@@ -45,6 +45,7 @@ class IPC {
             await this.sendToSocket(this.connections[id], 'message', {
                 member: message.member,
                 message,
+                reference: message.reference,
                 user: message.user
             });
         }
