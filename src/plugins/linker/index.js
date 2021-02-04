@@ -29,12 +29,15 @@ class Linker {
         this.namespaces = new Cache();
         this.avatars = new Cache();
         this.jar = new CookieJar();
-        this.loggingIn = this.login();
+        this.wikiVars = new Cache();
+        if (this.config.USERNAME) {
+            this.login();
+        }
 
         this.ZWSP = String.fromCharCode(8203);
         this.LINK_REGEX = /\[\[([^\[\]|]+)(?:\|([^\[\]]+))?\]\]/g;
         this.TEMPLATE_REGEX = /\{\{([^{}|]+)(\|[^{}]*)?\}\}/g;
-        this.SEARCH_REGEX = /(?<!\w)--(.+?)--(?!\w)/g;
+        this.SEARCH_REGEX = /(?<!\w)--(\S.+?\S)--(?!\w)/g;
         this.ENCODE_TABLE = {
             '20': '_'
         };
@@ -94,7 +97,7 @@ class Linker {
         });
 
         // Article previews
-        this.addTemplateTarget(async ({ full, wiki, message }) => this.fetchArticleEmbed(full, wiki, message));
+        this.addTemplateTarget(({ full, wiki, message }) => this.fetchArticleEmbed(full, wiki, message));
 
         // Debugging
         // this.addTemplateTarget('debug', (args) => {
@@ -371,7 +374,7 @@ class Linker {
         // Valid hashname characters: ., -, _, :, \d, A-z
         const sanitized = hash
             .replace(/%([0-9a-zA-Z]{2})/g, (_, c) => String.fromCharCode(parseInt(c, 16)))
-            .replace(/[^0-9a-zA-Z\.\_\-\:]/g, char => `.${char.charCodeAt(0).toString(16)}`);
+            .replace(/[^0-9a-zA-Z\.\_\-\:]/g, char => `.${char.charCodeAt(0).toString(16).toUpperCase()}`);
 
         return sanitized;
     }
@@ -524,18 +527,33 @@ class Linker {
     }
 
     async fetchSearchResults(query, wiki) {
-        const body = await got(`${await this.wikiUrl(wiki)}/api/v1/Search/List`, {
+        const wikiVars = await this.wikiVars.get(wiki, () => this.fetchWikiVariables(wiki));
+        const body = await got(`https://services.fandom.com/unified-search/page-search`, {
             searchParams: {
                 query,
-                // Adding a limit makes the endpoint sometimes throw a 404
-                // limit,
-                namespaces: '0'
+                lang: wikiVars.wgLanguageCode,
+                limit: 1,
+                namespace: 0,
+                wikiId: wikiVars.wgCityId
             },
         }).json();
 
-        if (!body.items || !body.items.length) return [];
+        if (!body.results || !body.results.length) return [];
 
-        return body.items;
+        return body.results;
+    }
+
+    async fetchWikiVariables(wiki) {
+        const response = await this.api(wiki, {
+            action: 'query',
+            meta: 'siteinfo',
+            siprop: 'variables'
+        });
+        const variables = {};
+        for (const v of response.query.variables) {
+            variables[v.id] = v['*'];
+        }
+        return variables;
     }
 
     async fetchFirstSearchResult(query, wiki) {
@@ -544,7 +562,7 @@ class Linker {
         if (!pages || !pages[0]) return `No search results found for ${this.bot.fmt.code(this.escape(query))}.`;
 
         const page = pages[0],
-        snippet = page.snippet
+        snippet = page.content
             .replace(/<span class="searchmatch">(.+?)<\/span>/g, (_, text) => this.bot.fmt.bold(text))
             .replace(/&hellip;/g, '...')
             .trim();
@@ -566,45 +584,15 @@ class Linker {
         return body;
     }
 
-    async nsIsThread(ns) {
-        return [1201, 2001].includes(ns);
-    }
-
-    // @TODO: Someday will have a proper check with local thread namespace aliases
-    // But for now, it's pretty safe to just run two calls if the title without ns is a number
-    async titleIsThread(title, wiki) {
-        return !isNaN(title.split(':')[1]);
-    }
-
     async fetchArticleProps(title, wiki) {
-        const promises = [];
-
-        promises.push(
-            this.api(wiki, {
-                action: 'query',
-                prop: 'categories|revisions',
-                clshow: '!hidden',
-                rvprop: 'timestamp',
-                titles: title,
-                redirects: true
-            })
-        );
-
-        if (await this.titleIsThread(title, wiki)) {
-            // Fetch content alongside everything else to extract thread title from ac_metadata tag
-            promises.push(
-                this.api(wiki, {
-                    action: 'query',
-                    prop: 'categories|revisions',
-                    clshow: '!hidden',
-                    rvprop: 'content|timestamp',
-                    pageids: title.split(':')[1],
-                    redirects: true
-                })
-            );
-        }
-
-        const [result, fallback] = await Promise.all(promises);
+        const result = await this.api(wiki, {
+            action: 'query',
+            prop: 'categories|revisions',
+            clshow: '!hidden',
+            rvprop: 'timestamp',
+            titles: title,
+            redirects: true
+        });
 
         if (result && result.query) {
             const page = Object.values(result.query.pages)[0];
@@ -614,81 +602,7 @@ class Linker {
             }
         }
 
-        if (fallback && fallback.query) {
-            const page = Object.values(fallback.query.pages)[0];
-
-            if (page && !page.hasOwnProperty('missing')) {
-                return page;
-            }
-        }
-
         return null;
-    }
-
-    async fetchThreadData(props, wiki) {
-        if (!await this.nsIsThread(props.ns)) return null;
-
-        const promises = [];
-        const url = await this.wikiUrl(wiki);
-
-        promises.push(
-            this.api(wiki, {
-                action: 'query',
-                prop: 'revisions',
-                list: 'allpages',
-                rvdir: 'newer',
-                rvprop: 'user|timestamp',
-                pageids: props.pageid,
-                redirects: true,
-                apprefix: this.removeNamespace(props.title),
-                apnamespace: props.ns,
-                aplimit: 'max'
-            })
-        );
-
-        promises.push(
-            got(`${url}/wikia.php?controller=WallExternal&method=votersModal&format=html`, {
-                searchParams: {
-                    controller: 'WallExternal',
-                    method: 'votersModal',
-                    format: 'json',
-                    id: props.pageid
-                },
-            }).json()
-        );
-
-        const data = {};
-        const [ revisions, kudos ] = await Promise.all(promises);
-
-        const titleMatch = props.revisions && props.revisions[0]['*'].match(/<ac_metadata\s*title="([^"]+)\s*[^>]*>\s*<\/ac_metadata>/);
-
-        if (titleMatch) {
-            data.threadTitle = this.decodeHTML(titleMatch[1]);
-        }
-
-        const first = Object.values(revisions.query.pages)[0];
-
-        data.author = first.revisions[0].user;
-        data.creation = first.revisions[0].timestamp;
-        data.replyCount = revisions.query.allpages.length - 1;
-        data.kudos = Number(kudos.count);
-        data.isThread = true;
-        data.isForum = props.ns == 2001;
-        data.placement = props.title.split('/')[0].split(':')[1];
-
-        const details = await got(`${url}/api/v1/User/Details`, {
-            searchParams: {
-                ids: data.author + (data.isForum ? '' : ',' + data.placement),
-                size: 1000
-            }
-        }).json();
-
-        data.authorAvatar = details.items[0] && details.items[0].avatar;
-        data.wallAvatar = data.isForum
-            ? undefined
-            : details.items[1] && details.items[1].avatar;
-
-        return data;
     }
 
     // Needs not use Promise.all, as each await is run consecutively
@@ -721,18 +635,6 @@ class Linker {
         return body;
     }
 
-    // Fetches the simplified JSON representation of the article
-    async fetchArticleJson(props, wiki) {
-        const url = await this.wikiUrl(wiki);
-        const body = await got(`${url}/api/v1/Articles/AsSimpleJson`, {
-            searchParams: {
-                id: props.pageid
-            }
-        }).json();
-
-        return body;
-    }
-
     // Fetches the OpenGraph data of the article, including thumbnail and description
     async fetchArticleOpenGraph(props, wiki) {
         const url = await this.wikiUrl(wiki);
@@ -753,27 +655,11 @@ class Linker {
         const promiseObject = {};
 
         promiseObject.details = this.fetchArticleDetails(props, wiki);
-        promiseObject.json = this.fetchArticleJson(props, wiki);
         promiseObject.og = this.fetchArticleOpenGraph(props, wiki);
-        promiseObject.thread = this.fetchThreadData(props, wiki);
 
         await this.awaitPromiseObject(promiseObject);
 
         return promiseObject;
-    }
-
-    getDescription(sections, ...fallbacks) {
-        const first = sections
-            .map(section => section.content)
-            .filter(content => content && content.filter(elem => elem.type == 'paragraph' && elem.text.trim()).length)
-            .map(content => content.find(elem => elem.type == 'paragraph'))
-            [0];
-
-        if (first) {
-            return first.text;
-        }
-
-        return fallbacks.find(Boolean);
     }
 
     // Sanitizes a Discord embed structure to protect against @mentions and invite links
@@ -811,12 +697,12 @@ class Linker {
         const embed = {};
         const fields = [];
 
-        const { og, json, thread, details } = data;
+        const { og, details } = data;
 
         embed.color = message.guild.me.displayColor;
         embed.title = props.title;
         embed.url = `${url}/wiki/${this.encode(props.title)}`;
-        embed.description = this.getDescription(json.sections, details.article.abstract, og.description);
+        embed.description = [details.article.abstract, og.description].find(Boolean);
 
         const thumbnail = og.imageUrl || details.article.thumbnail;
 
@@ -831,42 +717,6 @@ class Linker {
                 name: `Categories [${props.categories.length}]`,
                 value: props.categories.map(cat => this.removeNamespace(cat.title)).join(', '),
             });
-        }
-
-        if (thread) {
-            embed.title = thread.threadTitle;
-            embed.url = `${url}/wiki/Thread:${props.pageid}`;
-
-            embed.author = {
-                name: thread.author,
-                url: `${url}/wiki/User:${this.encode(thread.author)}`,
-                icon_url: thread.authorAvatar
-            };
-
-            embed.footer = {
-                icon_url: thread.wallAvatar,
-                text: thread.isForum
-                    ? `${thread.placement} board`
-                    : `${thread.placement}'s wall`
-            };
-
-            embed.timestamp = thread.creation;
-
-            if (thread.replyCount) {
-                fields.push({
-                    name: 'Replies',
-                    value: thread.replyCount,
-                    inline: true
-                });
-            }
-
-            if (thread.kudos) {
-                fields.push({
-                    name: 'Kudos',
-                    value: thread.kudos,
-                    inline: true
-                });
-            }
         }
 
         if (fields.length) {
