@@ -43,7 +43,9 @@ class IPC {
     async onMessage(message) {
         for (const id in this.connections) {
             await this.sendToSocket(this.connections[id], 'message', {
+                attachments: message.attachments,
                 member: message.member,
+                mentions: message.mentions,
                 message,
                 reference: message.reference,
                 user: message.user
