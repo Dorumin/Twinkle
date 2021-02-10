@@ -8,7 +8,7 @@ const Command = require('../structs/Command.js');
 const Cache = require('../../../structs/Cache.js');
 const FormatterPlugin = require('../../fmt');
 
-class CodeCommand extends Command {
+class GitHubCommand extends Command {
     static get deps() {
         return [
             FormatterPlugin
@@ -17,7 +17,7 @@ class CodeCommand extends Command {
 
     constructor(bot) {
         super(bot);
-        this.aliases = ['code', 'github', 'git', 'source', 'status'];
+        this.aliases = ['github', 'git', 'repo', 'source', 'status'];
         this.cache = new Cache();
 
         this.shortdesc = 'Shows statistics and a link to the bot repository.';
@@ -309,4 +309,4 @@ class CodeCommand extends Command {
     }
 }
 
-module.exports = CodeCommand;
+module.exports = GitHubCommand;
