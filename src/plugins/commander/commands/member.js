@@ -13,14 +13,24 @@ class MemberCommand extends Command {
         ];
     }
 
-    getEditCountAndID(username) {
+    getID(username) {
         return got('https://dev.fandom.com/api.php', {
             searchParams: {
                 action: 'query',
                 list: 'users',
-                usprop: 'editcount',
                 ususers: username,
                 format: 'json'
+            }
+        }).json();
+    }
+    
+    getEditcount(userid) {
+       return got('https://dev.fandom.com/wikia.php', {
+           searchParams: {
+               controller: 'UserProfile',
+               method: 'getUserData',
+               userId: userid,
+               format: 'json'
             }
         }).json();
     }
@@ -42,17 +52,18 @@ class MemberCommand extends Command {
             return message.channel.send('You already have the role.');
         }
 
-        const editsAndID = await this.getEditCountAndID(content);
+        const ID = await this.getID(content);
+        const edits = await this.getEditcount(ID);
 
-        if (!editsAndID.query.users[0]) {
+        if (!ID.query.users[0]) {
             return message.channel.send('That user does not exist.');
         }
 
-        if (editsAndID.query.users[0].editcount === 0) {
+        if (edits.edits === 0) {
             return message.channel.send('You do not have enough edits.');
         }
 
-        const verifyUser = await this.getMastheadDiscord(editsAndID.query.users[0].userid);
+        const verifyUser = await this.getMastheadDiscord(ID.query.users[0].userid);
 
         if (verifyUser.value !== message.author.tag) {
             return message.channel.send(`The username and tag in the masthead do not match the username and tag of the message author. Use <https://dev.fandom.com/wiki/Special:VerifyUser/${encodeURIComponent(content)}?user=${encodeURIComponent(message.author.username)}&tag=${message.author.discriminator}&c=!member&ch=lobby> to remedy this.`);
