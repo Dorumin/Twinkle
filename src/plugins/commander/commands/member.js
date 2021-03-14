@@ -13,20 +13,34 @@ class MemberCommand extends Command {
         ];
     }
 
-    getEditCountAndID(username) {
-        return got('https://dev.fandom.com/api.php', {
+    async getUserId(username) {
+        const response = await got('https://dev.fandom.com/api.php', {
             searchParams: {
                 action: 'query',
                 list: 'users',
-                usprop: 'editcount',
                 ususers: username,
                 format: 'json'
             }
         }).json();
+
+        return response.query.users[0] && response.query.users[0].userid;
     }
 
-    getMastheadDiscord(userid) {
-        return got(`https://services.fandom.com/user-attribute/user/${userid}/attr/discordHandle`, {
+    async getEditCount(userId) {
+        const response = await got(`https://dev.fandom.com/wikia.php`, {
+            searchParams: {
+                controller: 'UserProfile',
+                method: 'getUserData',
+                userId: userId,
+                format: 'json'
+            }
+        }).json()
+
+        return response.userData.edits;
+    }
+
+    getMastheadDiscord(userId) {
+        return got(`https://services.fandom.com/user-attribute/user/${userId}/attr/discordHandle`, {
             headers: {
                 accept: '*/*'
             }
@@ -42,17 +56,19 @@ class MemberCommand extends Command {
             return message.channel.send('You already have the role.');
         }
 
-        const editsAndID = await this.getEditCountAndID(content);
+        const userId = await this.getUserId(content);
 
-        if (!editsAndID.query.users[0]) {
+        if (!userId) {
             return message.channel.send('That user does not exist.');
         }
 
-        if (editsAndID.query.users[0].editcount === 0) {
+        const edits = await this.getEditCount(userId);
+
+        if (edits < 1) {
             return message.channel.send('You do not have enough edits.');
         }
 
-        const verifyUser = await this.getMastheadDiscord(editsAndID.query.users[0].userid);
+        const verifyUser = await this.getMastheadDiscord(userId);
 
         if (verifyUser.value !== message.author.tag) {
             return message.channel.send(`The username and tag in the masthead do not match the username and tag of the message author. Use <https://dev.fandom.com/wiki/Special:VerifyUser/${encodeURIComponent(content)}?user=${encodeURIComponent(message.author.username)}&tag=${message.author.discriminator}&c=!member&ch=lobby> to remedy this.`);
