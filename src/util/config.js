@@ -13,7 +13,7 @@ for (const key in env) {
 }
 
 try {
-    const config = require('../../config.json');
+    const config = require(process.env.CONFIG_PATH || '../../config.json');
     module.exports = {
         ...env,
         ...config
