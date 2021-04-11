@@ -46,13 +46,20 @@ class ParseCommand extends Command {
 
         let html = text;
 
-        if (tree instanceof HTMLElement) {
-            if (tree.tagName === null && tree.childNodes.length === 1) {
-                const firstChild = tree.childNodes[0];
+        if (tree.firstChild instanceof HTMLElement
+            && tree.firstChild.getAttribute('class') === 'mw-parser-output'
+        ) {
+            const output = tree.firstChild;
 
-                if (firstChild.tagName === 'p') {
-                    html = firstChild.innerHTML;
-                }
+            if (output.childNodes.length === 1
+                && output.firstChild instanceof HTMLElement
+                && output.firstChild.tagName === 'P'
+            ) {
+                // Single child parser output
+                html = output.firstChild.rawText;
+            } else {
+                // Multiple child output
+                html = output.innerHTML;
             }
         }
 
