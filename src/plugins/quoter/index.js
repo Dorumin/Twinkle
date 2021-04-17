@@ -68,7 +68,9 @@ class Quoter {
         const filtered = messages.filter(quote => quote !== null);
         if (filtered.length === 0) return;
 
-        const shouldDelete = quotes.length <= this.config.MAX && message.content.replace(this.QUOTE_PATTERN, '').trim() === '';
+        const shouldDelete = message.reference === null
+            && quotes.length <= this.config.MAX
+            && message.content.replace(this.QUOTE_PATTERN, '').trim() === '';
 
         for (const i in filtered) {
             const quote = filtered[i],
