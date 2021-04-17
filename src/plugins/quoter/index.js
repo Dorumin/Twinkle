@@ -85,7 +85,7 @@ class Quoter {
 
         if (shouldDelete) {
             try {
-                message.delete();
+                await message.delete();
             } catch(e) {
                 // Swallow
             }
