@@ -31,7 +31,12 @@ class Linker {
         this.jar = new CookieJar();
         this.wikiVars = new Cache();
         if (this.config.USERNAME) {
-            this.login();
+            this.login().then(() => {
+                console.log('Linker login success');
+            }).catch(err => {
+                console.error('Linker login failure');
+                console.error(err);
+            });
         }
 
         this.ZWSP = String.fromCharCode(8203);
@@ -203,6 +208,9 @@ class Linker {
             form: {
                 username: this.config.USERNAME,
                 password: this.config.PASSWORD
+            },
+            headers: {
+                'X-Wikia-WikiaAppsID': '69'
             },
             cookieJar: this.jar
         });
