@@ -31,9 +31,7 @@ class Linker {
         this.jar = new CookieJar();
         this.wikiVars = new Cache();
         if (this.config.USERNAME) {
-            this.login().then(() => {
-                console.log('Linker login success');
-            }).catch(err => {
+            this.login().catch(err => {
                 console.error('Linker login failure');
                 console.error(err);
             });
