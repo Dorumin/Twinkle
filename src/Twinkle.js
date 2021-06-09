@@ -19,8 +19,8 @@ class Twinkle {
     }
 
     loadPlugin(Plugin) {
-        if (this._loggedIn) throw new Error('Plugins must be loaded before calling login()');
         if (this._plugins.includes(Plugin)) return;
+        if (this._loggedIn) throw new Error('Plugins must be loaded before calling login()');
 
         this._plugins.push(Plugin);
 

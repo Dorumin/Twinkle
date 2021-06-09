@@ -1,6 +1,7 @@
 const path = require('path');
 const util = require('util');
 const child_process = require('child_process');
+const got = require('got');
 const { parse, HTMLElement, TextNode } = require('node-html-parser');
 const { BaseManager, MessageAttachment, MessageEmbed } = require('discord.js');
 const Command = require('../structs/Command.js');
@@ -243,7 +244,22 @@ class EvalCommand extends OPCommand {
         this.unpatchManagerClasses();
     }
 
-    getCode(content) {
+    async getCode(message, content) {
+        if (message.attachments.size !== 0) {
+            const file = message.attachments.first();
+            const ext = file.name.split('.').pop();
+
+            if (ext === 'js' || ext === 'txt') {
+                const code = await got(file.url).text();
+
+                return new CodeBlock({
+                    code,
+                    isExpression: false,
+                    isAsync: false
+                });
+            }
+        }
+
         let code = content;
 
         // Strip code block
@@ -363,7 +379,8 @@ class EvalCommand extends OPCommand {
         this.beforeEval(context);
 
         const require = this.getCustomRequire(context);
-        swallow(require);
+        const module = context.module;
+        swallow(require, module);
 
         let result;
         try {
@@ -766,7 +783,7 @@ class EvalCommand extends OPCommand {
     }
 
     async call(message, content) {
-        const code = this.getCode(content);
+        const code = await this.getCode(message, content);
         const context = this.getVars(message);
         const { result } = await this.evaluate(code, context);
 
@@ -778,15 +795,24 @@ class EvalCommand extends OPCommand {
             await this.respond(result, context, code);
         }
 
-        this.afterEval();
-
         const exported = context.module.exports;
 
-        if (Command.isPrototypeOf(exported)) {
-            this.bot.commander.loadCommand(exported, exported.name);
+        let proto = exported;
+        while (true) {
+            proto = Object.getPrototypeOf(proto);
 
-            await message.channel.send(`Registered a new command: ${exported.name}`);
+            if (proto === null) {
+                break;
+            }
+
+            if (proto === Command) {
+                this.bot.commander.loadCommand(exported, exported.name);
+
+                await message.channel.send(`Registered a new command: ${exported.name}`);
+            }
         }
+
+        this.afterEval();
     }
 }
 
