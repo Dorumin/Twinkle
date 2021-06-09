@@ -797,20 +797,22 @@ class EvalCommand extends OPCommand {
 
         const exported = context.module.exports;
 
-        let proto = exported;
-        while (true) {
-            proto = Object.getPrototypeOf(proto);
+        try {
+            let proto = exported;
+            while (true) {
+                proto = Object.getPrototypeOf(proto);
 
-            if (proto === null) {
-                break;
+                if (proto === null) {
+                    break;
+                }
+
+                if (proto === Command) {
+                    this.bot.commander.loadCommand(exported, exported.name);
+
+                    await message.channel.send(`Registered a new command: ${exported.name}`);
+                }
             }
-
-            if (proto === Command) {
-                this.bot.commander.loadCommand(exported, exported.name);
-
-                await message.channel.send(`Registered a new command: ${exported.name}`);
-            }
-        }
+        } catch(e) {}
 
         this.afterEval();
     }
