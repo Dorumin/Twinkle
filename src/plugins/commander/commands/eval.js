@@ -276,6 +276,29 @@ class EvalCommand extends OPCommand {
         // Strip any leading semicolons, this shouldn't break anything
         code = code.trim().replace(/;+$/g, '').trim();
 
+        // Transform `v.await`s to `(await v)`
+        let postfixMatch;
+        while ((postfixMatch = code.match(/\.await\b/)) !== null) {
+            // Try to find the start of the expression
+            // We do this by backtracking to the first semicolon
+            // or the start of the string
+            // In the future this could be better
+            // by filtering out semicolons inside strings
+
+            // Warning: some real fuckin ugly index code ahead
+            const lastSemi = code.lastIndexOf(';', postfixMatch.index);
+
+            // This branch is completely unnecessary but I like it here
+            if (lastSemi === -1) {
+                code = `(await ` + code.slice(0, postfixMatch.index) + ')'
+                    + code.slice(postfixMatch.index + postfixMatch[0].length);
+            } else {
+                code = code.slice(0, lastSemi + 1) + `(await `
+                    + code.slice(lastSemi + 1, postfixMatch.index) + ')'
+                    + code.slice(postfixMatch.index + postfixMatch[0].length);
+            }
+        }
+
         // TODO: Do the greatest regex trick for these
         const isAsync = code.includes('await');
         const isExpression = !code.includes(';') &&
