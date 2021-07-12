@@ -56,7 +56,7 @@ class ParseCommand extends Command {
                 && output.firstChild.tagName === 'P'
             ) {
                 // Single child parser output
-                html = output.firstChild.rawText;
+                html = output.firstChild.innerHTML;
             } else {
                 // Multiple child output
                 html = output.innerHTML;
