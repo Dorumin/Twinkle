@@ -3,7 +3,7 @@ const util = require('util');
 const child_process = require('child_process');
 const got = require('got');
 const { parse, HTMLElement, TextNode } = require('node-html-parser');
-const { BaseManager, MessageAttachment, MessageEmbed } = require('discord.js');
+const { BaseManager, MessageAttachment, MessageEmbed, SnowflakeUtil } = require('discord.js');
 const Command = require('../structs/Command.js');
 const OPCommand = require('../structs/OPCommand.js');
 const FormatterPlugin = require('../../fmt');
@@ -252,7 +252,7 @@ class EvalCommand extends OPCommand {
             if (ext === 'js' || ext === 'txt') {
                 const code = await got(file.url).text();
 
-                return new CodeBlock({
+                return new Code({
                     code,
                     isExpression: false,
                     isAsync: false
@@ -373,6 +373,9 @@ class EvalCommand extends OPCommand {
             MessageAttachment: MessageAttachment,
             Embed: MessageEmbed,
             MessageEmbed: MessageEmbed,
+
+            Snowflake: SnowflakeUtil,
+            SnowflakeUtil: SnowflakeUtil,
 
             // Module stuff
             got: require('got'),
@@ -642,7 +645,7 @@ class EvalCommand extends OPCommand {
             }
         }
 
-        if (['symbol', 'number'].includes(typeof result)) {
+        if (['symbol', 'number', 'boolean'].includes(typeof result)) {
             return await this.sendExpand(channel, String(result));
         }
 
