@@ -19,6 +19,10 @@ class CommanderPlugin extends Plugin {
     load() {
         this.bot.commander = new Commander(this.bot);
     }
+
+    cleanup() {
+        return this.bot.commander.cleanup();
+    }
 }
 
 class Commander {
@@ -109,7 +113,7 @@ class Commander {
                 const conflicting = priorityAliases[command.priority].includes(alias);
                 if (conflicting) {
                     this.log(`Duplicate alias: ${alias}`);
-                    this.log(`Conflicting commands: ${aliasMap[command.priority][alias]} & ${command}`);
+                    this.log(`Conflicting commands: ${aliasMap[command.priority][alias].constructor.name} & ${command.constructor.name}`);
                     return false;
                 }
 
@@ -219,11 +223,17 @@ class Commander {
             this.cleanStack = this.cleanStack || (await import('clean-stack')).default;
             const errorMessage = `${command.constructor.name}CallError: ${this.cleanStack(relevantLines.join('\n'))}`;
 
-            this.bot.logger.log('commander', errorMessage);
+            this.log(errorMessage);
 
             if (this.config.INLINE_ERRORS) {
                 await message.channel.send(this.bot.fmt.codeBlock('apache', errorMessage));
             }
+        }
+    }
+
+    async cleanup() {
+        for (const command of this.commands.values()) {
+            await command.cleanup();
         }
     }
 }

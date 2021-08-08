@@ -28,6 +28,9 @@ class Command {
     call() {
         throw new Error('call() not implemented');
     }
+
+    cleanup() {
+    }
 }
 
 module.exports = Command;
