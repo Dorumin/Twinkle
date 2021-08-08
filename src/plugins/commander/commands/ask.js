@@ -16,7 +16,7 @@ class AskCommand extends Command {
         message.channel.send(`
 Please don't ask if you may ask or ask for people who "know" x, y, or z. Just ask your question and somebody may be able to answer it.
 <https://sol.gfxile.net/dontask.html>
-        `)
+        `);
     }
 }
 

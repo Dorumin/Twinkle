@@ -1,4 +1,7 @@
+const {MessageMentions} = require('discord.js');
 const got = require('got');
+const {promisify} = require('util');
+const wait = promisify(setTimeout);
 const CommandUtils = require('../structs/CommandUtils.js');
 const ModCommand = require('../structs/ModCommand.js');
 
@@ -30,8 +33,10 @@ class ClearCommand extends ModCommand {
     }
 
     async call(message, content) {
-        const userIds = message.mentions.users.array().map(user => user.id);
-        const cleanContent = content.replace(/<@!?\d+>/g, '').replace(/\D+/g, '');
+        const userIds = [...message.mentions.users.values()].map(user => user.id);
+        const cleanContent = content
+            .replace(MessageMentions.USERS_PATTERN, '')
+            .replace(/\D+/g, '');
 
         let arg;
         try {
@@ -41,7 +46,7 @@ class ClearCommand extends ModCommand {
         }
 
         if (!arg) {
-            message.channel.send('You need to add a number of messages to delete!');
+            return message.channel.send('You need to add a number of messages to delete!');
         }
 
         const type = arg > 1000000n && await this.messageExists(message.channel.id, arg)
@@ -78,8 +83,6 @@ class ClearCommand extends ModCommand {
             }
         }
 
-        console.log(type, messages, newer);
-
         const countMessage = older.length
             ? `Loaded ${messages.length} messages, ${newer.length} of which can be batched, and ${older.length} will be slow (15/min) deleted (because they're older than 2 weeks). Confirm deletion?`
             : `Loaded ${messages.length} messages! Confirm deletion?`
@@ -89,15 +92,13 @@ class ClearCommand extends ModCommand {
             CommandUtils.react(confirmation, this.CHECKMARK, this.CROSS),
         ]);
 
-        const reactions = await confirmation.awaitReactions(
-            (reaction, user) => {
+        const reactions = await confirmation.awaitReactions({
+            filter: (reaction, user) => {
                 return user.id == message.author.id && [this.CHECKMARK, this.CROSS].includes(reaction.emoji.name);
             },
-            {
-                time: 15000,
-                max: 1
-            }
-        );
+            time: 15000,
+            max: 1
+        });
 
         if (reactions.size === 0) {
             await Promise.all([
@@ -141,7 +142,7 @@ class ClearCommand extends ModCommand {
                 ]);
 
                 if (!failures) {
-                    await this.wait(5000);
+                    await wait(5000);
                     await result.delete().catch(() => {});
                 }
 
@@ -157,15 +158,21 @@ class ClearCommand extends ModCommand {
 
     async messageExists(channelId, messageId) {
         const id = String(messageId);
-        const messages = await got(`https://discord.com/api/v6/channels/${channelId}/messages`, {
-            searchParams: {
-                limit: 1,
-                around: id
-            },
-            headers: {
-                Authorization: 'Bot ' + this.bot.config.TOKEN
-            }
-        }).json();
+        let messages;
+        try {
+            messages = await got(`https://discord.com/api/v9/channels/${channelId}/messages`, {
+                searchParams: {
+                    limit: 1,
+                    around: id
+                },
+                headers: {
+                    Authorization: 'Bot ' + this.bot.config.TOKEN
+                }
+            }).json();    
+        } catch (error) {
+            console.error('Failed to check whether the message exists:', error, error.response);
+            return false;
+        }
 
         if (!messages.length) return false;
 
@@ -193,7 +200,7 @@ class ClearCommand extends ModCommand {
             let messages;
             try {
                 messages = await Promise.race([
-                    got(`https://discord.com/api/v6/channels/${channel.id}/messages`, {
+                    got(`https://discord.com/api/v9/channels/${channel.id}/messages`, {
                         searchParams: {
                             limit: 100,
                             before: lastId
@@ -329,7 +336,7 @@ class ClearCommand extends ModCommand {
             try {
                 await channel.bulkDelete(chunks[i]);
             } catch(e) {
-                console.log('Bulk deletion error', e);
+                console.error('Bulk deletion error', e);
                 failures += chunks[i].length;
             }
         }
@@ -352,8 +359,8 @@ class ClearCommand extends ModCommand {
         while (true) {
             try {
                 const res = await Promise.race([
-                    this.wait(10000, 'timeout'), // TODO: Lower
-                    got.delete(`https://discord.com/api/v6/channels/${channelId}/messages/${messageId}`, {
+                    wait(10000, 'timeout'), // TODO: Lower
+                    got.delete(`https://discord.com/api/v9/channels/${channelId}/messages/${messageId}`, {
                         headers: {
                             Authorization: `Bot ${this.bot.config.TOKEN}`
                         }
@@ -364,17 +371,17 @@ class ClearCommand extends ModCommand {
                 break;
             } catch(e) {
                 if (e != 'timeout') {
-                    console.log(e);
+                    console.error(e);
                 }
 
                 retries--;
 
                 if (retries < 1) {
-                    console.log(`Errored too much: ${messageId}`);
+                    console.error(`Errored too much: ${messageId}`);
                     return false;
                 }
 
-                await this.wait(10000);
+                await wait(10000);
             }
         }
 

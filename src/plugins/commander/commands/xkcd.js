@@ -23,13 +23,11 @@ class XKCDCommand extends Command {
 
     async call(message, content) {
         if (!content) {
-            message.channel.send('https://xkcd.com/');
-            return;
+            return message.channel.send('https://xkcd.com/');
         }
 
         if (!Number.isNaN(parseInt(content))) {
-            message.channel.send(`https://xkcd.com/${content}`);
-            return;
+            return message.channel.send(`https://xkcd.com/${content}`);
         }
 
         const bawdy = await got.post('https://relevant-xkcd-backend.herokuapp.com/search', {
@@ -41,8 +39,8 @@ class XKCDCommand extends Command {
         if (bawdy.results.length === 0) return;
         const post = bawdy.results[0];
 
-        message.channel.send({
-            embed: {
+        return message.channel.send({
+            embeds: [{
                 title: post.title,
                 url: `https://xkcd.com/${post.number}`,
                 image: {
@@ -52,7 +50,7 @@ class XKCDCommand extends Command {
                     text: post.titletext
                 },
                 timestamp: new Date(post.date).toISOString()
-            }
+            }]
         });
     }
 }

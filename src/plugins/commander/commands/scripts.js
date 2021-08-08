@@ -13,7 +13,7 @@ class ScriptsCommand extends Command {
     }
 
     call(message) {
-        message.channel.send(`You can find a list of JavaScript enhancements on <https://dev.fandom.com/wiki/List_of_JavaScript_enhancements>`);
+        return message.channel.send(`You can find a list of JavaScript enhancements on <https://dev.fandom.com/wiki/List_of_JavaScript_enhancements>`);
     }
 }
 

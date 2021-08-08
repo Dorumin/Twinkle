@@ -19,7 +19,7 @@ class Quoter {
         this.dev = bot.config.ENV === 'development';
         this.config = bot.config.QUOTER;
         this.QUOTE_PATTERN = /(?<!<)https?:\/\/(?:(?:canary|ptb)\.)?discord(?:app)?\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)(?!>)/g;
-        bot.client.on('message', this.onMessage.bind(this));
+        bot.client.on('messageCreate', this.onMessage.bind(this));
     }
 
     matchQuotes(text) {
@@ -72,16 +72,12 @@ class Quoter {
             && quotes.length <= this.config.MAX
             && message.content.replace(this.QUOTE_PATTERN, '').trim() === '';
 
-        for (const i in filtered) {
-            const quote = filtered[i],
-            embed = this.buildQuoteEmbed(message, quote, i === '0'); // Go figure, array indices when for..in are strings!
-
-            if (!embed) continue;
-
-            await message.channel.send({
-                embed
-            });
-        }
+        const embeds = filtered
+            .map((quote, i) => this.buildQuoteEmbed(message, quote, i === 0))
+            .filter(Boolean)
+        await message.channel.send({
+            embeds
+        });
 
         if (shouldDelete) {
             try {
@@ -93,7 +89,7 @@ class Quoter {
     }
 
     async tryFetchQuote([_, guildId, channelId, messageId]) {
-        if (guildId == '@me') return null;
+        if (guildId === '@me') return null;
 
         try {
             const channel = await this.bot.client.channels.fetch(channelId);
@@ -124,7 +120,7 @@ class Quoter {
             }
         }
 
-        let description = this.bot.fmt.bold(this.bot.fmt.link('Click to jump', `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`));
+        let description = this.bot.fmt.bold(this.bot.fmt.link('Click to jump', `https://discord.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`));
 
         if (quote.content) {
             description += '\n\n' + quote.content;
@@ -148,7 +144,7 @@ class Quoter {
         return {
             author,
             // title: 'Click to jump',
-            // url: `https://discordapp.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`,
+            // url: `https://discord.com/channels/${quote.guild.id}/${quote.channel.id}/${quote.id}`,
             description,
             image: image || undefined,
             footer: {
@@ -217,13 +213,13 @@ class Quoter {
     }
 
     formatTime(timestamp) {
-        const d = new Date(timestamp),
-        date = this.pad(d.getUTCDate()),
-        month = this.pad(d.getUTCMonth() + 1),
-        year = this.pad(d.getUTCFullYear()),
-        hour = this.pad(d.getUTCHours()),
-        mins = this.pad(d.getUTCMinutes()),
-        secs = this.pad(d.getUTCSeconds());
+        const d = new Date(timestamp);
+        const date = this.pad(d.getUTCDate());
+        const month = this.pad(d.getUTCMonth() + 1);
+        const year = this.pad(d.getUTCFullYear());
+        const hour = this.pad(d.getUTCHours());
+        const mins = this.pad(d.getUTCMinutes());
+        const secs = this.pad(d.getUTCSeconds());
 
         return `${date}/${month}/${year} ${hour}:${mins}:${secs}`;
     }

@@ -1,18 +1,38 @@
 const fs = require('fs');
 const path = require('path');
-const Discord = require('discord.js');
+const {Client, Intents} = require('discord.js');
 const config = require('./util/config.js');
 
 class Twinkle {
     constructor()  {
-        this.client = new Discord.Client({
-            disableMentions: 'everyone'
+        this.client = new Client({
+            allowedMentions: {
+                parse: ['users', 'roles'],
+                repliedUser: false
+            },
+            intents: [
+                // We might want to listen for new threads
+                Intents.FLAGS.GUILDS,
+                // Join/leave events
+                Intents.FLAGS.GUILD_MEMBERS,
+                // In case we want to assign roles when users join or leave VC
+                Intents.FLAGS.GUILD_VOICE_STATES,
+                // Commands and moderation
+                Intents.FLAGS.GUILD_MESSAGES,
+                // Listening for reactions as commands
+                Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+                // Listening for commands in DM
+                Intents.FLAGS.DIRECT_MESSAGES,
+                // Reactions on commands like !help
+                Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
+            ].concat(config.TWINKLE.INTENTS || [])
         });
         this.config = config.TWINKLE;
         this.operators = this.config.OPERATORS;
         this._globalConfig = config;
         this._loggedIn = false;
         this._plugins = [];
+        this.loadedPlugins = [];
 
         this.client.on('ready', this.onReady.bind(this));
         this.client.on('error', this.onError.bind(this));
@@ -30,6 +50,7 @@ class Twinkle {
 
         const plugin = new Plugin(this);
         plugin.load();
+        this.loadedPlugins.push(plugin);
     }
 
     loadPluginDir(dir) {
@@ -61,6 +82,13 @@ class Twinkle {
 
         this._loggedIn = true;
         this.client.login(token);
+    }
+
+    async cleanup() {
+        for (const plugin of this.loadedPlugins) {
+            await plugin.cleanup();
+        }
+        this.client.destroy();
     }
 }
 

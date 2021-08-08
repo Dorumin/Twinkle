@@ -32,13 +32,13 @@ class RestartNotify {
         } else {
             channelId = await this.bot.db.get('lastRestartChannel');
             if (!channelId) return;
-            this.bot.db.delete('lastRestartChannel');
+            await this.bot.db.delete('lastRestartChannel');
         }
 
         const channel = await this.bot.client.channels.fetch(channelId);
         if (!channel) return;
 
-        channel.send('Restarted!');
+        return channel.send('Restarted!');
     }
 }
 

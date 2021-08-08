@@ -14,8 +14,8 @@ class Preload {
 		bot.client.on('ready', this.onReady.bind(this));
 	}
 
-	onReady() {
-		this.config.GUILDS.forEach(this.preloadUsers.bind(this));
+	async onReady() {
+		await Promise.all(this.config.GUILDS.map(this.preloadUsers.bind(this)));
 	}
 
 	async preloadUsers(guildId) {

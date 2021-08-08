@@ -15,7 +15,7 @@ class AutoMod {
             return new Filter(this);
         });
 
-        bot.client.on('message', this.onMessage.bind(this));
+        bot.client.on('messageCreate', this.onMessage.bind(this));
     }
 
     logchan() {
@@ -33,7 +33,7 @@ class AutoMod {
 
         // Fetch members not already in member cache
         if (!message.member) {
-            const member = await message.guild.fetchMember(message.author.id);
+            const member = await message.guild.members.fetch(message.author.id);
 
             message.member = member;
         }
@@ -43,13 +43,22 @@ class AutoMod {
             let result;
 
             if (interest instanceof Promise) {
-                result = await interest;
+                try {
+                    result = await interest;
+                } catch (error) {
+                    result = false;
+                    console.error('Failed to fetch interest:', error);
+                }
             } else {
                 result = interest;
             }
 
             if (result) {
-                filter.handle(message);
+                try {
+                    filter.handle(message);
+                } catch (error) {
+                    console.error('Failed to handle message:', error);
+                }
             }
         });
     }

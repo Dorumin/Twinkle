@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const cleanStack = require('clean-stack');
 const Plugin = require('../../structs/Plugin.js');
 const Collection = require('../../structs/Collection.js');
 const Cache = require('../../structs/Cache.js');
@@ -24,8 +23,6 @@ class CommanderPlugin extends Plugin {
 
 class Commander {
     constructor(bot) {
-        // this.all = fs.readdirSync(path.join(path.dirname(__dirname), 'commands'))
-        //     .map(name => name.slice(0, -3));
         this.commands = new Collection();
         this.messageMatchers = new Cache();
         this.bot = bot;
@@ -36,20 +33,7 @@ class Commander {
 
         this.log = this.bot.logger.log.bind(this.bot.logger, 'commander');
 
-        // if (this.config.commands) {
-        //     if (this.config.commands == true) {
-        //         if (this.config.blacklist) {
-        //             this.all = this.all.filter(name => !this.config.blacklist.includes(name));
-        //         }
-
-        //         this.all.forEach(this.loadCommand.bind(this));
-        //     } else {
-        //         this.config.commands.forEach(this.loadCommand.bind(this));
-        //     }
-        //     this.sortCommandsByPriority();
-        // }
-
-        bot.client.on('message', this.onMessage.bind(this));
+        bot.client.on('messageCreate', this.onMessage.bind(this));
     }
 
 
@@ -144,7 +128,7 @@ class Commander {
             message.author.id === this.bot.client.user.id
         ) return;
 
-        if (this.dev && this.bot.config.DEV.GUILD !== message.guild.id) return;
+        if (this.dev && message.guild && this.bot.config.DEV.GUILD !== message.guild.id) return;
 
         return this.messageMatchers.get(message.id, () => this.tryMatchCommands(message));
     }
@@ -222,22 +206,23 @@ class Commander {
         const command = this.getAlias(alias);
         if (!command) return;
 
-        this.callCommand(command, message, content);
+        return this.callCommand(command, message, content);
     }
 
     async callCommand(command, message, content) {
         try {
             await command.call(message, content.trim());
         } catch(e) {
-            const lines = e.stack.split('\n'),
-            firstRelevant = lines.findIndex(line => line.includes('Commander.callCommand')),
-            relevantLines = lines.slice(0, firstRelevant),
-            errorMessage = `${command.constructor.name}CallError: ${cleanStack(relevantLines.join('\n'))}`;
+            const lines = e.stack.split('\n');
+            const firstRelevant = lines.findIndex(line => line.includes('Commander.callCommand'));
+            const relevantLines = lines.slice(0, firstRelevant);
+            this.cleanStack = this.cleanStack || (await import('clean-stack')).default;
+            const errorMessage = `${command.constructor.name}CallError: ${this.cleanStack(relevantLines.join('\n'))}`;
 
             this.bot.logger.log('commander', errorMessage);
 
             if (this.config.INLINE_ERRORS) {
-                message.channel.send(this.bot.fmt.codeBlock('apache', errorMessage));
+                await message.channel.send(this.bot.fmt.codeBlock('apache', errorMessage));
             }
         }
     }

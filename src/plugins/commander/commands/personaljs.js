@@ -23,7 +23,7 @@ class PersonalJSCommand extends Command {
         let wiki = content || 'dev',
         url = await this.bot.fandomizer.url(wiki);
 
-        message.channel.send(`
+        return message.channel.send(`
 Personal JavaScript pages are located on
 - <${url}/wiki/Special:Mypage/common.js>
 - <${url}/wiki/Special:Mypage/chat.js> (for chat)

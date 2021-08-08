@@ -12,6 +12,9 @@ class Plugin {
     load() {
         throw new Error('load() not implemented');
     }
+
+    cleanup() {
+    }
 }
 
 module.exports = Plugin;

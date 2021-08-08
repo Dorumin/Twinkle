@@ -13,10 +13,6 @@ class FloodFilter extends Filter {
         this.muted = new Set();
     }
 
-    wait(ms) {
-        return new Promise(res => setTimeout(res, ms));
-    }
-
     interested(message) {
         if (message.member.permissions.has('MANAGE_MESSAGES')) return false;
 
@@ -40,26 +36,35 @@ class FloodFilter extends Filter {
         this.muted.add(message.author.id);
 
         const muteAction = message.member.roles.add('401231955741507604');
-        message.author.send(`Hey! Please don't flood ${message.guild.name}.`);
-
         const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
-
-        const channels = this.userMap.get(message.author.id);
-
         for (const { message } of channels.values()) {
-            message.delete();
+            await message.delete();
         }
 
-        (await this.automod.logchan() || message.channel).send({
-            embed: {
+        let logMessage = `**Reason**: Multi-channel flooding\n<@${message.author.id}>\nChannels posted in: ${channels.size}`;
+        try {
+            await message.author.send(`Hey! Please don't flood ${message.guild.name}.`);
+        } catch (error) {
+            if (error && error.code === 50007) {
+                logMessage += '\nUser blocked DMs.';
+            } else {
+                console.error('Failed to warn user:', error);
+                logMessage += '\nFailed to warn user.';
+            }
+        }
+
+        await (await this.automod.logchan() || message.channel).send({
+            embeds: [{
                 author: {
-                    name: `${message.author.username}#${message.author.discriminator} has been warned ${muteResult}`,
+                    name: `${message.author.tag} has been warned ${muteResult}`,
                     icon_url: message.author.displayAvatarURL()
                 },
                 color: message.guild.me.displayColor,
-                description: `**Reason**: Multi-channel flooding\n<@${message.author.id}>\nChannels posted in: ${channels.size}`,
-            }
+                description: logMessage,
+            }]
         });
+
+        const channels = this.userMap.get(message.author.id);
 
         this.muted.delete(message.author.id);
     }

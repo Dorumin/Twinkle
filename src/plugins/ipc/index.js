@@ -8,6 +8,9 @@ class IPCPlugin extends Plugin {
             this.bot.ipc = new IPC(this.bot);
         }
     }
+    cleanup() {
+        this.bot.ipc.cleanup();
+    }
 }
 
 class IPC {
@@ -18,16 +21,11 @@ class IPC {
         this.connectionCount = 0;
         this.buffer = '';
         bot.client.on('ready', this.onReady.bind(this));
-        bot.client.on('message', this.onMessage.bind(this));
-        // TODO: This will cause Twinkle not to stop on the first CTRL+C but rather on the second.
-        // This is because Node.js terminates the process if no SIGINT handlers have been defined,
-        // but expects these handlers to terminate the process if they have. The right solution
-        // to this is to have Twinkle clean up all resources in all plugins.
-        process.on('SIGINT', this.cleanup.bind(this));
+        bot.client.on('messageCreate', this.onMessage.bind(this));
     }
 
     async unlinkSocket() {
-        if (typeof path === 'string') {
+        if (typeof this.config.SOCKET_PATH === 'string') {
             try {
                 await fs.promises.unlink(this.config.SOCKET_PATH);
             } catch {}
@@ -58,6 +56,7 @@ class IPC {
         this.connections[id] = socket;
         socket.on('end', () => delete this.connections[id]);
         socket.on('data', this.ipcMessage.bind(this, id));
+        socket.on('error', (e) => console.error(e));
     }
 
     sendToSocket(socket, type, data) {
@@ -84,21 +83,19 @@ class IPC {
                     } catch {}
                     break;
                 case 'message':
-                    await this.channel.send(message.content, message.options);
-                    break;
+                    return this.channel.send(message.content, message.options);
                 case 'ping':
-                    await this.sendToSocket(this.connections[connectionId], 'pong');
-                    break;
+                    return this.sendToSocket(this.connections[connectionId], 'pong');
             }
         }
     }
 
-    async cleanup() {
+    cleanup() {
         for (const id in this.connections) {
             this.connections[id].end();
         }
         this.server.close();
-        await this.unlinkSocket();
+        return this.unlinkSocket();
     }
 }
 

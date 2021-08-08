@@ -12,7 +12,7 @@ class JoinLeave {
         this.bot = bot;
         this.dev = bot.config.ENV === 'development';
         this.config = bot.config.JOIN_LEAVE;
-        this.specials = this.config.SPECIAL_JOIN_CODES;
+        this.specials = this.config.SPECIAL_JOIN_CODES || {};
         this.cache = new Map();
 
         bot.client.on('ready', this.populateCache.bind(this));
@@ -35,14 +35,19 @@ class JoinLeave {
         return object;
     }
 
-    populateCache() {
-        this.bot.client.guilds.cache.array().map(async guild => {
+    async populateCache() {
+        for (const [id, guild] of this.bot.client.guilds.cache.entries()) {
             try {
-                const invites = await guild.fetchInvites();
-
+                const invites = await guild.invites.fetch();
                 this.cache.set(guild.id, this.serialize(invites));
-            } catch(e) {}
-        });
+            } catch (error) {
+                if (error && error.code === 50013) {
+                    console.error('Missing permissions (MANAGE_SERVER) for fetching invites.');
+                } else {
+                    console.error('Error while populating cache:', error);
+                }
+            }
+        }
     }
 
     // Compares two invite collections and filters out the two who have changed
@@ -89,7 +94,7 @@ class JoinLeave {
         const cached = this.cache.get(guild.id);
         let current;
         try {
-            current = this.serialize(await guild.fetchInvites());
+            current = this.serialize(await guild.invites.fetch());
         } catch(e) {
             return null;
         }
@@ -149,7 +154,7 @@ class JoinLeave {
             message = this.specials[invite.code];
         }
 
-        channel.send(this.formatMessage(message, member));
+        return channel.send(this.formatMessage(message, member));
     }
 
     async onLeave(member) {
@@ -158,7 +163,7 @@ class JoinLeave {
         const channel = await this.getChannel(member.guild);
         if (!channel) return;
 
-        channel.send(this.formatMessage(this.config.LEAVE_MESSAGE, member));
+        return channel.send(this.formatMessage(this.config.LEAVE_MESSAGE, member));
     }
 }
 

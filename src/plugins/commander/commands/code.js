@@ -21,13 +21,13 @@ class CodeCommand extends Command {
     }
 
     call(message) {
-        message.channel.send(`${this.bot.fmt.bold('Give us your code!')} This makes debugging way easier.
+        return message.channel.send(`${this.bot.fmt.bold('Give us your code!')} This makes debugging way easier.
 You can use:
  - codeblocks:
 \\\`\\\`\\\`lang
 // short block of code
 \\\`\\\`\\\`
- - a link to your Fandom/Github file
+ - a link to your Fandom/GitHub file
  - a code snippet site:
 <https://gist.github.com/> • <https://hastebin.com/> • <https://privatebin.net/> • <https://ghostbin.com/> • <https://pastebin.com/>
 Please *don't* use screenshots, we can't read those!`);

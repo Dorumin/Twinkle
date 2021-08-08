@@ -1,14 +1,9 @@
 const Filter = require('../structs/Filter.js');
+const {MessageMentions} = require('discord.js');
 
 class MassMentionFilter extends Filter {
-    constructor(automod) {
-        super(automod);
-
-        this.USERS_PATTERN = /<@!?\d+>/g;
-    }
-
     suppressMentions(text) {
-        return text.replace(this.USERS_PATTERN, '');
+        return text.replace(MessageMentions.USERS_PATTERN, '');
     }
 
     interested(message) {
@@ -21,12 +16,13 @@ class MassMentionFilter extends Filter {
 
     async handle(message) {
         const muteAction = message.member.roles.add('401231955741507604');
+        const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
 
         const suppressed = this.suppressMentions(message.content);
         let deleted = !suppressed.trim();
 
         if (deleted) {
-            message.delete();
+            await message.delete();
         }
 
         let warning = `Hey! Please avoid mentioning so many people in ${message.guild.name}.`;
@@ -35,19 +31,29 @@ class MassMentionFilter extends Filter {
             warning += `\n\nYour message has been deleted.`;
         }
 
-        message.author.send(warning);
+        let logMessage = `**Reason**: Mass mention (${message.mentions.users.size} users)\n<@${message.author.id}>\n`; // TODO: # of offenses
+        try {
+            await message.author.send(warning);
+        } catch (error) {
+            if (error && error.code === 50007) {
+                logMessage += '\nUser blocked DMs.';
+            } else {
+                console.error('Failed to warn user:', error);
+                logMessage += '\nFailed to warn user.';
+            }
+        }
 
-        const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
-        (await this.automod.logchan() || message.channel).send({
-            embed: {
+        await (await this.automod.logchan() || message.channel).send({
+            embeds: [{
                 author: {
-                    name: `${message.author.username}#${message.author.discriminator} has been warned ${muteResult}`,
+                    name: `${message.author.tag} has been warned ${muteResult}`,
                     icon_url: message.author.displayAvatarURL()
                 },
                 color: message.guild.me.displayColor,
-                description: `**Reason**: Mass mention (${message.mentions.users.size} users)\n<@${message.author.id}>\n`, // TODO: # of offenses
-            }
+                description: logMessage
+            }]
         });
+
     }
 }
 

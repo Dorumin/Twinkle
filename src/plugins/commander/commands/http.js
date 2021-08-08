@@ -20,20 +20,20 @@ class HTTPCommand extends Command {
         ];
     }
 
-    async call(message, content) {
+    call(message, content) {
         if (!content) return;
 
         const code = parseInt(content);
         if (isNaN(code)) return;
 
         if (this.validCodes.includes(code)) {
-            const attachment = new MessageAttachment(`https://http.cat/${code}.jpg`, `${code}.jpg`)
-
-            await message.channel.send(`<https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/${code}>`, attachment);
-            return;
+            return message.channel.send({
+                content: `<https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/${code}>`,
+                files: [new MessageAttachment(`https://http.cat/${code}.jpg`, `${code}.jpg`)]
+            });
         }
 
-        await message.channel.send(`https://http.cat/404.jpg`);
+        return message.channel.send(`https://http.cat/404.jpg`);
     }
 }
 

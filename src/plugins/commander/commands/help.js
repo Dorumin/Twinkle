@@ -47,23 +47,31 @@ class HelpCommand extends Command {
             const command = this.bot.commander.getAlias(content.toLowerCase());
 
             if (!command) {
-                creator.send(`There is no existing command with the \`${content.toLowerCase()}\` alias!`);
+                try {
+                    await creator.send(`There is no existing command with the \`${content.toLowerCase()}\` alias!`);
+                } catch (error) {
+                    // User probably blocked DMs.
+                }
                 return;
             }
 
-            target.send({
-                embed: this.buildCommandEmbed(command)
-            });
+            try {
+                await target.send({
+                    embeds: [this.buildCommandEmbed(command)]
+                });    
+            } catch (error) {
+                // User probably blocked DMs.
+            }
             return;
         }
 
         const listing = await target.send({
-            embed: this.buildListingEmbed(0)
+            embeds: [this.buildListingEmbed(0)]
         });
 
-        CommandUtils.react(listing, '⬅', '➡');
+        await CommandUtils.react(listing, '⬅', '➡');
 
-        this.addReactionListeners(listing, controllers);
+        return this.addReactionListeners(listing, controllers);
     }
 
     getSortedCommands() {
@@ -151,13 +159,18 @@ class HelpCommand extends Command {
     async addReactionListeners(message, controllers) {
         const commands = this.cache.get('commands', () => this.getSortedCommands());
         const page = this.cache.get(message.id, () => 0);
-        const reactions = await message.awaitReactions(
-            (reaction, user) => controllers.some(controller => controller.id === user.id) && ['⬅', '➡'].includes(reaction.emoji.name),
-            { time: 60000, max: 1 }
-        );
+        const reactions = await message.awaitReactions({
+            filter: (reaction, user) => controllers.some(controller => controller.id === user.id) && ['⬅', '➡'].includes(reaction.emoji.name),
+            time: 60000,
+            max: 1
+        });
 
         if (!reactions.size) {
-            CommandUtils.clearReactions(message);
+            try {
+                await CommandUtils.clearReactions(message);
+            } catch (error) {
+                // We are in DM and can't do this.
+            }
             return;
         }
 
@@ -184,8 +197,8 @@ class HelpCommand extends Command {
 
                 this.cache.set(message.id, page + 1);
 
-                message.edit({
-                    embed: this.buildListingEmbed(page + 1)
+                await message.edit({
+                    embeds: [this.buildListingEmbed(page + 1)]
                 });
                 break;
             case '⬅':
@@ -201,13 +214,13 @@ class HelpCommand extends Command {
 
                 this.cache.set(message.id, page - 1);
 
-                message.edit({
-                    embed: this.buildListingEmbed(page - 1)
+                await message.edit({
+                    embeds: [this.buildListingEmbed(page - 1)]
                 });
                 break;
         }
 
-        this.addReactionListeners(message, controllers);
+        return this.addReactionListeners(message, controllers);
     }
 }
 
