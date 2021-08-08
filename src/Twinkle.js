@@ -34,8 +34,8 @@ class Twinkle {
         this._plugins = [];
         this.loadedPlugins = [];
 
-        this.client.on('ready', this.onReady.bind(this));
-        this.client.on('error', this.onError.bind(this));
+        this.client.on('ready', this.wrapListener(this.onReady, this));
+        this.client.on('error', this.wrapListener(this.onError, this));
     }
 
     loadPlugin(Plugin) {
@@ -70,11 +70,11 @@ class Twinkle {
     }
 
     onReady() {
-        console.log('ready');
+        console.info('ready');
     }
 
-    onError(e) {
-        console.log('error', e);
+    onError(error) {
+        return this.reportError('Unknown error:', error);
     }
 
     login(token) {
@@ -82,6 +82,38 @@ class Twinkle {
 
         this._loggedIn = true;
         this.client.login(token);
+    }
+
+    async reportError(message, error) {
+        console.error(message, error);
+        if (this.config.REPORTING) {
+            let newMessage = message;
+            if (error) {
+                if (typeof error.stack === 'string') {
+                    newMessage += `\`\`\`apache\n${error.stack.slice(0, 1000)}\`\`\``;
+                } else {
+                    newMessage += `\`\`\`json\n${JSON.stringify(error)}\`\`\``
+                }
+            }
+            const channel = this.client.channels.cache.get(this.config.REPORTING.CHANNEL);
+            if (channel) {
+                await channel.send(newMessage);
+            }
+        }
+    }
+
+    unhandledRejection(reason) {
+        return this.reportError('Unhanded rejection:', reason);
+    }
+    
+    wrapListener(listener, context) {
+        return function(arg) {
+            try {
+                return listener.call(context, arg);
+            } catch (error) {
+                return this.bot.reportError('Listener error:', error);
+            }
+        }.bind(this);
     }
 
     async cleanup() {

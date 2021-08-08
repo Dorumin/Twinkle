@@ -15,7 +15,7 @@ class AutoMod {
             return new Filter(this);
         });
 
-        bot.client.on('messageCreate', this.onMessage.bind(this));
+        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }
 
     logchan() {
@@ -47,7 +47,7 @@ class AutoMod {
                     result = await interest;
                 } catch (error) {
                     result = false;
-                    console.error('Failed to fetch interest:', error);
+                    await this.bot.reportError('Failed to fetch interest:', error);
                 }
             } else {
                 result = interest;
@@ -57,7 +57,7 @@ class AutoMod {
                 try {
                     filter.handle(message);
                 } catch (error) {
-                    console.error('Failed to handle message:', error);
+                    await this.bot.reportError('Failed to handle message:', error);
                 }
             }
         });

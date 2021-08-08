@@ -12,7 +12,5 @@ if (client.commander) {
 
 client.login(client.config.TOKEN);
 
-process.on('unhandledRejection', function(reason) {
-    console.error('Unhandled rejection:', reason);
-});
+process.on('unhandledRejection', client.unhandledRejection.bind(client));
 process.on('SIGINT', client.cleanup.bind(client));

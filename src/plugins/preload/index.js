@@ -11,7 +11,7 @@ class Preload {
 		this.bot = bot;
 		this.config = bot.config.PRELOAD;
 
-		bot.client.on('ready', this.onReady.bind(this));
+		bot.client.on('ready', bot.wrapListener(this.onReady, this));
 	}
 
 	async onReady() {
@@ -25,7 +25,7 @@ class Preload {
 		try {
 			await guild.members.fetch();
 		} catch (error) {
-			console.error('Failed to preload guild', guildId, 'have you enabled the guild members intent?', error);
+			await this.bot.reportError(`Failed to preload guild ${guildId} have you enabled the guild members intent?`, error);
 		}
 	}
 }

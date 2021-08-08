@@ -15,9 +15,9 @@ class JoinLeave {
         this.specials = this.config.SPECIAL_JOIN_CODES || {};
         this.cache = new Map();
 
-        bot.client.on('ready', this.populateCache.bind(this));
-        bot.client.on('guildMemberAdd', this.onJoin.bind(this));
-        bot.client.on('guildMemberRemove', this.onLeave.bind(this));
+        bot.client.on('ready', bot.wrapListener(this.populateCache, this));
+        bot.client.on('guildMemberAdd', bot.wrapListener(this.onJoin, this));
+        bot.client.on('guildMemberRemove', bot.wrapListener(this.onLeave, this));
     }
 
     serialize(inviteCollection) {
@@ -42,9 +42,9 @@ class JoinLeave {
                 this.cache.set(guild.id, this.serialize(invites));
             } catch (error) {
                 if (error && error.code === 50013) {
-                    console.error('Missing permissions (MANAGE_SERVER) for fetching invites.');
+                    await this.bot.reportError('Missing permissions (MANAGE_SERVER) for fetching invites.');
                 } else {
-                    console.error('Error while populating cache:', error);
+                    await this.bot.reportError('Error while populating cache:', error);
                 }
             }
         }

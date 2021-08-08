@@ -47,8 +47,6 @@ class DropboxTransport extends Transport {
             return def;
         }
 
-        console.log('got file', file);
-
         const result = this.toJson(file.fileBinary.toString()) || def;
         this.cache.set(key, result);
 

@@ -30,7 +30,7 @@ class Logger {
 
         fs.mkdir(this.logPath, () => {});
 
-        bot.client.on('messageCreate', this.onMessage.bind(this));
+        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }
 
     onMessage(message) {

@@ -170,7 +170,7 @@ class ClearCommand extends ModCommand {
                 }
             }).json();    
         } catch (error) {
-            console.error('Failed to check whether the message exists:', error, error.response);
+            await this.bot.reportError('Failed to check whether the message exists:', error.response);
             return false;
         }
 
@@ -336,7 +336,7 @@ class ClearCommand extends ModCommand {
             try {
                 await channel.bulkDelete(chunks[i]);
             } catch(e) {
-                console.error('Bulk deletion error', e);
+                await this.bot.reportError('Bulk deletion error', e);
                 failures += chunks[i].length;
             }
         }
@@ -369,15 +369,15 @@ class ClearCommand extends ModCommand {
 
                 if (res == 'timeout') throw 'timeout';
                 break;
-            } catch(e) {
-                if (e != 'timeout') {
-                    console.error(e);
+            } catch (e) {
+                if (e !== 'timeout') {
+                    await this.bot.reportError('Deleting messages failed:', e);
                 }
 
                 retries--;
 
                 if (retries < 1) {
-                    console.error(`Errored too much: ${messageId}`);
+                    await this.bot.reportError(`Errored too much (${messageId}):`, e);
                     return false;
                 }
 

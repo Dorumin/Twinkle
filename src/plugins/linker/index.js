@@ -31,8 +31,8 @@ class Linker {
         this.jar = new CookieJar();
         this.wikiVars = new Cache();
         if (this.config.USERNAME) {
-            this.login().catch(err => {
-                console.error('Linker login failure', err);
+            this.login().catch(async err => {
+                await this.bot.reportError('Linker login failure', err);
             });
         }
 
@@ -110,7 +110,7 @@ class Linker {
         //     }, 2));
         // });
 
-        bot.client.on('messageCreate', this.onMessage.bind(this));
+        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }
 
     hasStringKeys(arr) {

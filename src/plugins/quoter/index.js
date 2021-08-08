@@ -19,7 +19,7 @@ class Quoter {
         this.dev = bot.config.ENV === 'development';
         this.config = bot.config.QUOTER;
         this.QUOTE_PATTERN = /(?<!<)https?:\/\/(?:(?:canary|ptb)\.)?discord(?:app)?\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)(?!>)/g;
-        bot.client.on('messageCreate', this.onMessage.bind(this));
+        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }
 
     matchQuotes(text) {

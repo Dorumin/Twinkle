@@ -37,7 +37,7 @@ class Commander {
 
         this.log = this.bot.logger.log.bind(this.bot.logger, 'commander');
 
-        bot.client.on('messageCreate', this.onMessage.bind(this));
+        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }
 
 
@@ -227,6 +227,8 @@ class Commander {
 
             if (this.config.INLINE_ERRORS) {
                 await message.channel.send(this.bot.fmt.codeBlock('apache', errorMessage));
+            } else {
+                await this.bot.reportError(`Error while executing ${command.constructor.name}:`, e);
             }
         }
     }

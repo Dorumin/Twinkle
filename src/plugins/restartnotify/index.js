@@ -22,7 +22,7 @@ class RestartNotifyPlugin extends Plugin {
 class RestartNotify {
     constructor(bot) {
         this.bot = bot;
-        bot.client.on('ready', this.onReady.bind(this));
+        bot.client.on('ready', bot.wrapListener(this.onReady, this));
     }
 
     async onReady() {

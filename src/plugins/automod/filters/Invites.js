@@ -52,7 +52,7 @@ class InvitesFilter extends Filter {
             if (error && error.code === 50007) {
                 logMessage += '\nUser blocked DMs.';
             } else {
-                console.error('Failed to warn user:', error);
+                await this.automod.bot.reportError('Failed to warn user:', error);
                 logMessage += '\nFailed to warn user.';
             }
         }

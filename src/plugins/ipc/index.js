@@ -20,8 +20,8 @@ class IPC {
         this.connections = {};
         this.connectionCount = 0;
         this.buffer = '';
-        bot.client.on('ready', this.onReady.bind(this));
-        bot.client.on('messageCreate', this.onMessage.bind(this));
+        bot.client.on('ready', bot.wrapListener(this.onReady, this));
+        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }
 
     async unlinkSocket() {
@@ -56,7 +56,7 @@ class IPC {
         this.connections[id] = socket;
         socket.on('end', () => delete this.connections[id]);
         socket.on('data', this.ipcMessage.bind(this, id));
-        socket.on('error', (e) => console.error(e));
+        socket.on('error', error => this.bot.reportError(error));
     }
 
     sendToSocket(socket, type, data) {
