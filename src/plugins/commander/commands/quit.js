@@ -17,7 +17,7 @@ class QuitCommand extends OPCommand {
     async call(message) {
         await message.channel.send('Alright then');
 
-        this.bot.client.destroy();
+        this.bot.cleanup();
     }
 }
 

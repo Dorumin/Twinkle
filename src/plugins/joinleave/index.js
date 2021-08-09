@@ -36,7 +36,7 @@ class JoinLeave {
     }
 
     async populateCache() {
-        for (const [id, guild] of this.bot.client.guilds.cache.entries()) {
+        for (const guild of this.bot.client.guilds.cache.values()) {
             try {
                 const invites = await guild.invites.fetch();
                 this.cache.set(guild.id, this.serialize(invites));

@@ -24,7 +24,9 @@ class Twinkle {
                 // Listening for commands in DM
                 Intents.FLAGS.DIRECT_MESSAGES,
                 // Reactions on commands like !help
-                Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
+                Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+                // Guild invites for JoinLeave
+                Intents.FLAGS.GUILD_INVITES
             ].concat(config.TWINKLE.INTENTS || [])
         });
         this.config = config.TWINKLE;
@@ -97,7 +99,11 @@ class Twinkle {
             }
             const channel = this.client.channels.cache.get(this.config.REPORTING.CHANNEL);
             if (channel) {
-                await channel.send(newMessage);
+                try {
+                    await channel.send(newMessage);
+                } catch(e) {
+                    // Discard error, instance might be destroyed
+                }
             }
         }
     }
@@ -105,7 +111,7 @@ class Twinkle {
     unhandledRejection(reason) {
         return this.reportError('Unhanded rejection:', reason);
     }
-    
+
     wrapListener(listener, context) {
         return function(arg) {
             try {

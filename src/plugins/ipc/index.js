@@ -8,8 +8,11 @@ class IPCPlugin extends Plugin {
             this.bot.ipc = new IPC(this.bot);
         }
     }
+
     cleanup() {
-        this.bot.ipc.cleanup();
+        if (this.bot.ipc) {
+            this.bot.ipc.cleanup();
+        }
     }
 }
 
@@ -94,6 +97,7 @@ class IPC {
         for (const id in this.connections) {
             this.connections[id].end();
         }
+
         this.server.close();
         return this.unlinkSocket();
     }
