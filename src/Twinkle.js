@@ -24,9 +24,7 @@ class Twinkle {
                 // Listening for commands in DM
                 Intents.FLAGS.DIRECT_MESSAGES,
                 // Reactions on commands like !help
-                Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-                // Guild invites for JoinLeave
-                Intents.FLAGS.GUILD_INVITES
+                Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
             ].concat(config.TWINKLE.INTENTS || [])
         });
         this.config = config.TWINKLE;
@@ -124,10 +122,9 @@ class Twinkle {
 
     async cleanup() {
         for (const plugin of this.loadedPlugins) {
-            if (plugin.cleanup) {
-                await plugin.cleanup();
-            }
+            await plugin.cleanup();
         }
+
         this.client.destroy();
     }
 }
