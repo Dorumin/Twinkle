@@ -124,7 +124,9 @@ class Twinkle {
 
     async cleanup() {
         for (const plugin of this.loadedPlugins) {
-            await plugin.cleanup();
+            if (plugin.cleanup) {
+                await plugin.cleanup();
+            }
         }
         this.client.destroy();
     }
