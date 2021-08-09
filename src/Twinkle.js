@@ -24,8 +24,13 @@ class Twinkle {
                 // Listening for commands in DM
                 Intents.FLAGS.DIRECT_MESSAGES,
                 // Reactions on commands like !help
-                Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
-            ].concat(config.TWINKLE.INTENTS || [])
+                Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+                Intents.FLAGS.DIRECT_MESSAGE_TYPING,
+                Intents.FLAGS.GUILD_PRESENCES,
+            ].concat(config.TWINKLE.INTENTS || []),
+            partials: [
+                'CHANNEL'
+            ]
         });
         this.config = config.TWINKLE;
         this.operators = this.config.OPERATORS;
