@@ -20,10 +20,10 @@ class SiteJSCommand extends Command {
     }
 
     async call(message, content) {
-        let wiki = content || 'dev',
-        url = await this.bot.fandomizer.url(wiki);
+        const wiki = content || 'dev';
+        const url = await this.bot.fandomizer.url(wiki);
 
-        message.channel.send(`
+        return message.channel.send(`
 Wiki-wide JavaScript pages can be found on:
 - <${url}/wiki/MediaWiki:Common.js>
 - <${url}/wiki/MediaWiki:Chat.js> (for chat)

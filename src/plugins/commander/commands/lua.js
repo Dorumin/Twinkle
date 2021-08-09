@@ -14,14 +14,14 @@ class LuaRoleCommand extends Command {
         ];
     }
 
-    call(message, content) {
+    async call(message, content) {
         if (content) return;
 
-        message.delete();
+        await message.delete();
         if (message.member.roles.cache.has('269869890087682049')) {
-            message.member.roles.remove('269869890087682049');
+            return message.member.roles.remove('269869890087682049');
         } else {
-            message.member.roles.add('269869890087682049');
+            return message.member.roles.add('269869890087682049');
         }
     }
 }

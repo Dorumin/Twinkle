@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+require('events').captureRejections = true;
 const path = require('path');
 const Twinkle = require('./src/Twinkle.js');
 const client = new Twinkle();
@@ -10,3 +11,6 @@ if (client.commander) {
 }
 
 client.login(client.config.TOKEN);
+
+process.on('unhandledRejection', client.unhandledRejection.bind(client));
+process.on('SIGINT', client.cleanup.bind(client));

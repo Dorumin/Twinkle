@@ -43,7 +43,7 @@ class RuntimeCommand extends Command {
     call(message) {
         const runtime = this.toDurationString(this.bot.client.uptime);
 
-        message.channel.send(`Bot has been up and running for ${runtime}!`);
+        return message.channel.send(`Bot has been up and running for ${runtime}!`);
     }
 }
 

@@ -13,7 +13,7 @@ class IntegrationCommand extends Command {
     }
 
     call(message) {
-        message.channel.send(`
+        return message.channel.send(`
 You can find the instructions for DiscordIntegrator installation here:
 ⟼ <https://dev.fandom.com/wiki/DiscordIntegrator/instructions>
 

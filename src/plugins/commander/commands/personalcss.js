@@ -23,7 +23,7 @@ class PersonalCSSCommand extends Command {
         let wiki = content || 'dev',
         url = await this.bot.fandomizer.url(wiki);
 
-        message.channel.send(`
+        return message.channel.send(`
 Personal CSS pages are located on
 - <${url}/wiki/Special:Mypage/common.css>
 - <${url}/wiki/Special:Mypage/chat.css> (for chat)

@@ -63,7 +63,7 @@ class ParseCommand extends Command {
             }
         }
 
-        message.channel.send(this.bot.fmt.codeBlock('html', html));
+        return message.channel.send(this.bot.fmt.codeBlock('html', html));
     }
 }
 

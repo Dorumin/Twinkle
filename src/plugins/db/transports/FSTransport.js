@@ -1,6 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+const {readFile, readdir, unlink, mkdir, writeFile} = require('fs/promises');
+const {dirname, join} = require('path');
 const Transport = require('./Transport.js');
+const {promisify} = require('util');
+const wait = promisify(setTimeout);
 
 class FSTransport extends Transport {
     constructor(config) {
@@ -15,11 +17,11 @@ class FSTransport extends Transport {
     }
 
     getPath(...sub) {
-        return path.join(this.path, ...sub);
+        return join(this.path, ...sub);
     }
 
-    async list() {
-        return fs.promises.readdir(this.path);
+    list() {
+        return readdir(this.path);
     }
 
     async get(key, def = null) {
@@ -28,7 +30,7 @@ class FSTransport extends Transport {
         }
         if (!this.query.has(key)) {
             try {
-                this.query.set(key, await fs.promises.readFile(this.getPath(key), {
+                this.query.set(key, await readFile(this.getPath(key), {
                     encoding: 'utf-8'
                 }));
             } catch {
@@ -55,10 +57,10 @@ class FSTransport extends Transport {
         return this.queueSave(key, object);
     }
 
-    async delete(key) {
+    delete(key) {
         this.query.delete(key);
         this.cache.delete(key);
-        await fs.promises.unlink(this.getPath(key));
+        return unlink(this.getPath(key));
     }
 
     async queueSave(key) {
@@ -71,19 +73,19 @@ class FSTransport extends Transport {
         this.saving = true;
 
         const filename = this.getPath(key);
-        await fs.promises.mkdir(path.dirname(filename), {
+        await mkdir(dirname(filename), {
             recursive: true
         });
         await Promise.all([
-            this.wait(this.delay),
-            fs.promises.writeFile(filename, this.toBase64(this.cache.get(key)))
+            wait(this.delay),
+            writeFile(filename, this.toBase64(this.cache.get(key)))
         ]);
 
         this.saving = false;
         this.queue.shift();
 
         if (this.queue.length) {
-            this.queueSave();
+            return this.queueSave();
         }
     }
 
@@ -103,10 +105,6 @@ class FSTransport extends Transport {
         const buffer = Buffer.from(stringified);
 
         return buffer.toString('base64');
-    }
-
-    wait(ms) {
-        return new Promise(res => setTimeout(res, ms));
     }
 }
 

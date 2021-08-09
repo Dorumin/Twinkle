@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const cleanStack = require('clean-stack');
 const Plugin = require('../../structs/Plugin.js');
 const Collection = require('../../structs/Collection.js');
 const Cache = require('../../structs/Cache.js');
@@ -20,12 +19,14 @@ class CommanderPlugin extends Plugin {
     load() {
         this.bot.commander = new Commander(this.bot);
     }
+
+    cleanup() {
+        return this.bot.commander.cleanup();
+    }
 }
 
 class Commander {
     constructor(bot) {
-        // this.all = fs.readdirSync(path.join(path.dirname(__dirname), 'commands'))
-        //     .map(name => name.slice(0, -3));
         this.commands = new Collection();
         this.messageMatchers = new Cache();
         this.bot = bot;
@@ -36,20 +37,7 @@ class Commander {
 
         this.log = this.bot.logger.log.bind(this.bot.logger, 'commander');
 
-        // if (this.config.commands) {
-        //     if (this.config.commands == true) {
-        //         if (this.config.blacklist) {
-        //             this.all = this.all.filter(name => !this.config.blacklist.includes(name));
-        //         }
-
-        //         this.all.forEach(this.loadCommand.bind(this));
-        //     } else {
-        //         this.config.commands.forEach(this.loadCommand.bind(this));
-        //     }
-        //     this.sortCommandsByPriority();
-        // }
-
-        bot.client.on('message', this.onMessage.bind(this));
+        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }
 
 
@@ -125,7 +113,7 @@ class Commander {
                 const conflicting = priorityAliases[command.priority].includes(alias);
                 if (conflicting) {
                     this.log(`Duplicate alias: ${alias}`);
-                    this.log(`Conflicting commands: ${aliasMap[command.priority][alias]} & ${command}`);
+                    this.log(`Conflicting commands: ${aliasMap[command.priority][alias].constructor.name} & ${command.constructor.name}`);
                     return false;
                 }
 
@@ -144,7 +132,7 @@ class Commander {
             message.author.id === this.bot.client.user.id
         ) return;
 
-        if (this.dev && this.bot.config.DEV.GUILD !== message.guild.id) return;
+        if (this.dev && message.guild && this.bot.config.DEV.GUILD !== message.guild.id) return;
 
         return this.messageMatchers.get(message.id, () => this.tryMatchCommands(message));
     }
@@ -222,23 +210,32 @@ class Commander {
         const command = this.getAlias(alias);
         if (!command) return;
 
-        this.callCommand(command, message, content);
+        return this.callCommand(command, message, content);
     }
 
     async callCommand(command, message, content) {
         try {
             await command.call(message, content.trim());
         } catch(e) {
-            const lines = e.stack.split('\n'),
-            firstRelevant = lines.findIndex(line => line.includes('Commander.callCommand')),
-            relevantLines = lines.slice(0, firstRelevant),
-            errorMessage = `${command.constructor.name}CallError: ${cleanStack(relevantLines.join('\n'))}`;
+            const lines = e.stack.split('\n');
+            const firstRelevant = lines.findIndex(line => line.includes('Commander.callCommand'));
+            const relevantLines = lines.slice(0, firstRelevant);
+            this.cleanStack = this.cleanStack || (await import('clean-stack')).default;
+            const errorMessage = `${command.constructor.name}CallError: ${this.cleanStack(relevantLines.join('\n'))}`;
 
-            this.bot.logger.log('commander', errorMessage);
+            this.log(errorMessage);
 
             if (this.config.INLINE_ERRORS) {
-                message.channel.send(this.bot.fmt.codeBlock('apache', errorMessage));
+                await message.channel.send(this.bot.fmt.codeBlock('apache', errorMessage));
+            } else {
+                await this.bot.reportError(`Error while executing ${command.constructor.name}:`, e);
             }
+        }
+    }
+
+    async cleanup() {
+        for (const command of this.commands.values()) {
+            await command.cleanup();
         }
     }
 }

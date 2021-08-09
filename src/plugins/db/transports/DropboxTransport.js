@@ -1,6 +1,8 @@
 const Transport = require('./Transport.js');
 const { Dropbox } = require('dropbox');
 const fetch = require('node-fetch');
+const {promisify} = require('util');
+const wait = promisify(setTimeout);
 
 class DropboxTransport extends Transport {
     constructor(config) {
@@ -45,9 +47,7 @@ class DropboxTransport extends Transport {
             return def;
         }
 
-        console.log('got file', file);
-
-        const result = this.toJson(file.fileBinary.toString()) || def;
+        const result = this.toJson(String(file.result.fileBinary)) || def;
         this.cache.set(key, result);
 
         return result;
@@ -55,13 +55,13 @@ class DropboxTransport extends Transport {
 
     set(key, object) {
         this.cache.set(key, object);
-        this.queueSave(key, object);
+        return this.queueSave(key, object);
     }
 
-    async delete(key) {
+    delete(key) {
         this.query.delete(key);
         this.cache.delete(key);
-        await this.db.filesDelete({
+        return this.db.filesDelete({
             path: `/${key}`
         });
     }
@@ -76,7 +76,7 @@ class DropboxTransport extends Transport {
         this.saving = true;
 
         await Promise.all([
-            this.wait(this.delay),
+            wait(this.delay),
             this.write(key, this.cache.get(key))
         ]);
 
@@ -84,7 +84,7 @@ class DropboxTransport extends Transport {
         this.queue.shift();
 
         if (this.queue.length) {
-            this.queueSave();
+            return this.queueSave();
         }
     }
 
@@ -102,7 +102,7 @@ class DropboxTransport extends Transport {
         try {
             return JSON.parse(string);
         } catch(e) {
-            console.log(e);
+            console.error(e);
             return null;
         }
     }
@@ -112,10 +112,6 @@ class DropboxTransport extends Transport {
         const buffer = Buffer.from(stringified);
 
         return buffer.toString('base64');
-    }
-
-    wait(ms) {
-        return new Promise(res => setTimeout(res, ms));
     }
 }
 

@@ -15,7 +15,7 @@ class TestCommand extends OPCommand {
     }
 
     call(message) {
-        message.channel.send('Tested!');
+        return message.channel.send('Tested!');
     }
 }
 

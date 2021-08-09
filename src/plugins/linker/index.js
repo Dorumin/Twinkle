@@ -31,9 +31,8 @@ class Linker {
         this.jar = new CookieJar();
         this.wikiVars = new Cache();
         if (this.config.USERNAME) {
-            this.login().catch(err => {
-                console.error('Linker login failure');
-                console.error(err);
+            this.login().catch(async err => {
+                await this.bot.reportError('Linker login failure', err);
             });
         }
 
@@ -111,7 +110,7 @@ class Linker {
         //     }, 2));
         // });
 
-        bot.client.on('message', this.onMessage.bind(this));
+        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }
 
     hasStringKeys(arr) {
@@ -172,6 +171,7 @@ class Linker {
         const wiki = await this.getWiki(message.guild);
         const promises = this.getPromises(message, wiki);
         const results = await Promise.all(promises);
+        const returnedPromises = [];
 
         for (let result of results) {
             if (!result) continue;
@@ -182,23 +182,22 @@ class Linker {
 
             const reply = await message.channel.send(result);
 
-            Promise.all([
+            returnedPromises.push(Promise.all([
                 reply.react('❌'),
-                reply.awaitReactions(
-                    (reaction, reactor) => reactor.id === message.author.id && reaction.emoji.name === '❌',
-                    {
-                        time: 60000,
-                        max: 1
-                    }
-                ),
+                reply.awaitReactions({
+                    filter: (reaction, reactor) => reactor.id === message.author.id && reaction.emoji.name === '❌',
+                    time: 60000,
+                    max: 1
+                }),
             ]).then(([reaction, reactions]) => {
                 if (reactions.size) {
-                    reply.delete();
+                    return reply.delete();
                 } else {
-                    reaction.remove();
+                    return reaction.remove();
                 }
-            });
+            }));
         }
+        return Promise.all(returnedPromises);
     }
 
     login() {
@@ -296,7 +295,7 @@ class Linker {
         return text
             .replace(/<@!?[0-9]+>/g, input => {
                 const id = input.replace(/<|!|>|@/g, '');
-                if (message.channel.type === 'dm' || message.channel.type === 'group') {
+                if (message.channel.type === 'DM' || message.channel.type === 'GROUP_DM') {
                     return message.client.users.cache.has(id) ? `@${message.client.users.cache.get(id).username}` : input;
                 }
 
@@ -316,7 +315,7 @@ class Linker {
                     return input;
                 })
             .replace(/<@&[0-9]+>/g, input => {
-                if (message.channel.type === 'dm' || message.channel.type === 'group') return input;
+                if (message.channel.type === 'DM' || message.channel.type === 'GROUP_DM') return input;
                 const role = message.guild.roles.cache.get(input.replace(/<|@|>|&/g, ''));
                 if (role) return `@${role.name}`;
                 return input;
@@ -449,7 +448,7 @@ class Linker {
 
     getLinks(links, wiki, message) {
         // TODO: Implement 2000/2048 line splitting
-        const embeds = [];
+        const results = [];
 
         const shouldEmbed = links.some(match => match[2]);
         const hyperLinks = Promise.all(
@@ -457,13 +456,13 @@ class Linker {
                 .map(match => this.getLink(match, wiki, message))
         );
 
-        embeds.push(
+        results.push(
             hyperLinks.then(links => {
                 if (shouldEmbed) {
                     return {
-                        embed: {
+                        embeds: [{
                             description: links.join('\n')
-                        }
+                        }]
                     };
                 } else {
                     return links.join('\n');
@@ -471,7 +470,7 @@ class Linker {
             })
         );
 
-        return embeds;
+        return results;
     }
 
     async getLink(match, wiki, message) {
@@ -581,13 +580,12 @@ class Linker {
 
     // API helper
     async api(wiki, params) {
-        params.format = 'json';
-
-        const body = await got(`${await this.wikiUrl(wiki)}/api.php`, {
-            searchParams: params,
+        return await got(`${await this.wikiUrl(wiki)}/api.php`, {
+            searchParams: {
+                format: 'json',
+                ...params
+            },
         }).json();
-
-        return body;
     }
 
     async fetchArticleProps(title, wiki) {
@@ -744,7 +742,7 @@ class Linker {
         const embed = await this.buildArticleEmbed(props, data, wiki, message);
 
         return {
-            embed
+            embeds: [embed]
         };
     }
 
@@ -992,7 +990,7 @@ class Linker {
         }
 
         return {
-            embed: {
+            embeds: [{
                 title: cur.title,
                 url: `${url}/?diff=${curid}&oldid=${oldid}`,
                 color: message.guild.me.displayColor,
@@ -1004,7 +1002,7 @@ class Linker {
                         ? `${cur.comment} - ${cur.user}`
                         : `Edited by ${cur.user}`
                 }
-            }
+            }]
         }
     }
 

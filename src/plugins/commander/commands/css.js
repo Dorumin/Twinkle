@@ -14,14 +14,14 @@ class CSSRoleCommand extends Command {
         ];
     }
 
-    call(message, content) {
+    async call(message, content) {
         if (content) return;
 
-        message.delete();
+        await message.delete();
         if (message.member.roles.cache.has('269869854440423429')) {
-            message.member.roles.remove('269869854440423429');
+            return message.member.roles.remove('269869854440423429');
         } else {
-            message.member.roles.add('269869854440423429');
+            return message.member.roles.add('269869854440423429');
         }
     }
 }

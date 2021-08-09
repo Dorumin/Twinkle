@@ -14,14 +14,14 @@ class JavaScriptCommand extends Command {
         ];
     }
 
-    call(message, content) {
+    async call(message, content) {
         if (content) return;
 
-        message.delete();
+        await message.delete();
         if (message.member.roles.cache.has('269869828691591169')) {
-            message.member.roles.remove('269869828691591169');
+            return message.member.roles.remove('269869828691591169');
         } else {
-            message.member.roles.add('269869828691591169');
+            return message.member.roles.add('269869828691591169');
         }
     }
 }

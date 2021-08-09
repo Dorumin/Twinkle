@@ -1,21 +1,41 @@
 const fs = require('fs');
 const path = require('path');
-const Discord = require('discord.js');
+const {Client, Intents} = require('discord.js');
 const config = require('./util/config.js');
 
 class Twinkle {
     constructor()  {
-        this.client = new Discord.Client({
-            disableMentions: 'everyone'
+        this.client = new Client({
+            allowedMentions: {
+                parse: ['users', 'roles'],
+                repliedUser: false
+            },
+            intents: [
+                // We might want to listen for new threads
+                Intents.FLAGS.GUILDS,
+                // Join/leave events
+                Intents.FLAGS.GUILD_MEMBERS,
+                // In case we want to assign roles when users join or leave VC
+                Intents.FLAGS.GUILD_VOICE_STATES,
+                // Commands and moderation
+                Intents.FLAGS.GUILD_MESSAGES,
+                // Listening for reactions as commands
+                Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+                // Listening for commands in DM
+                Intents.FLAGS.DIRECT_MESSAGES,
+                // Reactions on commands like !help
+                Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
+            ].concat(config.TWINKLE.INTENTS || [])
         });
         this.config = config.TWINKLE;
         this.operators = this.config.OPERATORS;
         this._globalConfig = config;
         this._loggedIn = false;
         this._plugins = [];
+        this.loadedPlugins = [];
 
-        this.client.on('ready', this.onReady.bind(this));
-        this.client.on('error', this.onError.bind(this));
+        this.client.on('ready', this.wrapListener(this.onReady, this));
+        this.client.on('error', this.wrapListener(this.onError, this));
     }
 
     loadPlugin(Plugin) {
@@ -30,6 +50,7 @@ class Twinkle {
 
         const plugin = new Plugin(this);
         plugin.load();
+        this.loadedPlugins.push(plugin);
     }
 
     loadPluginDir(dir) {
@@ -49,11 +70,11 @@ class Twinkle {
     }
 
     onReady() {
-        console.log('ready');
+        console.info('ready');
     }
 
-    onError(e) {
-        console.log('error', e);
+    onError(error) {
+        return this.reportError('Unknown error:', error);
     }
 
     login(token) {
@@ -61,6 +82,50 @@ class Twinkle {
 
         this._loggedIn = true;
         this.client.login(token);
+    }
+
+    async reportError(message, error) {
+        console.error(message, error);
+        if (this.config.REPORTING) {
+            let newMessage = message;
+            if (error) {
+                if (typeof error.stack === 'string') {
+                    newMessage += `\`\`\`apache\n${error.stack.slice(0, 1000)}\`\`\``;
+                } else {
+                    newMessage += `\`\`\`json\n${JSON.stringify(error)}\`\`\``
+                }
+            }
+            const channel = this.client.channels.cache.get(this.config.REPORTING.CHANNEL);
+            if (channel) {
+                try {
+                    await channel.send(newMessage);
+                } catch(e) {
+                    // Discard error, instance might be destroyed
+                }
+            }
+        }
+    }
+
+    unhandledRejection(reason) {
+        return this.reportError('Unhanded rejection:', reason);
+    }
+
+    wrapListener(listener, context) {
+        return function(arg) {
+            try {
+                return listener.call(context, arg);
+            } catch (error) {
+                return this.bot.reportError('Listener error:', error);
+            }
+        }.bind(this);
+    }
+
+    async cleanup() {
+        for (const plugin of this.loadedPlugins) {
+            await plugin.cleanup();
+        }
+
+        this.client.destroy();
     }
 }
 

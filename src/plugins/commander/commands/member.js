@@ -74,8 +74,8 @@ class MemberCommand extends Command {
             return message.channel.send(`The username and tag in the masthead do not match the username and tag of the message author. Use <https://dev.fandom.com/wiki/Special:VerifyUser/${encodeURIComponent(content)}?user=${encodeURIComponent(message.author.username)}&tag=${message.author.discriminator}&c=!member&ch=lobby> to remedy this.`);
         }
 
-        message.member.roles.add('246302564625285121');
-        message.channel.send('Role has been added.');
+        await message.member.roles.add('246302564625285121');
+        return message.channel.send('Role has been added.');
     }
 }
 

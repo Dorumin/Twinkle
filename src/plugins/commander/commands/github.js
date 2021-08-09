@@ -7,6 +7,8 @@ const readdir = require('recursive-readdir');
 const Command = require('../structs/Command.js');
 const Cache = require('../../../structs/Cache.js');
 const FormatterPlugin = require('../../fmt');
+const {promisify} = require('util');
+const wait = promisify(setTimeout);
 
 class GitHubCommand extends Command {
     static get deps() {
@@ -54,7 +56,7 @@ class GitHubCommand extends Command {
         if (lines) {
             fields.push({
                 name: 'Lines of code',
-                value: lines,
+                value: String(lines),
                 inline: true,
             });
         }
@@ -82,7 +84,7 @@ class GitHubCommand extends Command {
         if (info.watchers) {
             fields.push({
                 name: 'Watchers',
-                value: info.watchers,
+                value: String(info.watchers),
                 inline: true,
             });
         }
@@ -90,7 +92,7 @@ class GitHubCommand extends Command {
         if (info.stars) {
             fields.push({
                 name: 'Stargazers',
-                value: info.stars,
+                value: String(info.stars),
                 inline: true,
             });
         }
@@ -98,7 +100,7 @@ class GitHubCommand extends Command {
         if (info.issues) {
             fields.push({
                 name: 'Open issues',
-                value: info.issues,
+                value: String(info.issues),
                 inline: true,
             });
         }
@@ -106,7 +108,7 @@ class GitHubCommand extends Command {
         if (info.forks) {
             fields.push({
                 name: 'Forks',
-                value: info.forks,
+                value: String(info.forks),
                 inline: true,
             });
         }
@@ -117,8 +119,8 @@ class GitHubCommand extends Command {
             ? `${info.url}/pull/${pullId[1]}`
             : `${info.url}/commit/${info.lastCommit.sha}`;
 
-        message.channel.send({
-            embed: {
+        return message.channel.send({
+            embeds: [{
                 author: {
                     name: info.path,
                     url: updateUrl,
@@ -132,7 +134,7 @@ class GitHubCommand extends Command {
                     text: `${commitMessage} - ${info.lastCommit.author.name}`,
                     icon_url: info.lastCommit.author.icon
                 }
-            }
+            }]
         });
     }
 
@@ -171,8 +173,8 @@ class GitHubCommand extends Command {
     }
 
     async getRepoInfo() {
-        const { TYPE, PATH } = this.bot.config.SOURCE,
-        data = {
+        const { TYPE, PATH } = this.bot.config.SOURCE;
+        const data = {
             // The website used's name
             sitename: null,
             // Date object for last push event
@@ -263,7 +265,7 @@ class GitHubCommand extends Command {
     async getCPUUsage() {
         let stats1 = this.getCPUInfo();
 
-        await this.wait(500);
+        await wait(500);
 
         let stats2 = this.getCPUInfo();
 

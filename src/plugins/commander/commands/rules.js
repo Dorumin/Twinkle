@@ -15,7 +15,7 @@ class RulesCommand extends Command {
     }
 
     call(message) {
-        message.channel.send(`
+        return message.channel.send(`
 Rules of this server can be found in the <#246663167537709058> channel.
 Fandom Community Guidelines - <https://c.fandom.com/wiki/Community_Guidelines>
 Fandom Terms of Use - <https://fandom.com/terms-of-use>

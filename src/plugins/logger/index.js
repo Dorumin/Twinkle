@@ -30,14 +30,14 @@ class Logger {
 
         fs.mkdir(this.logPath, () => {});
 
-        bot.client.on('message', this.onMessage.bind(this));
+        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }
 
     onMessage(message) {
 		// if (message.author.bot && message.author.id !== this.bot.client.user.id) return;
 		if (this.config.CHANNEL && message.channel.id === this.config.CHANNEL) return;
 
-        const place = message.channel.type === 'dm'
+        const place = message.channel.type === 'DM'
             ? 'DMs'
             : `${message.guild.name}#${message.channel.name}`;
 
@@ -72,7 +72,7 @@ class Logger {
         const general = this.writers.get('main', () => fs.createWriteStream(path.join(this.logPath, 'main.txt'), { flags: 'a' }));
         // const channel = this.writers.get(label, () => fs.createWriteStream(path.join(this.logPath, `${label}.txt`), { flags: 'a' }));
 
-        console.log(logEntry);
+        console.info(logEntry);
         general.write(logEntry + '\n');
 
         if (this.config.CHANNEL) {
@@ -122,15 +122,8 @@ class Logger {
     }
 
     getLog(name) {
-        return new Promise((res, rej) => {
-            fs.readFile(path.join(this.logPath, `${name}.txt`), (err, data) => {
-                if (err) {
-                    rej(err);
-                    return;
-                }
-
-                res(data.toString());
-            });
+        return fs.promises.readFile(path.join(this.logPath, `${name}.txt`), {
+            encoding: 'utf-8'
         });
     }
 
@@ -225,13 +218,13 @@ class Logger {
     }
 
     formatTime(timestamp) {
-        const d = new Date(timestamp),
-        date = this.pad(d.getUTCDate()),
-        month = this.pad(d.getUTCMonth() + 1),
-        year = this.pad(d.getUTCFullYear()),
-        hour = this.pad(d.getUTCHours()),
-        mins = this.pad(d.getUTCMinutes()),
-        secs = this.pad(d.getUTCSeconds());
+        const d = new Date(timestamp);
+        const date = this.pad(d.getUTCDate());
+        const month = this.pad(d.getUTCMonth() + 1);
+        const year = this.pad(d.getUTCFullYear());
+        const hour = this.pad(d.getUTCHours());
+        const mins = this.pad(d.getUTCMinutes());
+        const secs = this.pad(d.getUTCSeconds());
 
         return `${date}/${month}/${year} ${hour}:${mins}:${secs}`;
     }

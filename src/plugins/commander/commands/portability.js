@@ -14,14 +14,14 @@ class PortabilityCommand extends Command {
         ];
     }
 
-    call(message, content) {
+    async call(message, content) {
         if (content) return;
 
-        message.delete();
+        await message.delete();
         if (message.member.roles.cache.has('311612168061714432')) {
-            message.member.roles.remove('311612168061714432');
+            return message.member.roles.remove('311612168061714432');
         } else {
-            message.member.roles.add('311612168061714432');
+            return message.member.roles.add('311612168061714432');
         }
     }
 }

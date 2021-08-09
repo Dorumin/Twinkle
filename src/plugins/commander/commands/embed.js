@@ -1,5 +1,7 @@
 const Command = require('../structs/Command.js');
 const FormatterPlugin = require('../../fmt');
+const {promisify} = require('util');
+const wait = promisify(setTimeout);
 
 class EmbedCommand extends Command {
     static get deps() {
@@ -12,7 +14,7 @@ class EmbedCommand extends Command {
         super(bot);
         this.aliases = ['embed'];
 
-        this.QUOTE_PATTERN = /<?https?:\/\/(?:(?:canary|ptb)\.)?discordapp\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)>?/;
+        this.QUOTE_PATTERN = /<?https?:\/\/(?:(?:canary|ptb)\.)?discord(?:app)?\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)>?/;
 
         const fmt = this.bot.fmt;
         this.shortdesc = `Creates or updates rich embeds.`
@@ -53,7 +55,7 @@ footer =
 timestamp = 2019-10-30T11:00:00.000Z
                 `
             )}`,
-            `!embed update https://discordapp.com/channels/246075715714416641/246663167537709058/269876798953750528 ${fmt.codeBlock('ini', `
+            `!embed update https://discord.com/channels/246075715714416641/246663167537709058/269876798953750528 ${fmt.codeBlock('ini', `
 title =
 url =
 description = Ignore this update! Changes were rollbacked, wait for further news...
@@ -85,20 +87,20 @@ description = Ignore this update! Changes were rollbacked, wait for further news
 
         if (!args.length) {
             const lol = await message.channel.send('No arguments detected! Do you... want an empty embed? ok den, sure');
-            await message.channel.send({ embed: {} });
-            await this.wait(2000);
-            lol.delete();
-            return;
+            await message.channel.send({ embeds: [{}] });
+            await wait(2000);
+            return lol.delete();
         }
 
         const embed = this.buildEmbed(args);
 
-        await Promise.all([
-            message.delete(),
-            message.channel.send({ embed })
-        ]);
+        await message.channel.send({ embeds: [embed] });
+        try {
+            await message.delete();
+        } catch (error) {
+            // We probably can't delete messages.
+        }
     }
-
 
     async handleUpdateEmbed(invoker, content) {
         const quoteMatch = String(content).match(this.QUOTE_PATTERN);
@@ -113,7 +115,7 @@ description = Ignore this update! Changes were rollbacked, wait for further news
             }
 
             try {
-                message = await channel.fetchMessage(quoteMatch[3]);
+                message = await channel.messages.fetch(quoteMatch[3]);
             } catch(e) {}
 
             if (!message) {
@@ -143,7 +145,7 @@ description = Ignore this update! Changes were rollbacked, wait for further news
 
         const embed = this.buildEmbed(args, this.getDefaults(message));
 
-        await message.edit({ embed });
+        return message.edit({ embeds: [embed] });
     }
 
     parseArgs(string) {

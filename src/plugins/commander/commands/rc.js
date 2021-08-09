@@ -26,7 +26,7 @@ class RCCommand extends Command {
             ? `<${await this.bot.fandomizer.url(content)}/wiki/Special:RecentChanges?feed=rss>`
             : this.bot.fmt.code('https://<yourwiki>.fandom.com/wiki/Special:RecentChanges?feed=rss');
 
-        message.channel.send(`
+        return message.channel.send(`
 The easiest way to set up a Recent Changes-to-Discord system is by inviting Wiki-Bot (<https://wikibot.fandom.com/wiki/Wiki-Bot_Wiki>) to your server and setting up its recent changes webhook.
 More information is available on the Wiki-Bot Wiki: <https://wikibot.fandom.com/wiki/Recent_changes_webhook>.
 

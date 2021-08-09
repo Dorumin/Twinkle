@@ -147,7 +147,7 @@ class EvalCommand extends OPCommand {
             // This is a HACK to essentially send a message on another thread
             // I use curl because I can't be assed to spawn a small js file to post with got
             // I tried to make this look as pretty as possible
-            const url = `https://discord.com/api/v6/channels/${channel.id}/messages`;
+            const url = `https://discord.com/api/v9/channels/${channel.id}/messages`;
             const body = JSON.stringify({
                 content: `Dynamically loading ${name}...`
             });
@@ -319,17 +319,12 @@ class EvalCommand extends OPCommand {
 
     getVars(message) {
         return {
-            send: (...args) => {
+            send: (arg) => {
                 if (
-                    args[0] &&
-                    (
-                        args.length !== 1
-                        || args[0].embed
-                        || args[0].files
-                        || args[0] instanceof MessageEmbed
-                    )
+                    arg &&
+                    (arg.embed || arg.files || arg instanceof MessageEmbed)
                 ) {
-                    const promise = message.channel.send(...args);
+                    const promise = message.channel.send(arg);
 
                     this.ignoredObjects.push(promise);
                     promise.then(message => this.ignoredObjects.push(message));
@@ -337,7 +332,7 @@ class EvalCommand extends OPCommand {
                     return promise;
                 }
 
-                const promise = this.respond(args[0], {
+                const promise = this.respond(arg, {
                     channel: message.channel
                 });
 
@@ -613,11 +608,11 @@ class EvalCommand extends OPCommand {
         const { channel, message: originalMessage } = context;
 
         if (result === null) {
-            return await channel.send('null');
+            return channel.send('null');
         }
 
         if (Number.isNaN(result)) {
-            return await channel.send('NaN');
+            return channel.send('NaN');
         }
 
         if (typeof result === 'undefined') {
@@ -625,7 +620,7 @@ class EvalCommand extends OPCommand {
             // async payloads that are longer than one expression
             if (code && code.isAsync && !code.isExpression) return;
 
-            return await channel.send('undefined');
+            return channel.send('undefined');
         }
 
         if (this.ignoredObjects.includes(result)) {
@@ -633,20 +628,20 @@ class EvalCommand extends OPCommand {
         }
 
         if (typeof result === 'bigint') {
-            return await this.sendExpand(channel, `${result}n`);
+            return this.sendExpand(channel, `${result}n`);
         }
 
         if (typeof result === 'string') {
             // Send smol code block with "" for empty strings
             if (result === '') {
-                return await this.sendExpand(channel, `""`, 'js')
+                return this.sendExpand(channel, `""`, 'js')
             } else {
-                return await this.sendExpand(channel, result);
+                return this.sendExpand(channel, result);
             }
         }
 
         if (['symbol', 'number', 'boolean'].includes(typeof result)) {
-            return await this.sendExpand(channel, String(result));
+            return this.sendExpand(channel, String(result));
         }
 
         if (typeof result === 'function') {
@@ -661,21 +656,21 @@ class EvalCommand extends OPCommand {
                     .join('\n');
             }
 
-            return await this.sendExpand(channel, indented, 'js');
+            return this.sendExpand(channel, indented, 'js');
         }
 
         if (result instanceof Error) {
             const inspection = this.inspect(result);
 
-            return await this.sendExpand(channel, inspection.text(), 'apache');
+            return this.sendExpand(channel, inspection.text(), 'apache');
         }
 
         if (result instanceof Date) {
-            return await channel.send(result.toUTCString());
+            return channel.send(result.toUTCString());
         }
 
         if (result instanceof MessageEmbed) {
-            return await channel.send(result);
+            return channel.send(result);
         }
 
         if (result instanceof Promise) {
@@ -740,15 +735,13 @@ class EvalCommand extends OPCommand {
         let botReaction = await message.react('👁️');
 
         while (true) {
-            const reactions = await message.awaitReactions(
-                (reaction, user) =>
+            const reactions = await message.awaitReactions({
+                filter: (reaction, user) =>
                     reaction.emoji.name === botReaction.emoji.name &&
                     user.id === originalMessage.author.id,
-                {
-                    max: 1,
-                    time: 30000
-                }
-            );
+                max: 1,
+                time: 30000
+            });
 
             if (reactions.size === 0) {
                 try {

@@ -11,8 +11,8 @@ class ZalgoFilter extends Filter {
     interested(message) {
         if (message.member.permissions.has('MANAGE_MESSAGES')) return false;
 
-        let i = message.content.length,
-        min = this.min;
+        let i = message.content.length;
+        let min = this.min;
 
         while (i-- && min) {
             let code = message.content.charCodeAt(i);
@@ -27,19 +27,31 @@ class ZalgoFilter extends Filter {
 
     async handle(message) {
         const muteAction = message.member.roles.add('401231955741507604');
-        message.author.send(`Hey! Please don't abuse zalgo/spammy text in ${message.guild.name}.`); // TODO # of offenses
-        message.delete();
-
         const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
-        (await this.automod.logchan() || message.channel).send({
-            embed: {
+
+        await message.delete();
+
+        let logMessage = `**Reason**: Zalgo usage\n<@${message.author.id}>`; // TODO: # of offenses
+        try {
+            await message.author.send(`Hey! Please don't abuse zalgo/spammy text in ${message.guild.name}.`); // TODO # of offenses
+        } catch (error) {
+            if (error && error.code === 50007) {
+                logMessage += '\nUser blocked DMs.';
+            } else {
+                await this.automod.bot.reportError('Failed to warn user:', error);
+                logMessage += '\nFailed to warn user.';
+            }
+        }
+
+        await (await this.automod.logchan() || message.channel).send({
+            embeds: [{
                 author: {
-                    name: `${message.author.username}#${message.author.discriminator} has been warned ${muteResult}`,
+                    name: `${message.author.tag} has been warned ${muteResult}`,
                     icon_url: message.author.displayAvatarURL()
                 },
                 color: message.guild.me.displayColor,
-                description: `**Reason**: Zalgo usage\n<@${message.author.id}>`, // TODO: # of offenses
-            }
+                description: logMessage
+            }]
         });
     }
 }

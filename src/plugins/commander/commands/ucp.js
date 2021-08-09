@@ -11,10 +11,10 @@ class UCPCommand extends Command {
 
 	constructor(bot) {
 		super(bot);
-		this.aliases = ['ucp', 'compat'];
+		this.aliases = ['ucp', 'ucx', 'compat'];
 
-		this.shortdesc = `Posts links to UCP info.`;
-		this.desc = `Posts links to information about Fandom's UCP platform. You can optionally get info on a specified script/stylesheet's compatibility status by providing it as an argument.`;
+		this.shortdesc = `Posts links to UCP/UCX info.`;
+		this.desc = `Posts links to information about Fandom's Unified Comunity Platform/Unified Consumer Experience. You can optionally get info on a specified script/stylesheet's compatibility status by providing it as an argument.`;
 		this.usages = [
 			'!ucp [script/stylesheet]'
 		];
@@ -24,7 +24,7 @@ class UCPCommand extends Command {
 		];
 
 		this.linksString = `
-- Help - <https://c.fandom.com/Help:UCP>
+- Help - <https://c.fandom.com/Help:UCP>/<https://c.fandom.com/Help:FandomDesktop>
 - Information - <https://fandom.zendesk.com/hc/articles/360044776693>
 - Bugs, features, changes - <https://c.fandom.com/User:Noreplyz/UCP>
 - Content compatibility information - <https://dev.fandom.com/wiki/Dev_Wiki:UCP>`;
@@ -32,16 +32,14 @@ class UCPCommand extends Command {
 
 	async call(message, content) {
 		if (!content) {
-			await message.channel.send(this.linksString);
-			return;
+			return message.channel.send(this.linksString);
 		}
 
 		const pageContent = await got('https://dev.fandom.com/wiki/DEV:UCP?action=raw').text();
 		const line = pageContent.split('\n').find(line => line.slice(0, 7 + content.length) === `{{/row|${content}`);
 
 		if (line === undefined) {
-			await message.channel.send(this.linksString);
-			return;
+			return message.channel.send(this.linksString);
 		}
 
 		const [name, status, reason] = line.slice(7, -2).split('|');
@@ -51,7 +49,7 @@ class UCPCommand extends Command {
 			response.push(`${this.bot.fmt.bold('Reason')}: ${reason}`);
 		}
 
-		await message.channel.send(response.join('\n'));
+		return message.channel.send(response.join('\n'));
 	}
 }
 
