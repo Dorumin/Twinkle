@@ -1,3 +1,4 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 const FormatterPlugin = require('../../fmt');
 
@@ -11,6 +12,7 @@ class CodeCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['code'];
+        this.schema = new SlashCommandBuilder();
 
         this.shortdesc = 'Shows people how to give us code';
         this.desc = `
@@ -20,8 +22,8 @@ class CodeCommand extends Command {
         ];
     }
 
-    call(message) {
-        return message.channel.send(`${this.bot.fmt.bold('Give us your code!')} This makes debugging way easier.
+    async call(message) {
+        await message.channel.send(`${this.bot.fmt.bold('Give us your code!')} This makes debugging way easier.
 You can use:
  - codeblocks:
 \\\`\\\`\\\`lang

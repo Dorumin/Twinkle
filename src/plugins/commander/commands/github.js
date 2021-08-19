@@ -4,10 +4,11 @@ const got = require('got');
 const path = require('path');
 const process = require('process');
 const readdir = require('recursive-readdir');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 const Cache = require('../../../structs/Cache.js');
 const FormatterPlugin = require('../../fmt');
-const {promisify} = require('util');
+const { promisify } = require('util');
 const wait = promisify(setTimeout);
 
 class GitHubCommand extends Command {
@@ -20,7 +21,7 @@ class GitHubCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['github', 'git', 'repo', 'source', 'status'];
-        this.cache = new Cache();
+        this.schema = new SlashCommandBuilder();
 
         this.shortdesc = 'Shows statistics and a link to the bot repository.';
         this.desc = `
@@ -29,6 +30,7 @@ class GitHubCommand extends Command {
         this.usages = [
             '!code'
         ];
+        this.cache = new Cache();
     }
 
     fetchOperators() {

@@ -1,9 +1,11 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 
 class AskCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['ask'];
+        this.schema = new SlashCommandBuilder();
 
         this.shortdesc = `Please don't ask to ask, just ask.`;
         this.desc = `Links to a website where it is advised to just ask your question and wait if someone can answer it.`;

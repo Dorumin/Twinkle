@@ -1,3 +1,4 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const got = require('got');
 const Command = require('../structs/Command.js');
 const FormatterPlugin = require('../../fandomizer');
@@ -12,6 +13,11 @@ class UCPCommand extends Command {
 	constructor(bot) {
 		super(bot);
 		this.aliases = ['ucp', 'ucx', 'compat'];
+        this.schema = new SlashCommandBuilder()
+            .addStringOption(option =>
+                option.setName('script')
+                    .setDescription('The script or stylesheet to check the status')
+            );
 
 		this.shortdesc = `Posts links to UCP/UCX info.`;
 		this.desc = `Posts links to information about Fandom's Unified Comunity Platform/Unified Consumer Experience. You can optionally get info on a specified script/stylesheet's compatibility status by providing it as an argument.`;

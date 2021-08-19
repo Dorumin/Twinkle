@@ -1,3 +1,4 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 const FandomizerPlugin = require('../../fandomizer');
 const FormatterPlugin = require('../../fmt');
@@ -13,6 +14,7 @@ class RCCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['rc', 'rssbot', 'rctodiscord', 'rcscript'];
+        this.schema = new SlashCommandBuilder();
 
         this.shortdesc = `Information on setting up RC-to-Discord relay.`;
         this.desc = `Tells you how to successfully set up a RC-to-Discord relay system.`;

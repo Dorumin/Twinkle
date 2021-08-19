@@ -1,3 +1,4 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 const got = require('got');
 
@@ -5,6 +6,12 @@ class MemberCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['member', 'verify'];
+        this.schema = new SlashCommandBuilder()
+            .addStringOption(option =>
+                option.setName('username')
+                    .setDescription('Your Fandom username')
+                    .setRequired(true)
+            );
 
         this.shortdesc = `Gives you the member role.`;
         this.desc = `Gives you the member role if don't already have it, requires one edit on dev.`;

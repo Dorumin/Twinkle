@@ -1,9 +1,13 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
+
+const WIKITEXT_ID = '269869867123867650';
 
 class WikitextRoleCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['wikitext', 'rmwikitext'];
+        this.schema = new SlashCommandBuilder();
 
         this.shortdesc = `Gives you the Wikitext role.`;
         this.desc = `
@@ -14,14 +18,25 @@ class WikitextRoleCommand extends Command {
         ];
     }
 
-    async call(message, content) {
+    async call(message, content, { interaction }) {
         if (content) return;
 
-        await message.delete();
-        if (message.member.roles.cache.has('269869867123867650')) {
-            return message.member.roles.remove('269869867123867650');
+        const had = message.member.roles.cache.has(WIKITEXT_ID);
+        if (had) {
+            await message.member.roles.remove(WIKITEXT_ID);
         } else {
-            return message.member.roles.add('269869867123867650');
+            await message.member.roles.add(WIKITEXT_ID);
+        }
+
+        if (interaction) {
+            await interaction.reply({
+                content: had
+                    ? `The <@&${WIKITEXT_ID}> role has been taken away`
+                    : `You have been given the <@&${WIKITEXT_ID}> role`,
+                ephemeral: true
+            });
+        } else {
+            await message.delete();
         }
     }
 }

@@ -1,3 +1,4 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const got = require('got');
 const Command = require('../structs/Command.js');
 
@@ -5,6 +6,11 @@ class XKCDCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['xkcd', 'theresanxkcdforthat'];
+        this.schema = new SlashCommandBuilder()
+            .addStringOption(option =>
+                option.setName('search')
+                    .setDescription('The search query or xkcd post number')
+            );
 
         this.shortdesc = 'You know how the old saying goes...';
         this.desc = `... *There's an xkcd for that*
@@ -16,8 +22,8 @@ class XKCDCommand extends Command {
 			'!xkcd [input]'
         ];
         this.examples = [
-            '!xkc lisp',
-            '!xkc 537'
+            '!xkcd lisp',
+            '!xkcd 537'
         ];
     }
 

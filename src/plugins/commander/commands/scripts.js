@@ -1,9 +1,11 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 
 class ScriptsCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['scripts'];
+        this.schema = new SlashCommandBuilder();
 
         this.shortdesc = `Posts a link to the JS enhancement index.`;
         this.desc = `Posts a link to the JavaScript enhancement page on dev wiki.`;

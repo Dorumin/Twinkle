@@ -1,4 +1,5 @@
 const got = require('got');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const { parse, HTMLElement } = require('node-html-parser');
 const Command = require('../structs/Command.js');
 const FandomizerPlugin = require('../../fandomizer');
@@ -15,6 +16,12 @@ class ParseCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['parse'];
+        this.schema = new SlashCommandBuilder()
+            .addStringOption(option =>
+                option.setName('wikitext')
+                    .setDescription('The wikitext to parse')
+                    .setRequired(true)
+            );
 
         this.shortdesc = `Parses wikitext and spits out the resulting HTML.`
         this.desc = `

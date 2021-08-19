@@ -4,6 +4,7 @@ const child_process = require('child_process');
 const got = require('got');
 const { parse, HTMLElement, TextNode } = require('node-html-parser');
 const { BaseManager, MessageAttachment, MessageEmbed, SnowflakeUtil } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 const OPCommand = require('../structs/OPCommand.js');
 const FormatterPlugin = require('../../fmt');
@@ -105,8 +106,14 @@ class EvalCommand extends OPCommand {
     constructor(bot) {
         super(bot);
         this.aliases = ['eval'];
-        this.hidden = true;
+        this.schema = new SlashCommandBuilder()
+            .addStringOption(option =>
+                option.setName('code')
+                    .setDescription('The code to evaluate')
+                    .setRequired(true)
+            );
 
+        this.hidden = true;
         this.shortdesc = `Evaluates a piece of code.`;
         this.desc = `
                     Runs JavaScript in a non-sandboxed environment, and returns the value.

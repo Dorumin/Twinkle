@@ -1,6 +1,7 @@
-const {MessageMentions} = require('discord.js');
 const got = require('got');
-const {promisify} = require('util');
+const { promisify } = require('util');
+const { MessageMentions } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const wait = promisify(setTimeout);
 const CommandUtils = require('../structs/CommandUtils.js');
 const ModCommand = require('../structs/ModCommand.js');
@@ -9,6 +10,17 @@ class ClearCommand extends ModCommand {
     constructor(bot) {
         super(bot);
         this.aliases = ['clear', 'clean', 'clr', 'purge'];
+        this.schema = new SlashCommandBuilder()
+            .addIntegerOption(option =>
+                option.setName('count')
+                    .setDescription('The number of messages to clear')
+                    .setRequired(true)
+            )
+            .addUserOption(option =>
+                option.setName('target')
+                    .setDescription('The user to delete from')
+            );
+
         this.CHECKMARK = '✅';
         this.CROSS = '❌';
         this.DISCORD_EPOCH = 1420070400000;
@@ -168,7 +180,7 @@ class ClearCommand extends ModCommand {
                 headers: {
                     Authorization: 'Bot ' + this.bot.config.TOKEN
                 }
-            }).json();    
+            }).json();
         } catch (error) {
             await this.bot.reportError('Failed to check whether the message exists:', error.response);
             return false;

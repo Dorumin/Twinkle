@@ -1,17 +1,18 @@
 const fs = require('fs');
 const path = require('path');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
 const Plugin = require('../../structs/Plugin.js');
 const Collection = require('../../structs/Collection.js');
 const Cache = require('../../structs/Cache.js');
 const LoggerPlugin = require('../logger');
-const DatabasePlugin = require('../db');
 const FormatterPlugin = require('../fmt');
+const InteractionCompatibilityLayer = require('./structs/InteractionCompatibilityLayer.js');
 
 class CommanderPlugin extends Plugin {
     static get deps() {
         return [
             LoggerPlugin,
-            DatabasePlugin,
             FormatterPlugin,
         ];
     }
@@ -37,9 +38,54 @@ class Commander {
 
         this.log = this.bot.logger.log.bind(this.bot.logger, 'commander');
 
+        bot.client.on('ready', bot.wrapListener(this.registerSlashCommands, this));
         bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
+        bot.client.on('interactionCreate', bot.wrapListener(this.onInteraction, this));
     }
 
+    async onInteraction(interaction) {
+        if (!interaction.isCommand()) return;
+
+        const command = this.getAlias(interaction.commandName);
+        const compat = new InteractionCompatibilityLayer(interaction);
+
+        // Rights check or whatever for commands
+        if (!command.filter(compat)) return;
+
+        this.callCommand(command, compat, compat._unprefixedContent, {
+            alias: interaction.commandName,
+            interaction: interaction
+        });
+    }
+
+    async registerSlashCommands() {
+        var commands = this.commands.array().filter(command => command.schema);
+        if (commands.length === 0) return;
+
+        commands.forEach(command => {
+            if (command.schema.name === undefined) {
+                command.schema.setName(command.aliases[0]);
+            }
+
+            if (command.schema.description === undefined) {
+                command.schema.setDescription(command.shortdesc);
+            }
+        });
+
+        const rest = new REST({ version: '9' }).setToken(this.bot.client.token);
+
+        try {
+            await rest.put(
+                Routes.applicationCommands(this.bot.client.application.id),
+                {
+                    body: commands.map(c => c.schema.toJSON())
+                }
+            );
+        } catch(e) {
+            console.error('Failed while registering slash commands');
+            console.error(e);
+        }
+    }
 
     loadCommand(Command, name) {
         let log = `Loading command ${Command.name} ${name}.js`;
@@ -138,10 +184,10 @@ class Commander {
     }
 
     async tryMatchCommands(message) {
-        let text = message.content.trim(),
-        prefixes = await this.getPrefixes(message.guild),
-        i = prefixes.length,
-        matched = false;
+        const text = message.content.trim();
+        const prefixes = await this.getPrefixes(message.guild);
+        let i = prefixes.length;
+        let matched = false;
 
         while (i--) {
             const prefix = prefixes[i];
@@ -166,7 +212,12 @@ class Commander {
                     if (!command.bot && message.author.bot) continue;
 
                     matched = true;
-                    this.callCommand(command, message, trimmed.slice(alias.length + 1).trimLeft());
+
+                    const content = trimmed.slice(alias.length + 1).trimLeft();
+
+                    this.callCommand(command, message, content, {
+                        alias
+                    });
                 }
 
                 if (matched) break;
@@ -213,9 +264,9 @@ class Commander {
         return this.callCommand(command, message, content);
     }
 
-    async callCommand(command, message, content) {
+    async callCommand(command, message, content, extra) {
         try {
-            await command.call(message, content.trim());
+            await command.call(message, content.trim(), extra);
         } catch(e) {
             const lines = e.stack.split('\n');
             const firstRelevant = lines.findIndex(line => line.includes('Commander.callCommand'));

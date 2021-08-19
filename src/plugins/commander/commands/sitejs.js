@@ -1,9 +1,15 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 
 class SiteJSCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['sitejs'];
+        this.schema = new SlashCommandBuilder()
+            .addStringOption(option =>
+                option.setName('wiki')
+                    .setDescription('The wiki to post sitewide js pages of')
+            );
 
         this.shortdesc = `Lists links to sitewide JS pages.`;
         this.desc = `

@@ -1,9 +1,11 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 
 class RulesCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['rules', 'regulations'];
+        this.schema = new SlashCommandBuilder();
 
         this.shortdesc = `Links various regulation pages you should follow.`;
         this.desc = `

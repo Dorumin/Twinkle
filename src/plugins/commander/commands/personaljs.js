@@ -1,9 +1,15 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 
 class PersonalJSCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['personaljs', 'userjs'];
+        this.schema = new SlashCommandBuilder()
+            .addStringOption(option =>
+                option.setName('wiki')
+                    .setDescription('The wiki to post links for')
+            );
 
         this.shortdesc = `Lists links to personal JS pages.`;
         this.desc = `

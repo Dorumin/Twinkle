@@ -1,10 +1,17 @@
-const Command = require('../structs/Command');
 const { MessageAttachment } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const Command = require('../structs/Command');
 
 class HTTPCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['http', 'catus'];
+        this.schema = new SlashCommandBuilder()
+            .addIntegerOption(option =>
+                option.setName('code')
+                    .setDescription('The http code to fetch the cat of')
+                    .setRequired(true)
+            );
 
         this.shortdesc = `Sends a catus code image.`;
         this.desc = `Sends a HTTP error's cat error code image from http.cat`;
@@ -29,7 +36,9 @@ class HTTPCommand extends Command {
         if (this.validCodes.includes(code)) {
             return message.channel.send({
                 content: `<https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/${code}>`,
-                files: [new MessageAttachment(`https://http.cat/${code}.jpg`, `${code}.jpg`)]
+                files: [
+                    new MessageAttachment(`https://http.cat/${code}.jpg`, `${code}.jpg`)
+                ]
             });
         }
 

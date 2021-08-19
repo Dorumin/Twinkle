@@ -1,9 +1,11 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 
 class PingCommand extends Command {
 	constructor(bot) {
 		super(bot);
 		this.aliases = ['ping', 'latency', 'lag', 'hyperspeed'];
+        this.schema = new SlashCommandBuilder();
 
 		this.DISCORD_EPOCH = 1420070400000;
 

@@ -1,9 +1,11 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 
 class RuntimeCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['runtime', 'uptime'];
+        this.schema = new SlashCommandBuilder();
 
         this.shortdesc = `Outputs the bot's runtime`;
         this.desc = `Replies with how many days, hours, minutes, and seconds the bot has been up for.`;
