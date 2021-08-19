@@ -6,6 +6,7 @@ const Plugin = require('../../structs/Plugin.js');
 const Collection = require('../../structs/Collection.js');
 const Cache = require('../../structs/Cache.js');
 const LoggerPlugin = require('../logger');
+const DatabasePlugin = require('../db');
 const FormatterPlugin = require('../fmt');
 const InteractionCompatibilityLayer = require('./structs/InteractionCompatibilityLayer.js');
 
@@ -13,6 +14,7 @@ class CommanderPlugin extends Plugin {
     static get deps() {
         return [
             LoggerPlugin,
+            DatabasePlugin,
             FormatterPlugin,
         ];
     }
