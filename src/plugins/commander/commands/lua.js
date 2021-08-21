@@ -39,17 +39,6 @@ class LuaRoleCommand extends Command {
             await message.delete();
         }
     }
-
-    async call(message, content) {
-        if (content) return;
-
-        await message.delete();
-        if (message.member.roles.cache.has('269869890087682049')) {
-            return message.member.roles.remove('269869890087682049');
-        } else {
-            return message.member.roles.add('269869890087682049');
-        }
-    }
 }
 
 module.exports = LuaRoleCommand;
