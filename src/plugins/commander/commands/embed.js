@@ -18,7 +18,7 @@ class EmbedCommand extends Command {
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('new')
-                    .setDescription('Info about a user')
+                    .setDescription('Creates a new embed message')
                     .addStringOption(option =>
                         option.setName('args')
                             .setDescription('The embed arguments')
