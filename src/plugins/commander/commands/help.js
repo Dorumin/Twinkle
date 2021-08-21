@@ -1,3 +1,4 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const CommandUtils = require('../structs/CommandUtils.js');
 const Command = require('../structs/Command.js');
 const Cache = require('../../../structs/Cache.js');
@@ -13,6 +14,12 @@ class HelpCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['help', 'commands', 'halp', 'h'];
+        this.schema = new SlashCommandBuilder()
+            .addStringOption(option =>
+                option.setName('command')
+                    .setDescription('The command to describe in specific')
+            );
+
         this.cache = new Cache();
         this.pageSize = 8;
 
@@ -27,7 +34,7 @@ class HelpCommand extends Command {
         ];
     }
 
-    async call(message, content) {
+    async call(message, content, { interaction }) {
         const mentionedUsers = message.mentions.users;
         const target = mentionedUsers.size > 0
             ? mentionedUsers.first()
@@ -41,14 +48,25 @@ class HelpCommand extends Command {
             content = content.replace(new RegExp(`<@!?${user.id}>`), '').trim();
         }
 
-        message.delete().catch(this.bot.logger.suppress);
+        if (!interaction) {
+            try {
+                await message.delete();
+            } catch(e) {}
+        }
 
         if (content) {
             const command = this.bot.commander.getAlias(content.toLowerCase());
 
             if (!command) {
                 try {
-                    await creator.send(`There is no existing command with the \`${content.toLowerCase()}\` alias!`);
+                    if (interaction) {
+                        await interaction.reply({
+                            content: `There is no existing command with the \`${content.toLowerCase()}\` alias!`,
+                            ephemeral: true
+                        });
+                    } else {
+                        await creator.send(`There is no existing command with the \`${content.toLowerCase()}\` alias!`);
+                    }
                 } catch (error) {
                     // User probably blocked DMs.
                 }
@@ -56,11 +74,25 @@ class HelpCommand extends Command {
             }
 
             try {
-                await target.send({
-                    embeds: [this.buildCommandEmbed(command)]
-                });    
+                if (interaction) {
+                    await interaction.reply({
+                        embeds: [this.buildCommandEmbed(command)],
+                        ephemeral: true
+                    });
+                } else {
+                    await target.send({
+                        embeds: [this.buildCommandEmbed(command)]
+                    });
+                }
             } catch (error) {
-                // User probably blocked DMs.
+                if (interaction) {
+                    await interaction.reply({
+                        content: mentionedUsers.size > 0
+                            ? `Couldn't send a message to their DMs, they probably have DMs disabled.`
+                            : `Couldn't send a message to your DMs, you probably have DMs disabled.`,
+                        ephemeral: true
+                    });
+                }
             }
             return;
         }
@@ -68,6 +100,15 @@ class HelpCommand extends Command {
         const listing = await target.send({
             embeds: [this.buildListingEmbed(0)]
         });
+
+        if (interaction) {
+            await interaction.reply({
+                content: mentionedUsers.size > 0
+                    ? `Sent a command listing to their DMs.`
+                    : `Sent a command listing to your DMs.`,
+                ephemeral: true
+            });
+        }
 
         await CommandUtils.react(listing, '⬅', '➡');
 
