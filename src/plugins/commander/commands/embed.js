@@ -122,10 +122,11 @@ description = Ignore this update! Changes were rollbacked, wait for further news
         }
 
         if (!args.length) {
-            const lol = await message.channel.send('No arguments detected! Do you... want an empty embed? ok den, sure');
-            await message.channel.send({ embeds: [{}] });
-            await wait(2000);
-            return lol.delete();
+            await message.channel.send('No arguments detected! Be sure to have arguments like key=value separated by semicolons to create or update embeds');
+            // await message.channel.send({ embeds: [{}] });
+            // await wait(2000);
+            // return lol.delete();
+            return;
         }
 
         const embed = this.buildEmbed(args);
