@@ -59,8 +59,8 @@ class Twinkle {
     }
 
     loadPluginDir(dir) {
-        const wl = this.config.PLUGINS.WHITELIST;
-        const bl = this.config.PLUGINS.BLACKLIST;
+        const wl = this.config.PLUGINS?.WHITELIST;
+        const bl = this.config.PLUGINS?.BLACKLIST;
         fs.readdirSync(dir).forEach(file => {
             const p = path.join(dir, file);
             if (wl instanceof Array && !wl.includes(file)) {
