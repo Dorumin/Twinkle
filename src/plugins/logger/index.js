@@ -114,8 +114,15 @@ class Logger {
         this.logTimeout = -1;
 
         const channel = this.bot.client.channels.cache.get(this.config.CHANNEL);
+
         if (channel) {
-            channel.send(this.getBuffer());
+            const buffer = this.getBuffer();
+
+            if (buffer.trim()) {
+                channel.send(this.getBuffer()).catch(error => {
+                    this.bot.reportError('Log send error', error);
+                });
+            }
         }
 
         this.logBuffer = [];
