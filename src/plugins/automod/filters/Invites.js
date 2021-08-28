@@ -8,7 +8,7 @@ class InvitesFilter extends Filter {
     }
 
     matchInvites(text) {
-        return text.match(/discord(\.gg|(app)?\.com\/invite)\/[\w-]+/g);
+        return text.match(/discord(?:\.gg|(?:app)?\.com\/invite)\/([\w-]+)/g);
     }
 
     async interested(message) {
