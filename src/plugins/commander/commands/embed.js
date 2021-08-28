@@ -118,7 +118,7 @@ description = Ignore this update! Changes were rollbacked, wait for further news
         errors = args.filter(arg => arg instanceof Error);
 
         if (errors.length) {
-            return message.channel.send(errors);
+            return message.channel.send(errors.map(error => `${error}`).join('\n'));
         }
 
         if (!args.length) {
