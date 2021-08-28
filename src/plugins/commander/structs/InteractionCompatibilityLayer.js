@@ -60,7 +60,7 @@ class InteractionCompatibilityLayer {
         this.inner = interaction;
 
         this._replied = false;
-        this._succeeded = true;
+        this._succeeded = false;
 
         const content = InteractionCompatibilityLayer.stringifyOptions(interaction.options.data);
 
