@@ -44,22 +44,40 @@ class Fandomizer {
         return wikiname;
     }
 
-    async fetch(wikiname, alt) {
-        // Note: http necessary
-        const { headers, statusCode } = await got.head(`http://${wikiname}.wikia.com/api.php`, { followRedirect: false });
+    stripLocation(location) {
+        const url = new URL(location);
+        const parts = url.pathname.split('/');
+        const host = url.hostname;
 
-        // Status code used for https://community.fandom.com/wiki/Community_Central:Not_a_valid_community?from=X
-        if (statusCode == 302) return alt || `http://${wikiname}.wikia.com`;
-
-        const url = new URL(headers.location),
-        parts = url.pathname.split('/'),
-        host = url.hostname;
-
+        parts.pop();
         parts.pop();
 
         const final = `https://${host}${parts.join('/')}`;
 
         return final;
+    }
+
+    async fetch(wikiname, alt) {
+        const split = wikiname.split('.');
+        const isMultipart = split.length > 1;
+
+        const [wikia, fandom] = await Promise.allSettled([
+            // Note: http necessary for wikia.com if multipart
+            got.head(`${isMultipart ? 'http' : 'https'}://${wikiname}.wikia.com/`, { followRedirect: false }),
+            // Final slash will or will not be present depending on the length of `split`
+            // Hopefully, this doesn't matter
+            got.head(`https://${split.pop()}.fandom.com/${split.join('/')}`, { followRedirect: false })
+        ]);
+
+        if (wikia.status === 'fulfilled') {
+            return this.stripLocation(wikia.value.headers.location);
+        }
+
+        if (fandom.status === 'fulfilled') {
+            return this.stripLocation(fandom.value.headers.location);
+        }
+
+        return alt || `http://${wikiname}.wikia.com`;
     }
 }
 
