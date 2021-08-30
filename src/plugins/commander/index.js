@@ -49,6 +49,8 @@ class Commander {
         if (!interaction.isCommand()) return;
 
         const command = this.getAlias(interaction.commandName);
+        if (!command) return;
+
         const compat = new InteractionCompatibilityLayer(interaction);
 
         // Rights check or whatever for commands
