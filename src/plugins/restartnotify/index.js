@@ -34,7 +34,7 @@ class RestartNotify {
                 SELECT channel_id
                 FROM last_restart
                 WHERE
-                    id = ?
+                    id = 1
             `).safeIntegers(true).pluck();
             this.sql.deleteLastRestart = this.sql.prepare(`
                 DELETE FROM last_restart
@@ -47,25 +47,19 @@ class RestartNotify {
     }
 
     async onReady() {
-        await this.bot.sql.ready();
-
         try {
             let channelId;
 
             if (lastRestartChannelCmd) {
                 channelId = lastRestartChannelCmd[1];
             } else {
-                channelId = await this.sql.getLastRestart.get(1n);
-                console.log('debug', channelId);
+                channelId = await this.sql.getLastRestart.get();
                 if (!channelId) return;
 
                 await this.sql.deleteLastRestart.run();
             }
 
-            console.log('debug', channelId);
-
             const channel = await this.bot.client.channels.fetch(channelId);
-            console.log('debug', channel);
             if (!channel) return;
 
             await channel.send('Restarted!');
