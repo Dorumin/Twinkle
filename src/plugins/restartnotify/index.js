@@ -1,5 +1,5 @@
 const Plugin = require('../../structs/Plugin.js');
-const DatabasePlugin = require('../db');
+const SQLPlugin = require('../sql');
 
 const lastRestartChannelCmd = process.argv
     .map(arg => arg.split('='))
@@ -10,7 +10,7 @@ class RestartNotifyPlugin extends Plugin {
         return lastRestartChannelCmd ?
             [] :
             [
-                DatabasePlugin
+                SQLPlugin
             ];
     }
 
@@ -22,23 +22,45 @@ class RestartNotifyPlugin extends Plugin {
 class RestartNotify {
     constructor(bot) {
         this.bot = bot;
-        bot.client.on('ready', bot.wrapListener(this.onReady, this));
+        this.bot.client.on('ready', bot.wrapListener(this.onReady, this));
+
+        if (!lastRestartChannelCmd) {
+            this.sql = this.bot.sql.handle('restartnotify');
+            this.sql.exec(`CREATE TABLE IF NOT EXISTS last_restart (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                channel_id INTEGER NOT NULL
+            )`);
+
+            this.sql.getLastRestart = this.sql.prepare(`
+                SELECT channel_id
+                FROM last_restart
+                WHERE
+                    id = 1
+            `).safeIntegers(true).pluck();
+            this.sql.deleteLastRestart = this.sql.prepare(`
+                DELETE FROM last_restart
+                WHERE
+                    id = 1
+            `);
+        }
     }
 
     async onReady() {
         let channelId;
+
         if (lastRestartChannelCmd) {
             channelId = lastRestartChannelCmd[1];
         } else {
-            channelId = await this.bot.db.get('lastRestartChannel');
+            channelId = await this.sql.getLastRestart.get();
             if (!channelId) return;
-            await this.bot.db.delete('lastRestartChannel');
+
+            await this.sql.deleteLastRestart.run();
         }
 
         const channel = await this.bot.client.channels.fetch(channelId);
         if (!channel) return;
 
-        return channel.send('Restarted!');
+        await channel.send('Restarted!');
     }
 }
 

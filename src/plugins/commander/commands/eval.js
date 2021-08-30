@@ -353,7 +353,7 @@ class EvalCommand extends OPCommand {
             bot: this.bot,
             commander: this.bot.commander,
             fmt: this.bot.fmt,
-            db: this.bot.db,
+            sql: this.bot.sql,
 
             // Client stuff
             client: this.bot.client,

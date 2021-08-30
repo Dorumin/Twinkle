@@ -7,6 +7,7 @@ const Collection = require('../../structs/Collection.js');
 const Cache = require('../../structs/Cache.js');
 const LoggerPlugin = require('../logger');
 const DatabasePlugin = require('../db');
+const SQLPlugin = require('../sql');
 const FormatterPlugin = require('../fmt');
 const InteractionCompatibilityLayer = require('./structs/InteractionCompatibilityLayer.js');
 
@@ -16,6 +17,7 @@ class CommanderPlugin extends Plugin {
             LoggerPlugin,
             DatabasePlugin,
             FormatterPlugin,
+            SQLPlugin
         ];
     }
 
@@ -35,10 +37,23 @@ class Commander {
         this.bot = bot;
         this.dev = bot.config.ENV === 'development';
         this.config = bot.config.COMMANDER;
-        this.prefixes = this.config.PREFIXES;
+        this.defaultPrefixes = this.config.PREFIXES;
         this.whitespace = [9, 10, 11, 12, 13, 32, 160, 5760, 8192, 8193, 8194, 8195, 8196, 8197, 8198, 8199, 8200, 8201, 8202, 8232, 8233, 8239, 8287, 12288, 65279];
 
         this.log = this.bot.logger.log.bind(this.bot.logger, 'commander');
+
+        this.sql = this.bot.sql.handle('commander');
+        this.sql.exec(`CREATE TABLE IF NOT EXISTS commander_prefixes (
+            id INTEGER PRIMARY KEY,
+            prefixes_json TEXT NOT NULL
+        )`);
+
+        this.sql.getPrefixes = this.sql.prepare(`
+            SELECT prefixes_json
+            FROM commander_prefixes
+            WHERE
+                id = ?
+        `).safeIntegers(true).pluck();
 
         bot.client.on('ready', bot.wrapListener(this.registerSlashCommands, this));
         bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
@@ -195,7 +210,7 @@ class Commander {
 
         while (i--) {
             const prefix = prefixes[i];
-            if (text.slice(0, prefix.length) != prefix) continue;
+            if (text.slice(0, prefix.length) !== prefix) continue;
 
             const trimmed = text.slice(prefix.length).trimLeft();
             for (const command of this.commands.values()) {
@@ -234,13 +249,25 @@ class Commander {
     }
 
     async getPrefixes(guild) {
-        const prefixes = guild
-            ? await this.bot.db.get(`commander.prefixes.${guild.id}`, this.prefixes)
-            : this.prefixes;
+        await this.bot.sql.ready();
+
+        let prefixes;
+        {
+            const json = guild && await this.sql.getPrefixes.get(BigInt(guild.id));
+
+            if (!json) {
+                prefixes = this.bot.commander.defaultPrefixes;
+            } else {
+                prefixes = JSON.parse(json);
+            }
+        }
 
         if (this.config.MENTION) {
             const id = this.bot.client.user.id;
-            return prefixes.concat([`<@${id}>`, `<@!${id}>`]);
+            return prefixes.concat([
+                `<@${id}>`,
+                `<@!${id}>`
+            ]);
         }
 
         return prefixes;

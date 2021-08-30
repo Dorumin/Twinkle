@@ -2,12 +2,12 @@ const { HEROKU, SYSTEMD } = require('../../../util/config.js');
 const { spawn } = require('child_process');
 const got = require('got');
 const OPCommand = require('../structs/OPCommand.js');
-const DatabasePlugin = require('../../db');
+const SQLPlugin = require('../../sql');
 
 class RestartCommand extends OPCommand {
     static get deps() {
         return (HEROKU == 'true' || SYSTEMD) ? [
-            DatabasePlugin
+            SQLPlugin
         ] : [];
     }
 
@@ -26,11 +26,25 @@ class RestartCommand extends OPCommand {
         this.usages = [
             '!restart'
         ];
+
+        if (HEROKU == 'true' || SYSTEMD) {
+            this.sql = this.bot.sql.handle('restart command');
+            this.sql.exec(`CREATE TABLE IF NOT EXISTS last_restart (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                channel_id INTEGER NOT NULL
+            )`);
+
+            this.sql.setLastRestart = this.sql.prepare(`
+                REPLACE INTO last_restart
+                VALUES (1, $id)
+            `).safeIntegers(true);
+        }
     }
 
     async call(message) {
         const channelId = message.channel.id;
         await message.channel.send('Restarting...');
+
         if (this.heroku) {
             await this.restartHeroku(channelId);
         } else if (this.systemd) {
@@ -41,8 +55,9 @@ class RestartCommand extends OPCommand {
     }
 
     async restartHeroku(channelId) {
-        // TODO: Make db writes return usable promises
-        await this.bot.db.set('lastRestartChannel', channelId);
+        await this.sql.setLastRestart.run(channelId);
+        await this.bot.sql.flush();
+
         const config = this.bot._globalConfig;
         const name = config.IS_BACKUP ? config.BACKUP_APP_NAME : config.APP_NAME;
         const token = config.HEROKU_TOKEN;
@@ -79,7 +94,9 @@ class RestartCommand extends OPCommand {
     }
 
     async restartSystemd(channelId) {
-        await this.bot.db.set('lastRestartChannel', channelId);
+        await this.sql.setLastRestart.run(channelId);
+        await this.bot.sql.flush();
+
         process.exit(1);
     }
 }

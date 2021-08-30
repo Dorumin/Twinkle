@@ -7,6 +7,9 @@ config.json
 # Log streams
 log/
 
+# Temp stuff (like the db) (yes that is temporary)
+tmp/
+
 # Workspace settings
 .vscode/
 

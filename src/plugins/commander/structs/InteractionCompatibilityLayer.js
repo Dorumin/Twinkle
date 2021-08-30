@@ -20,13 +20,13 @@ const INTERACTION_REFLECT_KEYS = [
 
 class InteractionCompatibilityLayer {
     static stringifyOption(option) {
-        if (option.value == null && !option.options) {
+        if (option.value == null && option.type !== 'SUB_COMMAND') {
             return '';
         }
 
         switch (option.type) {
             case 'SUB_COMMAND':
-                return option.name + ' ' + InteractionCompatibilityLayer.stringifyOptions(option.options);
+                return (option.name + ' ' + InteractionCompatibilityLayer.stringifyOptions(option.options)).trim();
             case 'USER':
                 return `<@${option.value}>`;
             case 'CHANNEL':
@@ -48,6 +48,8 @@ class InteractionCompatibilityLayer {
 
     static stringifyOptions(options) {
         let content = '';
+
+        if (!options) return content;
 
         for (const option of options) {
             content += InteractionCompatibilityLayer.stringifyOption(option) + ' ';
