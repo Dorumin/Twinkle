@@ -56,6 +56,14 @@ class SQL {
         return this._promise;
     }
 
+    readySync(fn) {
+        if (this._ready) {
+            return fn();
+        } else {
+            return this._promise.then(fn);
+        }
+    }
+
     _standardIndent(string) {
         const [first, ...rest] = string.split('\n');
         if (rest.length === 0) {
@@ -129,18 +137,20 @@ class SQLHandle {
         return new AsyncStatement(this, string);
     }
 
-    async exec(string) {
-        await this.sql.ready();
+    exec(string) {
+        return this.sql.readySync(() => {
+            this.sql._currentHandle = this.name;
 
-        this.sql._currentHandle = this.name;
-
-        return this.sql.db.exec(string);
+            return this.sql.db.exec(string);
+        });
     }
 
-    async transaction(fn) {
-        await this.sql.ready();
+    transaction(fn) {
+        return this.sql.readySync(() => {
+            this.sql._currentHandle = this.name;
 
-        return this.sql.db.transaction(fn);
+            return this.sql.db.transaction(fn);
+        });
     }
 }
 
@@ -150,45 +160,45 @@ class AsyncStatement {
         this.sql = handle.sql;
         this.string = string;
 
-        this.sql.ready().then(() => {
+        this.sql.readySync(() => {
             this.st = this.sql.db.prepare(string);
         });
     }
 
-    async run(...args) {
-        await this.sql.ready();
+    run(...args) {
+        return this.sql.readySync(() => {
+            this.sql._currentHandle = this.handle.name;
 
-        this.sql._currentHandle = this.handle.name;
-
-        return this.st.run(...args);
+            return this.st.run(...args);
+        });
     }
 
-    async get(...args) {
-        await this.sql.ready();
+    get(...args) {
+        return this.sql.readySync(() => {
+            this.sql._currentHandle = this.handle.name;
 
-        this.sql._currentHandle = this.handle.name;
-
-        return this.st.get(...args);
+            return this.st.get(...args);
+        });
     }
 
-    async all(...args) {
-        await this.sql.ready();
+    all(...args) {
+        return this.sql.readySync(() => {
+            this.sql._currentHandle = this.handle.name;
 
-        this.sql._currentHandle = this.handle.name;
-
-        return this.st.all(...args);
+            return this.st.all(...args);
+        });
     }
 
-    async iterate(...args) {
-        await this.sql.ready();
+    iterate(...args) {
+        return this.sql.readySync(() => {
+            this.sql._currentHandle = this.handle.name;
 
-        this.sql._currentHandle = this.handle.name;
-
-        return this.st.iterate(...args);
+            return this.st.iterate(...args);
+        });
     }
 
     pluck(enable = true) {
-        this.sql.ready().then(() => {
+        this.sql.readySync(() => {
             this.st.pluck(enable);
         });
 
@@ -196,7 +206,7 @@ class AsyncStatement {
     }
 
     async expand(enable = true) {
-        this.sql.ready().then(() => {
+        this.sql.readySync(() => {
             this.st.expand(enable);
         });
 
@@ -204,7 +214,7 @@ class AsyncStatement {
     }
 
     safeIntegers(enable = true) {
-        this.sql.ready().then(() => {
+        this.sql.readySync(() => {
             this.st.safeIntegers(enable);
         });
 
