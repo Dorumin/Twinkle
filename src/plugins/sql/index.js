@@ -21,6 +21,10 @@ class SQL {
             recursive: true
         });
 
+        this.stream = fs.createWriteStream(
+            path.join(path.dirname(this.dbPath), 'sql.log')
+        );
+
         switch (this.persistence.TYPE) {
             case 'dropbox':
                 this.persistenceLayer = new DropboxLayer(this);
@@ -36,6 +40,9 @@ class SQL {
             this._promise = Promise.resolve();
             this._initDB();
         }
+
+        this._lastHandle = null;
+        this._currentHandle = null;
     }
 
     _initDB() {
@@ -49,8 +56,48 @@ class SQL {
         return this._promise;
     }
 
-    onStatement(_statement) {
-        // console.log(statement);
+    _standardIndent(string) {
+        const [first, ...rest] = string.split('\n');
+        if (rest.length === 0) {
+            return first.trimStart();
+        }
+
+        const smallestIndent = rest.reduce((max, line) => {
+            const indent = line.match(/^\s*/)[0];
+
+            if (indent.length < max) {
+                return indent.length;
+            } else {
+                return max;
+            }
+        }, Infinity);
+
+        console.log(string, smallestIndent);
+
+        const indented = first.trimStart() + '\n' + rest.map(line => line.slice(smallestIndent)).join('\n');
+
+        return indented;
+    }
+
+    log(message) {
+        this.stream.write(`${message}\n\n`);
+    }
+
+    onStatement(statement) {
+        const cleaned = this._standardIndent(
+            statement.replace(/^\s*$\n?/gm, '').trimEnd()
+        );
+        let log = '';
+
+        if (this._currentHandle && this._currentHandle !== this._lastHandle) {
+            this._lastHandle = this._currentHandle;
+
+            log += `\n[${this._currentHandle}]\n`
+        }
+
+        log += cleaned;
+
+        this.log(log);
 
         this.persist();
     }
@@ -81,11 +128,13 @@ class SQLHandle {
     }
 
     prepare(string) {
-        return new AsyncStatement(this.sql, string);
+        return new AsyncStatement(this, string);
     }
 
     async exec(string) {
         await this.sql.ready();
+
+        this.sql._currentHandle = this.name;
 
         return this.sql.db.exec(string);
     }
@@ -98,8 +147,9 @@ class SQLHandle {
 }
 
 class AsyncStatement {
-    constructor(sql, string) {
-        this.sql = sql;
+    constructor(handle, string) {
+        this.handle = handle;
+        this.sql = handle.sql;
         this.string = string;
 
         this.sql.ready().then(() => {
@@ -110,11 +160,15 @@ class AsyncStatement {
     async run(...args) {
         await this.sql.ready();
 
+        this.sql._currentHandle = this.handle.name;
+
         return this.st.run(...args);
     }
 
     async get(...args) {
         await this.sql.ready();
+
+        this.sql._currentHandle = this.handle.name;
 
         return this.st.get(...args);
     }
@@ -122,11 +176,15 @@ class AsyncStatement {
     async all(...args) {
         await this.sql.ready();
 
+        this.sql._currentHandle = this.handle.name;
+
         return this.st.all(...args);
     }
 
     async iterate(...args) {
         await this.sql.ready();
+
+        this.sql._currentHandle = this.handle.name;
 
         return this.st.iterate(...args);
     }
