@@ -30,7 +30,7 @@ class RestartCommand extends OPCommand {
         if (HEROKU == 'true' || SYSTEMD) {
             this.sql = this.bot.sql.handle('restart command');
             this.sql.exec(`CREATE TABLE IF NOT EXISTS last_restart (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY,
                 channel_id INTEGER NOT NULL
             )`);
 

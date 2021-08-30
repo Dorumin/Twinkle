@@ -22,12 +22,11 @@ class RestartNotifyPlugin extends Plugin {
 class RestartNotify {
     constructor(bot) {
         this.bot = bot;
-        this.bot.client.on('ready', bot.wrapListener(this.onReady, this));
 
         if (!lastRestartChannelCmd) {
             this.sql = this.bot.sql.handle('restartnotify');
             this.sql.exec(`CREATE TABLE IF NOT EXISTS last_restart (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY,
                 channel_id INTEGER NOT NULL
             )`);
 
@@ -43,9 +42,13 @@ class RestartNotify {
                     id = 1
             `);
         }
+
+        this.bot.client.on('ready', bot.wrapListener(this.onReady, this));
     }
 
     async onReady() {
+        console.log('RestartNotify onReady called');
+
         let channelId;
 
         if (lastRestartChannelCmd) {
