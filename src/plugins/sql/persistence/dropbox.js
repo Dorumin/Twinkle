@@ -1,7 +1,7 @@
-const { Dropbox } = require('dropbox');
-const fetch = require('node-fetch');
 const { promisify } = require('util');
 const { writeFile } = require('fs/promises');
+const { Dropbox } = require('dropbox');
+const fetch = require('node-fetch');
 const wait = promisify(setTimeout);
 
 class DropboxLayer {
@@ -33,6 +33,9 @@ class DropboxLayer {
             } catch(e) {
                 switch (e.error?.error_summary) {
                     case 'path/not_found/..':
+                        // Return here, no significant error
+                        // File does not exist, so we can use a fresh db
+                        // SQL creates it if it does not exist already
                         return;
                     default:
                         this._errored = true;

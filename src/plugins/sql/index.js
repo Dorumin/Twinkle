@@ -13,7 +13,6 @@ class SQLPlugin extends Plugin {
 
 class SQL {
     constructor(bot) {
-        this.bot = bot;
         this.config = bot.config.SQL;
         this.persistence = this.config.PERSISTENCE || {};
         this.dbPath = path.join(__dirname, '..', '..', '..', this.config.PATH);
