@@ -47,10 +47,10 @@ class RestartNotify {
     }
 
     async onReady() {
+        await this.bot.sql.ready();
+
         try {
             let channelId;
-
-            console.log('debug', lastRestartChannelCmd);
 
             if (lastRestartChannelCmd) {
                 channelId = lastRestartChannelCmd[1];
