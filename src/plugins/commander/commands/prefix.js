@@ -86,7 +86,7 @@ class PrefixCommand extends Command {
             const json = message.guild && await this.sql.getPrefixes.get(BigInt(message.guild.id));
 
             if (!json) {
-                prefixes = this.bot.commander.defaultPrefixes;
+                prefixes = this.bot.commander.defaultPrefixes.slice();
             } else {
                 prefixes = JSON.parse(json);
             }
