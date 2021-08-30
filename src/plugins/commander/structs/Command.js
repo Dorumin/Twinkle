@@ -14,11 +14,11 @@ class Command {
     }
 
     isModerator(message) {
-        return message.guild && message.channel.permissionsFor(message.member.user).any('MANAGE_MESSAGES');
+        return this.isOperator() || message.guild && message.channel.permissionsFor(message.member.user).any('MANAGE_MESSAGES');
     }
 
     isAdmin(message) {
-        return message.guild && message.member.permissions.has('ADMINISTRATOR');
+        return this.isOperator() || message.guild && message.member.permissions.has('ADMINISTRATOR');
     }
 
     filter() {
