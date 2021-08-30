@@ -47,23 +47,26 @@ class RestartNotify {
     }
 
     async onReady() {
-        console.log('RestartNotify onReady called');
+        try {
+            let channelId;
 
-        let channelId;
+            if (lastRestartChannelCmd) {
+                channelId = lastRestartChannelCmd[1];
+            } else {
+                channelId = await this.sql.getLastRestart.get();
+                if (!channelId) return;
 
-        if (lastRestartChannelCmd) {
-            channelId = lastRestartChannelCmd[1];
-        } else {
-            channelId = await this.sql.getLastRestart.get();
-            if (!channelId) return;
+                await this.sql.deleteLastRestart.run();
+            }
 
-            await this.sql.deleteLastRestart.run();
+            const channel = await this.bot.client.channels.fetch(channelId);
+            if (!channel) return;
+
+            await channel.send('Restarted!');
+        } catch(e) {
+            console.error('wat');
+            console.error(e);
         }
-
-        const channel = await this.bot.client.channels.fetch(channelId);
-        if (!channel) return;
-
-        await channel.send('Restarted!');
     }
 }
 
