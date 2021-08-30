@@ -50,16 +50,22 @@ class RestartNotify {
         try {
             let channelId;
 
+            console.log('debug', lastRestartChannelCmd);
+
             if (lastRestartChannelCmd) {
                 channelId = lastRestartChannelCmd[1];
             } else {
                 channelId = await this.sql.getLastRestart.get();
+                console.log('debug', channelId);
                 if (!channelId) return;
 
                 await this.sql.deleteLastRestart.run();
             }
 
+            console.log('debug', channelId);
+
             const channel = await this.bot.client.channels.fetch(channelId);
+            console.log('debug', channel);
             if (!channel) return;
 
             await channel.send('Restarted!');
