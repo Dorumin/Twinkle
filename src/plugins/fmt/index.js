@@ -3,7 +3,7 @@ const Cache = require('../../structs/Cache.js')
 
 class FormatterPlugin extends Plugin {
     load() {
-        this.bot.fmt = new Formatter(this.bot);
+        this.bot.fmt = new Formatter();
     }
 }
 

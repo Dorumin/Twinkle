@@ -3,7 +3,7 @@ const Plugin = require('../../structs/Plugin.js');
 
 class FandomizerPlugin extends Plugin {
     load() {
-        this.bot.fandomizer = new Fandomizer(this.bot);
+        this.bot.fandomizer = new Fandomizer();
     }
 }
 
