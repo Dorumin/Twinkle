@@ -55,7 +55,9 @@ class RestartCommand extends OPCommand {
     }
 
     async restartHeroku(channelId) {
-        await this.sql.setLastRestart.run(channelId);
+        await this.sql.setLastRestart.run({
+            id: channelId
+        });
         await this.bot.sql.flush();
 
         const config = this.bot._globalConfig;
@@ -94,7 +96,9 @@ class RestartCommand extends OPCommand {
     }
 
     async restartSystemd(channelId) {
-        await this.sql.setLastRestart.run(channelId);
+        await this.sql.setLastRestart.run({
+            id: channelId
+        });
         await this.bot.sql.flush();
 
         process.exit(1);
