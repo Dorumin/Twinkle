@@ -34,7 +34,7 @@ class RestartNotify {
                 SELECT channel_id
                 FROM last_restart
                 WHERE
-                    id = 1
+                    id = ?
             `).safeIntegers(true).pluck();
             this.sql.deleteLastRestart = this.sql.prepare(`
                 DELETE FROM last_restart
@@ -55,7 +55,7 @@ class RestartNotify {
             if (lastRestartChannelCmd) {
                 channelId = lastRestartChannelCmd[1];
             } else {
-                channelId = await this.sql.getLastRestart.get();
+                channelId = await this.sql.getLastRestart.get(1n);
                 console.log('debug', channelId);
                 if (!channelId) return;
 

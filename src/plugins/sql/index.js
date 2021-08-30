@@ -72,8 +72,6 @@ class SQL {
             }
         }, Infinity);
 
-        console.log(string, smallestIndent);
-
         const indented = first.trimStart() + '\n' + rest.map(line => line.slice(smallestIndent)).join('\n');
 
         return indented;
