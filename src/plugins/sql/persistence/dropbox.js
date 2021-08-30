@@ -48,7 +48,7 @@ class DropboxLayer {
 
             const buffer = file.result.fileBinary;
 
-            writeFile(this.sql.dbPath, buffer);
+            await writeFile(this.sql.dbPath, buffer);
         } catch(e) {
             this._errored = true;
             console.error(e);
