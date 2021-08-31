@@ -64,7 +64,7 @@ class PrefixCommand extends Command {
                 id = ?
         `).safeIntegers(true).pluck();
         this.sql.setPrefixes = this.sql.prepare(`
-            REPLACE INTO commander_prefixes
+            REPLACE INTO commander_prefixes (id, prefixes_json)
             VALUES ($id, $prefixes)
         `).safeIntegers(true);
     }

@@ -35,7 +35,7 @@ class RestartCommand extends OPCommand {
             )`);
 
             this.sql.setLastRestart = this.sql.prepare(`
-                REPLACE INTO last_restart
+                REPLACE INTO last_restart (id, channel_id)
                 VALUES (1, $id)
             `).safeIntegers(true);
         }
