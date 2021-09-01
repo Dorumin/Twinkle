@@ -15,9 +15,9 @@ class QuoterPlugin extends Plugin {
 
 class Quoter {
     constructor(bot) {
-        this.bot = bot;
-        this.dev = bot.config.ENV === 'development';
-        this.config = bot.config.QUOTER;
+        Object.defineProperty(this, 'bot', { value: bot });
+        Object.defineProperty(this, 'config', { value: bot.config.QUOTER });
+
         this.QUOTE_PATTERN = /(?<!<)https?:\/\/(?:(?:canary|ptb)\.)?discord(?:app)?\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)(?!>)/g;
         bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }
@@ -47,7 +47,8 @@ class Quoter {
             message.author.id == this.bot.client.user.id
         ) return;
 
-        if (this.dev && this.bot.config.DEV.GUILD !== message.guild.id) return;
+        // Ignore in dev mode if outside of dev guild
+        if (this.bot.onlyDev(message.guild)) return;
 
         if (this.bot.commander) {
             const executed = await this.bot.commander.onMessage(message);

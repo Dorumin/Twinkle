@@ -1,8 +1,8 @@
 class Plugin {
     constructor(bot) {
-        this.bot = bot;
-        this.client = bot.client;
-        this.config = bot.config;
+        Object.defineProperty(this, 'bot', { value: bot });
+        Object.defineProperty(this, 'client', { value: bot.client });
+        Object.defineProperty(this, 'config', { value: bot.config });
     }
 
     static get deps() {
@@ -13,8 +13,7 @@ class Plugin {
         throw new Error('load() not implemented');
     }
 
-    cleanup() {
-    }
+    cleanup() {}
 }
 
 module.exports = Plugin;

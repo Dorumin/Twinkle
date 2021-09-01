@@ -22,14 +22,16 @@ class LinkerPlugin extends Plugin {
 
 class Linker {
     constructor(bot) {
-        this.bot = bot;
-        this.dev = bot.config.ENV === 'development';
-        this.config = bot.config.LINKER;
+        Object.defineProperty(this, 'bot', { value: bot });
+        Object.defineProperty(this, 'config', { value: bot.config.LINKER });
+
+        Object.defineProperty(this, 'jar', { value: new CookieJar() });
+
         this.replies = new Cache();
         this.namespaces = new Cache();
         this.avatars = new Cache();
-        this.jar = new CookieJar();
         this.wikiVars = new Cache();
+
         if (this.config.USERNAME) {
             this.login().catch(async err => {
                 await this.bot.reportError('Linker login failure', err);
@@ -166,7 +168,8 @@ class Linker {
             message.author.bot
         ) return;
 
-        if (this.dev && this.bot.config.DEV.GUILD !== message.guild.id) return;
+        // Ignore in dev mode if outside of dev guild
+        if (this.bot.onlyDev(message.guild)) return;
 
         const wiki = await this.getWiki(message.guild);
         const promises = this.getPromises(message, wiki);

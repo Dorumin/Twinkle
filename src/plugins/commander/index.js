@@ -30,11 +30,11 @@ class CommanderPlugin extends Plugin {
 
 class Commander {
     constructor(bot) {
+        Object.defineProperty(this, 'bot', { value: bot });
+        Object.defineProperty(this, 'config', { value: bot.config.COMMANDER });
+
         this.commands = new Collection();
         this.messageMatchers = new Cache();
-        this.bot = bot;
-        this.dev = bot.config.ENV === 'development';
-        this.config = bot.config.COMMANDER;
         this.defaultPrefixes = this.config.PREFIXES;
         this.whitespace = [9, 10, 11, 12, 13, 32, 160, 5760, 8192, 8193, 8194, 8195, 8196, 8197, 8198, 8199, 8200, 8201, 8202, 8232, 8233, 8239, 8287, 12288, 65279];
 
@@ -195,7 +195,8 @@ class Commander {
             message.author.id === this.bot.client.user.id
         ) return;
 
-        if (this.dev && message.guild && this.bot.config.DEV.GUILD !== message.guild.id) return;
+        // Ignore in dev mode if outside of dev guild or not by operator
+        if (this.bot.onlyDev(message)) return;
 
         return this.messageMatchers.get(message.id, () => this.tryMatchCommands(message));
     }

@@ -1,6 +1,7 @@
 class Filter {
     constructor(automod) {
-        this.automod = automod;
+        Object.defineProperty(this, 'automod', { value: automod });
+
         this.offenses = new Map();
     }
 

@@ -13,19 +13,22 @@ class SQLPlugin extends Plugin {
 
 class SQL {
     constructor(bot) {
-        this.config = bot.config.SQL;
-        this.persistence = this.config.PERSISTENCE || {};
+        Object.defineProperty(this, 'config', { value: bot.config.SQL });
+
+        const persistence = this.config.PERSISTENCE || {};
         this.dbPath = path.join(__dirname, '..', '..', '..', this.config.PATH);
 
         fs.mkdirSync(path.dirname(this.dbPath), {
             recursive: true
         });
 
-        this.stream = fs.createWriteStream(
-            path.join(path.dirname(this.dbPath), 'sql.log')
-        );
+        Object.defineProperty(this, 'stream', {
+            value: fs.createWriteStream(
+                path.join(path.dirname(this.dbPath), 'sql.log')
+            )
+        });
 
-        switch (this.persistence.TYPE) {
+        switch (persistence.TYPE) {
             case 'dropbox':
                 this.persistenceLayer = new DropboxLayer(this);
                 break;
@@ -129,8 +132,9 @@ class SQL {
 
 class SQLHandle {
     constructor(name, sql) {
+        Object.defineProperty(this, 'sql', { value: sql });
+
         this.name = name;
-        this.sql = sql;
     }
 
     prepare(string) {
@@ -156,12 +160,15 @@ class SQLHandle {
 
 class AsyncStatement {
     constructor(handle, string) {
-        this.handle = handle;
-        this.sql = handle.sql;
+        Object.defineProperty(this, 'handle', { value: handle });
+        Object.defineProperty(this, 'sql', { value: handle.sql });
+
         this.string = string;
 
         this.sql.readySync(() => {
-            this.st = this.sql.db.prepare(string);
+            Object.defineProperty(this, 'st', {
+                value: this.sql.db.prepare(string)
+            });
         });
     }
 

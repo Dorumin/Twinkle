@@ -18,13 +18,15 @@ class LoggerPlugin extends Plugin {
 
 class Logger {
     constructor(bot) {
-        this.bot = bot;
-        this.config = bot.config.LOGGER;
+        Object.defineProperty(this, 'bot', { value: bot });
+        Object.defineProperty(this, 'config', { value: bot.config.LOGGER });
+
         this.writers = new Cache();
         this.logPath = path.join(this.climb(__dirname, 3), 'log');
 
         this.logBuffer = [];
         this.logTimeout = -1;
+
         this.LOG_THROTTLE = 1000;
         this.DISCORD_MESSAGE_LIMIT = 2000;
 

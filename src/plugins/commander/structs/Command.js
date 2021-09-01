@@ -1,8 +1,9 @@
 class Command {
     constructor(bot) {
-        this.bot = bot;
-        this.priority = 0;
+        Object.defineProperty(this, 'bot', { value: bot });
+
         this.aliases = [];
+        this.priority = 0;
     }
 
     static get deps() {
@@ -29,8 +30,7 @@ class Command {
         throw new Error('call() not implemented');
     }
 
-    cleanup() {
-    }
+    cleanup() {}
 }
 
 module.exports = Command;

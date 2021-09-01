@@ -1,46 +1,71 @@
 const fs = require('fs');
 const path = require('path');
-const {Client, Intents} = require('discord.js');
+const { Client, Intents, Guild, Message } = require('discord.js');
 const config = require('./util/config.js');
 
 class Twinkle {
     constructor()  {
-        this.client = new Client({
-            allowedMentions: {
-                parse: ['users', 'roles'],
-                repliedUser: false
-            },
-            intents: [
-                // We might want to listen for new threads
-                Intents.FLAGS.GUILDS,
-                // Join/leave events
-                Intents.FLAGS.GUILD_MEMBERS,
-                // In case we want to assign roles when users join or leave VC
-                Intents.FLAGS.GUILD_VOICE_STATES,
-                // Commands and moderation
-                Intents.FLAGS.GUILD_MESSAGES,
-                // Listening for reactions as commands
-                Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-                // Listening for commands in DM
-                Intents.FLAGS.DIRECT_MESSAGES,
-                // Reactions on commands like !help
-                Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-                Intents.FLAGS.DIRECT_MESSAGE_TYPING,
-                Intents.FLAGS.GUILD_PRESENCES,
-            ].concat(config.TWINKLE.INTENTS || []),
-            partials: [
-                'CHANNEL'
-            ]
+        Object.defineProperty(this, 'config', { value: config.TWINKLE });
+        Object.defineProperty(this, '_globalConfig', { value: config });
+
+        Object.defineProperty(this, 'client', {
+            value: new Client({
+                allowedMentions: {
+                    parse: ['users', 'roles'],
+                    repliedUser: false
+                },
+                intents: [
+                    // We might want to listen for new threads
+                    Intents.FLAGS.GUILDS,
+                    // Join/leave events
+                    Intents.FLAGS.GUILD_MEMBERS,
+                    // In case we want to assign roles when users join or leave VC
+                    Intents.FLAGS.GUILD_VOICE_STATES,
+                    // Commands and moderation
+                    Intents.FLAGS.GUILD_MESSAGES,
+                    // Listening for reactions as commands
+                    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+                    // Listening for commands in DM
+                    Intents.FLAGS.DIRECT_MESSAGES,
+                    // Reactions on commands like !help
+                    Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+                    Intents.FLAGS.DIRECT_MESSAGE_TYPING,
+                    Intents.FLAGS.GUILD_PRESENCES,
+                ].concat(config.TWINKLE.INTENTS || []),
+                partials: [
+                    'CHANNEL'
+                ]
+            })
         });
-        this.config = config.TWINKLE;
+
+        this.dev = this.config.ENV === 'development';
         this.operators = this.config.OPERATORS;
-        this._globalConfig = config;
         this._loggedIn = false;
         this._plugins = [];
         this.loadedPlugins = [];
 
         this.client.on('ready', this.wrapListener(this.onReady, this));
         this.client.on('error', this.wrapListener(this.onError, this));
+    }
+
+    onlyDev(instance) {
+        if (!this.dev) {
+            return false;
+        }
+
+        if (instance instanceof Guild) {
+            return this.config.DEV?.GUILD !== instance.id;
+        }
+
+        if (instance instanceof Message) {
+            if (instance.guild) {
+                return this.config.DEV?.GUILD !== instance.guild.id;
+            } else {
+                return !this.operators.includes(instance.author?.id);
+            }
+        }
+
+        return false;
     }
 
     loadPlugin(Plugin) {

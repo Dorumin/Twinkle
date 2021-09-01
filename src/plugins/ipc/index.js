@@ -18,11 +18,13 @@ class IPCPlugin extends Plugin {
 
 class IPC {
     constructor(bot) {
-        this.bot = bot;
-        this.config = bot.config.IPC;
+        Object.defineProperty(this, 'bot', { value: bot });
+        Object.defineProperty(this, 'config', { value: bot.config.IPC });
+
         this.connections = {};
         this.connectionCount = 0;
         this.buffer = '';
+
         bot.client.on('ready', bot.wrapListener(this.onReady, this));
         bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
     }

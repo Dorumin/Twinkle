@@ -9,9 +9,9 @@ class JoinLeavePlugin extends Plugin {
 
 class JoinLeave {
     constructor(bot) {
-        this.bot = bot;
-        this.dev = bot.config.ENV === 'development';
-        this.config = bot.config.JOIN_LEAVE;
+        Object.defineProperty(this, 'bot', { value: bot });
+        Object.defineProperty(this, 'config', { value: bot.config.JOIN_LEAVE });
+
         this.specials = this.config.SPECIAL_JOIN_CODES || {};
         this.cache = new Map();
 
@@ -140,7 +140,8 @@ class JoinLeave {
     }
 
     async onJoin(member) {
-        if (this.dev && this.bot.config.DEV.GUILD !== member.guild.id) return;
+        // Ignore in dev mode if outside of dev guild
+        if (this.bot.onlyDev(member.guild)) return;
 
         const [channel, invite] = await Promise.all([
             this.getChannel(member.guild),
@@ -158,7 +159,8 @@ class JoinLeave {
     }
 
     async onLeave(member) {
-        if (this.dev && this.bot.config.DEV.GUILD !== member.guild.id) return;
+        // Ignore in dev mode if outside of dev guild
+        if (this.bot.onlyDev(member.guild)) return;
 
         const channel = await this.getChannel(member.guild);
         if (!channel) return;

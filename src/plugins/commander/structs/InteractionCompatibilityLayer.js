@@ -7,13 +7,13 @@ const INTERACTION_REFLECT_KEYS = [
     "channelId",
     // replaced with a proxy in the compat layer
     // "channel",
-    "client",
+    // "client",
     "createdAt",
     "createdTimestamp",
-    "guild",
+    // "guild",
     "guildId",
     "id",
-    "member",
+    // "member",
     // Not compatible
     // "type"
 ];
@@ -55,11 +55,12 @@ class InteractionCompatibilityLayer {
             content += InteractionCompatibilityLayer.stringifyOption(option) + ' ';
         }
 
-        return content;
+        return content.slice(0, -1);
     }
 
     constructor(interaction) {
-        this.inner = interaction;
+        Object.defineProperty(this, 'inner', { value: interaction });
+        Object.defineProperty(this, 'client', { value: interaction.client });
 
         this._replied = false;
         this._succeeded = false;
@@ -113,6 +114,14 @@ class InteractionCompatibilityLayer {
                 return Reflect.get(target, key);
             }
         });
+    }
+
+    get guild() {
+        return this.inner.guild;
+    }
+
+    get member() {
+        return this.inner.member;
     }
 
     get author() {

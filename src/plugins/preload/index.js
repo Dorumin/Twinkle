@@ -8,8 +8,8 @@ class PreloadPlugin extends Plugin {
 
 class Preload {
 	constructor(bot) {
-		this.bot = bot;
-		this.config = bot.config.PRELOAD;
+        Object.defineProperty(this, 'bot', { value: bot });
+        Object.defineProperty(this, 'config', { value: bot.config.PRELOAD });
 
 		bot.client.on('ready', bot.wrapListener(this.onReady, this));
 	}

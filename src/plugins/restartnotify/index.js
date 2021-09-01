@@ -21,7 +21,7 @@ class RestartNotifyPlugin extends Plugin {
 
 class RestartNotify {
     constructor(bot) {
-        this.bot = bot;
+        Object.defineProperty(this, 'bot', { value: bot });
 
         if (!lastRestartChannelCmd) {
             this.sql = this.bot.sql.handle('restartnotify');

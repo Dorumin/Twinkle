@@ -6,21 +6,24 @@ const wait = promisify(setTimeout);
 
 class DropboxLayer {
     constructor(sql) {
-        this.sql = sql;
+        Object.defineProperty(this, 'sql', { value: sql });
+        Object.defineProperty(this, 'config', { value: sql.config.PERSISTENCE });
+        Object.defineProperty(this, 'dropbox', {
+            value: new Dropbox({
+                accessToken: this.config.TOKEN,
+                fetch
+            })
+        });
+
         this.fsPath = sql.config.PATH;
-        this.config = sql.config.PERSISTENCE;
         this.dropboxPath = this.config.PATH || '/sql.db';
         this.delay = this.config.DELAY || 120000;
-
-        this.dropbox = new Dropbox({
-            accessToken: this.config.TOKEN,
-            fetch
-        });
 
         // VERY IMPORTANT
         // If this is true, do not persist anything
         // You could overwrite the persisted db
         this._errored = false;
+        this._stopUploads = false;
     }
 
     async fetch() {
