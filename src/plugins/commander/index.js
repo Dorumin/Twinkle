@@ -195,7 +195,7 @@ class Commander {
             message.author.id === this.bot.client.user.id
         ) return;
 
-        // Ignore in dev mode if outside of dev guild or not by operator
+        // Ignore in dev mode if outside of dev guild or not by operator in DMs
         if (this.bot.onlyDev(message)) return;
 
         return this.messageMatchers.get(message.id, () => this.tryMatchCommands(message));
