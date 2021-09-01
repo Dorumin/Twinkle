@@ -197,6 +197,22 @@ class AsyncStatement {
         });
     }
 
+    columns() {
+        return this.sql.readySync(() => {
+            this.sql._currentHandle = this.handle.name;
+
+            return this.st.columns();
+        });
+    }
+
+    raw(enable = true) {
+        this.sql.readySync(() => {
+            this.st.raw(enable);
+        });
+
+        return this;
+    }
+
     pluck(enable = true) {
         this.sql.readySync(() => {
             this.st.pluck(enable);
@@ -205,7 +221,7 @@ class AsyncStatement {
         return this;
     }
 
-    async expand(enable = true) {
+    expand(enable = true) {
         this.sql.readySync(() => {
             this.st.expand(enable);
         });
