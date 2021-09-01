@@ -116,6 +116,7 @@ class Twinkle {
 
     async reportError(message, error) {
         console.error(message, error);
+
         if (this.config.REPORTING) {
             let newMessage = message;
             if (error) {
@@ -125,6 +126,7 @@ class Twinkle {
                     newMessage += `\`\`\`json\n${JSON.stringify(error)}\`\`\``
                 }
             }
+
             const channel = this.client.channels.cache.get(this.config.REPORTING.CHANNEL);
             if (channel) {
                 try {

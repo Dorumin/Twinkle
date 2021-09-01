@@ -60,6 +60,7 @@ class DropboxLayer {
     }
 
     async persist(db, force = false) {
+        if (this.bot.dev) return;
         if (this._errored) return;
         if (!force && this._queuedWrite) return;
 
@@ -70,11 +71,15 @@ class DropboxLayer {
         }
 
         if (force || !this._stopUploads) {
-            await this.dropbox.filesUpload({
-                path: this.dropboxPath,
-                contents: db.serialize(),
-                mode: 'overwrite'
-            });
+            try {
+                await this.dropbox.filesUpload({
+                    path: this.dropboxPath,
+                    contents: db.serialize(),
+                    mode: 'overwrite'
+                });
+            } catch(e) {
+                this.sql.bot.reportError('Failure while uploading to Dropbox', e);
+            }
         }
 
         this._queuedWrite = false;

@@ -13,6 +13,7 @@ class SQLPlugin extends Plugin {
 
 class SQL {
     constructor(bot) {
+        Object.defineProperty(this, 'bot', { value: bot });
         Object.defineProperty(this, 'config', { value: bot.config.SQL });
 
         const persistence = this.config.PERSISTENCE || {};
