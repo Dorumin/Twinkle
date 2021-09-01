@@ -60,7 +60,7 @@ class DropboxLayer {
     }
 
     async persist(db, force = false) {
-        if (this.bot.dev) return;
+        if (this.sql.bot.dev) return;
         if (this._errored) return;
         if (!force && this._queuedWrite) return;
 
