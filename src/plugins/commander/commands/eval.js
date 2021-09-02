@@ -1,7 +1,8 @@
+const fs = require('fs');
+const got = require('got');
 const path = require('path');
 const util = require('util');
 const child_process = require('child_process');
-const got = require('got');
 const { parse, HTMLElement, TextNode } = require('node-html-parser');
 const { BaseManager, MessageAttachment, MessageEmbed, SnowflakeUtil } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
@@ -380,10 +381,10 @@ class EvalCommand extends OPCommand {
             SnowflakeUtil: SnowflakeUtil,
 
             // Module stuff
-            got: require('got'),
-            fs: require('fs'),
-            path: require('path'),
-            util: require('util'),
+            fs: Object.assign({}, fs, fs.promises),
+            got: got,
+            path: path,
+            util: util,
 
             // For detecting command file evals
             module: {

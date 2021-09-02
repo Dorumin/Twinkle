@@ -77,13 +77,27 @@ class SQLCommand extends OPCommand {
         try {
             const statement = this.sql.prepare(query).safeIntegers();
 
-            const columns = statement.columns();
-            const rows = statement.raw().all();
+            let columns;
+            try {
+                columns = statement.columns();
+            } catch(e) {
+                // No value statement
+            }
 
-            result = {
-                columns,
-                rows
-            };
+            if (columns) {
+                const rows = statement.raw().all();
+
+                result = {
+                    columns,
+                    rows
+                };
+            } else {
+                const changes = statement.run();
+
+                return {
+                    changes
+                };
+            }
         } catch(e) {
             if (e instanceof RangeError && query.trim() !== '') {
                 try {
@@ -116,23 +130,51 @@ class SQLCommand extends OPCommand {
     // to find the first one with just under 2k
     inspect(rows) {
         const asciiTable = table(rows, {
-            border: getBorderCharacters(
-                'norc'
-            )
+            // Only draw the dashes below the first header
+            drawHorizontalLine: (i) => i === 1,
+            // No padding
+            columnDefault: {
+                paddingLeft: 0,
+                paddingRight: 0
+            },
+            // Void borders except for Joins which are two spaces
+            // and the joinBody which are dashes, just below the header
+            border: {
+                topBody: '',
+                topJoin: '',
+                topLeft: '',
+                topRight: '',
+                // When there's only one row, so no results (only columns),
+                // the bottom becomes the dashed underline, not the body
+                bottomBody: rows.length === 1 ? '-' : '',
+                bottomJoin: rows.length === 1 ? '  ' : '',
+                bottomLeft: '',
+                bottomRight: '',
+                bodyLeft: '',
+                bodyRight: '',
+                bodyJoin: '  ',
+                headerJoin: '',
+                joinBody: '-',
+                joinLeft: '',
+                joinRight: '',
+                joinJoin: '  '
+            }
         });
 
-        return asciiTable;
+        // Remove trailing whitespace
+        return asciiTable.replace(/\s+$/gm, '');
     }
 
     async call(message, content) {
         const query = await this.getCode(message, content);
-        const { result, error } = await this.execute(query);
+        const { result, changes, error } = await this.execute(query);
 
         if (error) {
             await message.channel.send(
                 this.bot.fmt.codeBlock('apache', `${error}`)
             );
         } else if (result) {
+
             const { columns, rows } = result;
 
             const data = [
@@ -156,8 +198,10 @@ class SQLCommand extends OPCommand {
             } else {
                 await message.channel.send(codeBlock);
             }
+        } else if (changes) {
+            await message.channel.send(`${changes.changes} rows changed.`)
         } else {
-            await message.channel.send('Query executed');
+            await message.channel.send('Query executed.');
         }
     }
 }
