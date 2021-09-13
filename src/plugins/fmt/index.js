@@ -74,7 +74,7 @@ class Formatter {
     }
 
     code(content) {
-        return this.sugar(content, [ this.ZWSP ], '``')
+        return this.sugar(content, [ this.ZWSP ], '`')
     }
 
     italic(content) {
