@@ -38,59 +38,85 @@ class Formatter {
     anyTokens(chars, flags) {
         const uniq = Array.from(new Set(chars));
         const str = uniq.map(this.escapeRegex.bind(this)).join('|');
+
         return new RegExp(str, flags);
     }
 
-    escape(str, chars, escapeToken = '\\') {
+    escape(str, chars, escapeToken = '\\', trailing = false) {
         const re = this.tokens.get(chars, () => this.anyTokens(chars, 'gi'));
-        return str.replace(re, `${escapeToken}$&`);
+        let replaced = str.replace(re, `${escapeToken}$&`);
+
+        if (trailing && re.test(str.charAt(str.length - 1))) {
+            replaced += escapeToken;
+        }
+
+        return replaced;
     }
 
-    sugar(content, ...flags) {
-        let chars = '';
-        let escapeChar;
+    wrap(content, { wrap, escapeToken = '\\', trailing = false }) {
+        let chars;
+        let surround;
 
-        if (flags[0] instanceof Array) {
-            const params = flags.shift();
-            escapeChar = params.shift();
-            chars = params.join('');
+        if (Array.isArray(wrap)) {
+            chars = wrap.join('');
+            surround = wrap;
+        } else {
+            chars = wrap;
+            surround = [wrap];
         }
-
-        chars += flags.join('');
 
         let str = '';
-        for (let i = 0; i < flags.length; i++) {
-            str += flags[i];
+        for (let i = 0; i < surround.length; i++) {
+            str += surround[i];
         }
 
-        str += this.escape(content, chars, escapeChar);
+        str += this.escape(content, chars, escapeToken, trailing);
 
-        let i = flags.length;
+        let i = surround.length;
         while (i--) {
-            str += flags[i];
+            str += surround[i];
         }
 
         return str;
     }
 
     code(content) {
-        return this.sugar(content, [ this.ZWSP ], '``')
+        if (content.includes('`')) {
+            return this.wrap(content, {
+                wrap: '``',
+                escapeToken: this.ZWSP,
+                trailing: true
+            });
+        } else {
+            return this.wrap(content, {
+                wrap: '`',
+                escapeToken: this.ZWSP
+            });
+        }
     }
 
     italic(content) {
-        return this.sugar(content, '*');
+        return this.wrap(content, {
+            wrap: '*'
+        });
     }
 
     bold(content) {
-        return this.sugar(content, '**');
+        return this.wrap(content, {
+            wrap: '**'
+        });
     }
 
     strike(content) {
-        return this.sugar(content, '~~');
+        return this.wrap(content, {
+            wrap: '~~'
+        });
     }
 
     underline(content) {
-        return this.sugar(content, '__');
+        return this.wrap(content, {
+            wrap: '__'
+        });
     }
 
     link(text, url) {
@@ -107,7 +133,10 @@ class Formatter {
             lang = '';
         }
 
-        return this.sugar(`${lang}\n${String(content).trimEnd()}\n`, [ this.ZWSP ], '```');
+        return this.wrap(`${lang}\n${String(content).trimEnd()}\n`, {
+            wrap: '```',
+            escapeToken: this.ZWSP
+        });
     }
 }
 
