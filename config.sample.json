@@ -1,34 +1,58 @@
+// This is a sample config with dummy values
+// You can copy this into a `config.json`, which will be loaded by the bot
+// Comments are not supported in the real config.json
+// These comments are for purely explanatory reasons
 {
     "TWINKLE": {
+        // The Discord bot token
         "TOKEN": "Discord bot token",
-        "ENV": "production",
+        // When the bot is in development, it will only respond
+        // to messages in the DEV.GUILD guild, or from DMs by operators
+        "ENV": "production / development",
+        "DEV": {
+            // Development guild
+            "GUILD": "359875425322663940"
+        },
+        "REPORTING": {
+            // Channel where unhandled errors will be reported
+            "CHANNEL": "476452336282107925"
+        },
 		"PRELOAD": {
+            // Guilds who's member list will be fully preloaded
+            // This is to make JOIN_LEAVE work
 			"GUILDS": [
 				"246075715714416641"
 			]
 		},
+        // For the !github command, information on the source repository
         "SOURCE": {
             "TYPE": "github",
             "PATH": "Dorumin/Twinkle",
             "URL": "https://github.com/Dorumin/Twinkle"
         },
+        // Logger config, channel to post in and whether to use subcategories
+        // Categories don't work yet, so don't set it to true
         "LOGGER": {
             "CHANNEL": "637133740593905665",
             "CATEGORIES": false
         },
+        // The list of snowflakes of bot operators
         "OPERATORS": [
             "148231501413089280",
             "155545848812535808",
             "195712766214930432"
         ],
+        // Settings for the commander plugin
         "COMMANDER": {
             "MENTION": true,
             "INLINE_ERRORS": true,
+            // Default prefixes
             "PREFIXES": [
                 "!",
                 ">"
             ]
         },
+        // Settings for the linker plugin
         "LINKER": {
             "WIKIS": {
                 "default": "dev"
@@ -39,10 +63,17 @@
         "QUOTER": {
             "MAX": 3
         },
-        "DB": {
-            "TYPE": "dropbox",
-            "DELAY": 10000,
-            "TOKEN": "Dropbox token"
+        "SQL": {
+            // Where the SQL file will be kept
+            "PATH": "./tmp/sql.db",
+            "PERSISTENCE": {
+                // Custom settings for a persistence layer
+                // Heroku has an ephemeral db, so this is needed
+                "TYPE": "dropbox",
+                "DELAY": 300000,
+                "PATH": "/sql.db",
+                "TOKEN": "Dropbox token"
+            }
         },
         "JOIN_LEAVE": {
             "CHANNEL": "246075715714416641",
