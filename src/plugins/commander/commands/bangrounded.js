@@ -1,10 +1,6 @@
 const { MessageActionRow, MessageButton, SnowflakeUtil } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
-const CommandUtils = require('../structs/CommandUtils.js');
-
-const NO = '👎';
-const YES = '👍';
 
 class BanGroundedCommand extends Command {
     constructor(bot) {

@@ -102,10 +102,10 @@ class LockdownFilter extends Filter {
         await reporting.send({
             embeds: [{
                 author: {
-                    name: `${message.author.tag} has been picked up for lockdown ${muteResult}`,
-                    icon_url: message.author.displayAvatarURL()
+                    name: `${member.user.tag} has been picked up for lockdown ${muteResult}`,
+                    icon_url: member.user.displayAvatarURL()
                 },
-                color: message.guild.me.displayColor,
+                color: member.guild.me.displayColor,
                 description: logMessage,
             }]
         });
