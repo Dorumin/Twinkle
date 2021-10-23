@@ -131,11 +131,11 @@ class BanGroundedCommand extends Command {
         }
 
         if (confirmed) {
-            await Promise.all([
+            const [banning] = await Promise.all([
                 message.channel.send(`Banning ${description}...`),
                 ...membersToBan.map(member => member.ban({ days, reason }))
             ]);
-            await message.channel.send(`Banned ${description}.`);
+            await banning.edit(`Banned ${description}.`);
         } else {
             await message.channel.send('Command aborted.');
         }
