@@ -106,7 +106,17 @@ class BanGroundedCommand extends Command {
             return;
         }
 
-        const after = SnowflakeUtil.deconstruct(args[1]).timestamp;
+        let after;
+        if (
+            Number(args[1])
+            && Number(args[1]) < Date.now()
+            && Number(args[1]) > new Date(2015, 0, 1).getTime()
+        ) {
+            after = Number(args[1]);
+        } else {
+            after = SnowflakeUtil.deconstruct(args[1]).timestamp;
+        }
+
         const isoAfter = new Date(after).toISOString();
         const days = parseInt(args[2], 10);
         const reason = args[3];
