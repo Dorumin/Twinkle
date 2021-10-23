@@ -48,73 +48,64 @@ class BanGroundedCommand extends Command {
     }
 
     async call(message, content, { interaction }) {
-        async function reply(options) {
-            if (interaction) {
-                return reply.message != null
-                    ? interaction.editReply(options)
-                    : reply.message = await interaction.reply(options);
-            } else {
-                return reply.message != null
-                    ? reply.message.edit(options)
-                    : reply.message = await message.channel.send(options);
-            }
-        }
+        // async function reply(options) {
+        //     if (interaction) {
+        //         return reply.message != null
+        //             ? interaction.editReply(options)
+        //             : reply.message = await interaction.reply(options);
+        //     } else {
+        //         return reply.message != null
+        //             ? reply.message.edit(options)
+        //             : reply.message = await message.channel.send(options);
+        //     }
+        // }
 
         async function confirm(content) {
-            if (interaction) {
-                const row = new MessageActionRow()
-                    .addComponents(
-                        new MessageButton()
-                            .setCustomId('NO')
-                            .setLabel('Cancel')
-                            .setStyle('SECONDARY'),
-                        new MessageButton()
-                            .setCustomId('YES')
-                            .setLabel('Ban')
-                            .setStyle('DANGER')
-                    );
-                const confirmation = await reply({ content, components: [row] });
-                return confirmation.awaitMessageComponent({
-                    filter: ({ user, customId }) => {
-                        return user.id === message.author.id && ['NO', 'YES'].includes(customId);
-                    },
-                    time: 15000,
-                    componentType: 'BUTTON'
-                }).then(async interaction => {
-                    await interaction.update({ components: [] });
-                    return interaction.customId === 'YES' ? true : false;
-                }).catch(async e => {
-                    await reply({ content: 'Your time ran out!', components: [] });
-                    return undefined;
+            const row = new MessageActionRow()
+                .addComponents(
+                    new MessageButton()
+                        .setCustomId('NO')
+                        .setLabel('Cancel')
+                        .setStyle('SECONDARY'),
+                    new MessageButton()
+                        .setCustomId('YES')
+                        .setLabel('Ban')
+                        .setStyle('DANGER')
+                );
+            const confirmation = await message.channel.send({
+                content,
+                components: [row]
+            });
+
+            return confirmation.awaitMessageComponent({
+                filter: ({ user, customId }) => {
+                    return user.id === message.author.id && ['NO', 'YES'].includes(customId);
+                },
+                time: 15000,
+                componentType: 'BUTTON'
+            }).then(async interaction => {
+                await confirmation.edit({
+                    content,
+                    components: []
                 });
-            } else {
-                const confirmation = await reply(content);
-                await CommandUtils.react(confirmation, NO, YES);
-                return confirmation.awaitReactions({
-                    filter: (reaction, user) => {
-                        return user.id === message.author.id && [NO, YES].includes(reaction.emoji.name);
-                    },
-                    time: 15000,
-                    max: 1,
-                    errors: ['time']
-                }).then(reactions => {
-                    const emoji = reactions.first().emoji;
-                    return emoji.name === YES ? true : false;
-                }).catch(async reactions => {
-                    await reply('Your time ran out!');
-                    return undefined;
-                }).finally(async () => {
-                    await CommandUtils.clearReactions(confirmation);
+                return interaction.customId === 'YES';
+            }).catch(async e => {
+                await confirmation.edit({
+                    content: 'Your time ran out!',
+                    components: []
                 });
-            }
+
+                return undefined;
+            });
         }
 
         // `content` comes pre-trimmed, so we don't need to do any further trimming.
         const args = content.match(/^(\d{1,20})\s+([0-7])(?:\s+(.+))?$/);
         if (args == null) {
-            await reply('You fucked up the args.');
+            await message.channel.send('You fucked up the args.');
             return;
         }
+
         const after = SnowflakeUtil.deconstruct(args[1]).timestamp;
         const isoAfter = new Date(after).toISOString();
         const days = parseInt(args[2], 10);
@@ -129,7 +120,7 @@ class BanGroundedCommand extends Command {
             .filter(member => member.joinedTimestamp > after);
 
         if (membersToBan.length === 0) {
-            await reply(`No grounded members joined after ${isoAfter}.`);
+            await message.channel.send(`No grounded members joined after ${isoAfter}.`);
             return;
         }
 
@@ -141,12 +132,12 @@ class BanGroundedCommand extends Command {
 
         if (confirmed) {
             await Promise.all([
-                reply(`Banning ${description}...`),
+                message.channel.send(`Banning ${description}...`),
                 ...membersToBan.map(member => member.ban({ days, reason }))
             ]);
-            await reply(`Banned ${description}.`);
+            await message.channel.send(`Banned ${description}.`);
         } else {
-            await reply('Command aborted.');
+            await message.channel.send('Command aborted.');
         }
     }
 }
