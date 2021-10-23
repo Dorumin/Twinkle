@@ -102,7 +102,7 @@ class LockdownFilter extends Filter {
         await reporting.send({
             embeds: [{
                 author: {
-                    name: `${member.user.tag} has been picked up for lockdown ${muteResult}`,
+                    name: `${member.user.tag} has joined on lockdown ${muteResult}`,
                     icon_url: member.user.displayAvatarURL()
                 },
                 color: member.guild.me.displayColor,
