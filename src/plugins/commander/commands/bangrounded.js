@@ -117,7 +117,8 @@ class BanGroundedCommand extends Command {
             after = SnowflakeUtil.deconstruct(args[1]).timestamp;
         }
 
-        const isoAfter = new Date(after).toISOString();
+        const secondsSince = Math.floor(new Date(after).getTime() / 1000);
+        const discordTime = `<t:${secondsSince}:F> (<t:${secondsSince}:R>)`;
         const days = parseInt(args[2], 10);
         const reason = args[3];
 
@@ -130,11 +131,11 @@ class BanGroundedCommand extends Command {
             .filter(member => member.joinedTimestamp > after);
 
         if (membersToBan.length === 0) {
-            await message.channel.send(`No grounded members joined after ${isoAfter}.`);
+            await message.channel.send(`No grounded members joined after ${discordTime}.`);
             return;
         }
 
-        const description = `${membersToBan.length} grounded member${membersToBan.length !== 1 ? 's' : ''} who joined after ${isoAfter}`;
+        const description = `${membersToBan.length} grounded member${membersToBan.length !== 1 ? 's' : ''} who joined after ${discordTime}`;
         const confirmed = await confirm(`Ban ${description}?`);
         if (confirmed == null) {
             return;
