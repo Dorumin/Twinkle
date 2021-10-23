@@ -120,6 +120,9 @@ class BanGroundedCommand extends Command {
         const days = parseInt(args[2], 10);
         const reason = args[3];
 
+        if (interaction) {
+            await interaction.deferReply();
+        }
         // TODO: Make grounded role configurable.
         const membersToBan = [...await message.guild.roles.fetch('401231955741507604').values()]
             .filter(member => member.joinedTimestamp > after);
