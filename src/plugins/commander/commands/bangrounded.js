@@ -5,6 +5,7 @@ class BanGroundedCommand extends Command {
     constructor(bot) {
         super(bot);
         this.aliases = ['bangrounded', 'ban', 'groundpound'];
+        this.priority = 2;
         this.schema = new SlashCommandBuilder()
             .addStringOption(option =>
                 option.setName('after')
