@@ -1,10 +1,10 @@
-const { SnowflakeUtil } = require('discord.js');
+const { MessageActionRow, MessageButton, SnowflakeUtil } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const Command = require('../structs/Command.js');
 const CommandUtils = require('../structs/CommandUtils.js');
 
-const CHECKMARK = '✅';
-const CROSS = '❌';
+const NO = '👎';
+const YES = '👍';
 
 class BanGroundedCommand extends Command {
     constructor(bot) {
@@ -48,15 +48,64 @@ class BanGroundedCommand extends Command {
     }
 
     async call(message, content, { interaction }) {
-        async function reply(content) {
+        async function reply(options) {
             if (interaction) {
                 return reply.message != null
-                    ? interaction.editReply(content)
-                    : reply.message = await interaction.reply(content);
+                    ? interaction.editReply(options)
+                    : reply.message = await interaction.reply(options);
             } else {
                 return reply.message != null
-                    ? reply.message.edit(content)
-                    : reply.message = await message.channel.send(content);
+                    ? reply.message.edit(options)
+                    : reply.message = await message.channel.send(options);
+            }
+        }
+
+        async function confirm(content) {
+            if (interaction) {
+                const row = new MessageActionRow()
+                    .addComponents(
+                        new MessageButton()
+                            .setCustomId('NO')
+                            .setLabel('Cancel')
+                            .setStyle('SECONDARY'),
+                        new MessageButton()
+                            .setCustomId('YES')
+                            .setLabel('Ban')
+                            .setStyle('DANGER')
+                    );
+                const confirmation = await reply({ content, components: [row] });
+                return confirmation.awaitMessageComponent({
+                    filter: ({ user, customId }) => {
+                        return user.id === message.author.id && ['NO', 'YES'].includes(customId);
+                    },
+                    time: 15000,
+                    componentType: 'BUTTON'
+                }).then(async interaction => {
+                    await interaction.update({ components: [] });
+                    return interaction.customId === 'YES' ? true : false;
+                }).catch(async e => {
+                    await reply({ content: 'Your time ran out!', components: [] });
+                    return undefined;
+                });
+            } else {
+                const confirmation = await reply(content);
+                await CommandUtils.react(confirmation, NO, YES);
+                return confirmation.awaitReactions({
+                    filter: (reaction, user) => {
+                        return user.id === message.author.id && [NO, YES].includes(reaction.emoji.name);
+                    },
+                    time: 15000,
+                    max: 1,
+                    errors: ['time']
+                }).then(reactions => {
+                    const emoji = reactions.first().emoji;
+                    return emoji.name === YES ? true : false;
+                }).catch(async reactions => {
+                    await reply('Your time ran out!');
+                    return undefined;
+                }).finally(async () => {
+                    await CommandUtils.clearReactions(confirmation);
+                });
             }
         }
 
@@ -80,40 +129,19 @@ class BanGroundedCommand extends Command {
         }
 
         const description = `${membersToBan.length} grounded member${membersToBan.length !== 1 ? 's' : ''} who joined after ${isoAfter}`;
-        const confirmation = await reply(`Ban ${description}?`);
-        await CommandUtils.react(confirmation, CHECKMARK, CROSS);
-        const reactions = await confirmation.awaitReactions({
-            filter: (reaction, user) => {
-                return user.id == message.author.id && [CHECKMARK, CROSS].includes(reaction.emoji.name);
-            },
-            time: 15000,
-            max: 1
-        });
-        if (reactions.size === 0) {
-            await Promise.all([
-                reply('Your time ran out!'),
-                CommandUtils.clearReactions(confirmation)
-            ]);
+        const confirmed = await confirm(`Ban ${description}?`);
+        if (confirmed == null) {
             return;
         }
 
-        const emoji = reactions.first().emoji;
-        switch (emoji.name) {
-            case CHECKMARK:
-                await Promise.all([
-                    reply(`Banning ${description}...`),
-                    CommandUtils.clearReactions(confirmation),
-                    ...membersToBan.map(member => member.ban({ days, reason }))
-                ]);
-
-                await reply(`Banned ${description}.`);
-                break;
-            case CROSS:
-                await Promise.all([
-                    reply('Command aborted.'),
-                    CommandUtils.clearReactions(confirmation)
-                ]);
-                break;
+        if (confirmed) {
+            await Promise.all([
+                reply(`Banning ${description}...`),
+                ...membersToBan.map(member => member.ban({ days, reason }))
+            ]);
+            await reply(`Banned ${description}.`);
+        } else {
+            await reply('Command aborted.');
         }
     }
 }
