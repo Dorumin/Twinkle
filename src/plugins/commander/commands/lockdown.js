@@ -10,7 +10,7 @@ class LockdownCommand extends ModCommand {
         ];
     }
 
-    constructor() {
+    constructor(bot) {
         super(bot);
         this.aliases = ['lockdown', 'raid'];
         this.schema = new SlashCommandBuilder()
