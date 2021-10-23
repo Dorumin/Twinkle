@@ -68,7 +68,7 @@ class LockdownFilter extends Filter {
         }
 
         for (const id of this.guildMap.get(guild.id)) {
-            const member = member.guild.members.cache.get(id);
+            const member = guild.members.cache.get(id);
 
             if (member) {
                 promises.push(this.customHandle(member));
