@@ -111,7 +111,7 @@ class BanGroundedCommand extends Command {
 
         // `content` comes pre-trimmed, so we don't need to do any further trimming.
         const args = content.match(/^(\d{1,20})\s+([0-7])(?:\s+(.+))?$/);
-        if (args[1] == null || args[2] == null) {
+        if (args == null) {
             await reply('You fucked up the args.');
             return;
         }
