@@ -601,7 +601,7 @@ class Linker {
             redirects: true
         });
 
-        if (result && result.query) {
+        if (result && result.query && result.query.pages) {
             const page = Object.values(result.query.pages)[0];
 
             if (page && !page.hasOwnProperty('missing')) {
