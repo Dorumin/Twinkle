@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const Command = require('../structs/Command.js');
+const OPCommand = require('../structs/OPCommand.js');
 
-class RuntimeCommand extends Command {
+class RuntimeCommand extends OPCommand {
     constructor(bot) {
         super(bot);
         this.aliases = ['runtime', 'uptime'];

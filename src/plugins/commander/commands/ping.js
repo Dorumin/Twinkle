@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const Command = require('../structs/Command.js');
+const OPCommand = require('../structs/OPCommand.js');
 
-class PingCommand extends Command {
+class PingCommand extends OPCommand {
 	constructor(bot) {
 		super(bot);
 		this.aliases = ['ping', 'latency', 'lag', 'hyperspeed'];
