@@ -1,10 +1,10 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const Command = require('../structs/Command.js');
+const ModCommand = require('../structs/ModCommand.js');
 const FormatterPlugin = require('../../fmt');
 const { promisify } = require('util');
 const wait = promisify(setTimeout);
 
-class EmbedCommand extends Command {
+class EmbedCommand extends ModCommand {
     static get deps() {
         return [
             FormatterPlugin
