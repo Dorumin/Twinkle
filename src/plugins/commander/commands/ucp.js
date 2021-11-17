@@ -31,7 +31,7 @@ class UCPCommand extends Command {
 
 		this.linksString = `
 - Help - <https://c.fandom.com/Help:UCP>/<https://c.fandom.com/Help:FandomDesktop>
-- Information - <https://fandom.zendesk.com/hc/articles/360044776693>
+- Information - <https://support.fandom.com/hc/articles/360044776693>
 - Bugs, features, changes - <https://c.fandom.com/User:Noreplyz/UCP>
 - Content compatibility information - <https://dev.fandom.com/wiki/Dev_Wiki:UCP>`;
 	}
