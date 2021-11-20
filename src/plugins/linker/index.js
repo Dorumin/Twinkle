@@ -604,7 +604,7 @@ class Linker {
         if (result && result.query && result.query.pages) {
             const page = Object.values(result.query.pages)[0];
 
-            if (page && !page.hasOwnProperty('missing')) {
+            if (page && ['invalid', 'missing'].every(prop => !page.hasOwnProperty(prop))) {
                 return page;
             }
         }
