@@ -330,8 +330,26 @@ class EvalCommand extends OPCommand {
             send: (arg) => {
                 if (
                     arg &&
-                    (arg.embed || arg.files || arg instanceof MessageEmbed)
+                    (arg.embed || arg.embeds || arg.file || arg.files || arg instanceof MessageEmbed)
                 ) {
+                    if (arg instanceof MessageEmbed) {
+                        arg = {
+                            embeds: [
+                                arg
+                            ]
+                        };
+                    }
+
+                    if (arg.embed) {
+                        arg.embeds = [arg.embed];
+                        delete arg.embed;
+                    }
+
+                    if (arg.file) {
+                        arg.files = [arg.file];
+                        delete arg.file;
+                    }
+
                     const promise = message.channel.send(arg);
 
                     this.ignoredObjects.push(promise);
@@ -339,6 +357,7 @@ class EvalCommand extends OPCommand {
 
                     return promise;
                 }
+
 
                 const promise = this.respond(arg, {
                     channel: message.channel
@@ -678,7 +697,9 @@ class EvalCommand extends OPCommand {
         }
 
         if (result instanceof MessageEmbed) {
-            return channel.send(result);
+            return channel.send({
+                embeds: [result]
+            });
         }
 
         if (result instanceof Promise) {
