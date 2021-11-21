@@ -154,7 +154,13 @@ class Starboard {
         const starboard = message.guild.channels.cache.get(this.starboardId);
         if (!starboard) return;
 
-        const starMessage = await starboard.messages.fetch(starEntry.star_id.toString());
+        let starMessage;
+        try {
+            starMessage = await starboard.messages.fetch(starEntry.star_id.toString());
+        } catch(e) {
+            // Message was probably deleted; ignore
+            return;
+        }
 
         await starMessage.edit({
             embeds: [
