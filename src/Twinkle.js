@@ -143,9 +143,9 @@ class Twinkle {
     }
 
     wrapListener(listener, context) {
-        return function(arg) {
+        return function() {
             try {
-                return listener.call(context, arg);
+                return listener.apply(context, arguments);
             } catch (error) {
                 return this.bot.reportError('Listener error:', error);
             }

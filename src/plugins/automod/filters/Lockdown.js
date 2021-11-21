@@ -37,13 +37,7 @@ class LockdownFilter extends Filter {
             return;
         }
 
-        let set;
-        if (!this.guildMap.has(member.guild.id) ) {
-            set = new Set();
-            this.guildMap.set(member.guild.id, set);
-        } else {
-            set = this.guildMap.get(member.guild.id);
-        }
+        let set = this.guildMap.get(member.guild.id, () => new Set());
 
         set.add(member.user.id);
 

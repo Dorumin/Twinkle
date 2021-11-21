@@ -252,7 +252,7 @@ class Commander {
 
         let prefixes;
         {
-            const json = guild && await this.sql.getPrefixes.get(BigInt(guild.id));
+            const json = guild && await this.sql.getPrefixes.get(guild.id);
 
             if (!json) {
                 prefixes = this.bot.commander.defaultPrefixes;
