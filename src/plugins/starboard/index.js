@@ -182,7 +182,7 @@ class Starboard {
             )
             .setTitle('Jump to message')
             .setURL(message.url)
-            .setDescription(message.content)
+            .setDescription(this.getMessageContent(message))
             .setFooter(`${reaction.count} ⭐ | ${this.stringifyChannel(message.channel)}`)
             .setTimestamp(message.timestamp);
 
@@ -193,7 +193,7 @@ class Starboard {
         return embed;
     }
 
-    getMessageContent() {
+    getMessageContent(message) {
         if (message.content) {
             return message.content;
         } else if (message.embeds.length) {
