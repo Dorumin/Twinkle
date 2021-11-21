@@ -91,6 +91,10 @@ class Starboard {
             user.id == this.bot.client.user.id
         ) return;
 
+        if (reaction.partial) {
+            await reaction.fetch();
+        }
+
         const message = reaction.message;
 
         if (message.partial) {
