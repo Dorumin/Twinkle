@@ -84,12 +84,8 @@ class Starboard {
     }
 
     async onReaction(reaction, user) {
-        // Ignore bots and self
-        if (
-            user.bot ||
-            reaction.emoji.name !== STAR ||
-            user.id == this.bot.client.user.id
-        ) return;
+        // Only stars allowed
+        if (reaction.emoji.name !== STAR) return;
 
         if (reaction.partial) {
             await reaction.fetch();
@@ -101,6 +97,9 @@ class Starboard {
             await message.fetch();
         }
 
+        // Don't star starboard posts
+        if (message.channel.id === this.starboardId && message.author.id === this.bot.client.user.id) return;
+
         const guild = message.guild;
 
         if (!guild) return;
@@ -111,13 +110,14 @@ class Starboard {
         const member = await guild.members.fetch(user.id);
         const isMod = member.permissions.has(MANAGE_MESSAGES);
 
-        if (!isMod && reaction.count < this.threshold) return;
-
         const starEntry = await this.sql.getStarred.get(message.id);
+
         if (starEntry) {
             await this.updateStar(message, reaction, starEntry);
         } else {
-            await this.star(message, reaction);
+            if (isMod || reaction.count >= this.threshold) {
+                await this.star(message, reaction);
+            }
         }
     }
 
