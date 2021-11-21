@@ -43,7 +43,7 @@ class RestartNotify {
             `);
         }
 
-        this.bot.client.on('ready', bot.wrapListener(this.onReady, this));
+        bot.listen('ready', this.onReady, this);
     }
 
     async onReady() {

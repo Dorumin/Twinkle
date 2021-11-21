@@ -53,9 +53,9 @@ class Commander {
                 id = ?
         `).safeIntegers(true).pluck();
 
-        bot.client.on('ready', bot.wrapListener(this.registerSlashCommands, this));
-        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
-        bot.client.on('interactionCreate', bot.wrapListener(this.onInteraction, this));
+        bot.listen('ready', this.registerSlashCommands, this);
+        bot.listen('messageCreate', this.onMessage, this);
+        bot.listen('interactionCreate', this.onInteraction, this);
     }
 
     async onInteraction(interaction) {

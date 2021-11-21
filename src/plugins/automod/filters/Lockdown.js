@@ -20,7 +20,7 @@ class LockdownFilter extends Filter {
 
         this.lockdownGuilds = new Set();
 
-        automod.bot.client.on('guildMemberAdd', this.onJoin.bind(this));
+        automod.bot.listen('guildMemberAdd', this.onJoin, this);
     }
 
     interested(message) {

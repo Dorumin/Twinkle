@@ -25,8 +25,8 @@ class IPC {
         this.connectionCount = 0;
         this.buffer = '';
 
-        bot.client.on('ready', bot.wrapListener(this.onReady, this));
-        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
+        bot.listen('ready', this.onReady, this);
+        bot.listen('messageCreate', this.onMessage, this);
     }
 
     async unlinkSocket() {

@@ -16,7 +16,7 @@ class AutoMod {
             return new Filter(this);
         });
 
-        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
+        bot.listen('messageCreate', this.onMessage, this);
     }
 
     logchan() {

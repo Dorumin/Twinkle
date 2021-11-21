@@ -11,7 +11,7 @@ class Preload {
         Object.defineProperty(this, 'bot', { value: bot });
         Object.defineProperty(this, 'config', { value: bot.config.PRELOAD });
 
-		bot.client.on('ready', bot.wrapListener(this.onReady, this));
+		bot.listen('ready', this.onReady, this);
 	}
 
 	async onReady() {

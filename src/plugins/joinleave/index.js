@@ -15,9 +15,9 @@ class JoinLeave {
         this.specials = this.config.SPECIAL_JOIN_CODES || {};
         this.cache = new Map();
 
-        bot.client.on('ready', bot.wrapListener(this.populateCache, this));
-        bot.client.on('guildMemberAdd', bot.wrapListener(this.onJoin, this));
-        bot.client.on('guildMemberRemove', bot.wrapListener(this.onLeave, this));
+        bot.listen('ready', this.populateCache, this);
+        bot.listen('guildMemberAdd', this.onJoin, this);
+        bot.listen('guildMemberRemove', this.onLeave, this);
     }
 
     serialize(inviteCollection) {

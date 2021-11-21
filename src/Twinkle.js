@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { Client, Intents, Guild, Message } = require('discord.js');
 const config = require('./util/config.js');
+const { isPartial } = require('./util/partials.js');
 
 class Twinkle {
     constructor()  {
@@ -33,7 +34,9 @@ class Twinkle {
                     Intents.FLAGS.GUILD_PRESENCES,
                 ].concat(config.TWINKLE.INTENTS || []),
                 partials: [
-                    'CHANNEL'
+                    'CHANNEL',
+                    'REACTION',
+                    'MESSAGE'
                 ]
             })
         });
@@ -44,8 +47,31 @@ class Twinkle {
         this._plugins = [];
         this.loadedPlugins = [];
 
-        this.client.on('ready', this.wrapListener(this.onReady, this));
-        this.client.on('error', this.wrapListener(this.onError, this));
+        this.listen('ready', this.onReady, this);
+        this.listen('error', this.onError, this);
+    }
+
+    listen(event, handler, context) {
+        if (!context) throw new Error(`Must pass a context to the ${event} listener`);
+
+        const callback = this.wrapListener(handler, context);
+
+        this.client.on(event, (...args) => {
+            const anyPartial = args.some(isPartial);
+            if (anyPartial) {
+                console.error('Found partials');
+                console.error(args);
+                return;
+            }
+
+            callback(...args);
+        });
+    }
+
+    listenPartial(event, handler, context) {
+        if (!context) throw new Error(`Must pass a context to the ${event} listener`);
+
+        this.client.on(event, this.wrapListener(handler, context));
     }
 
     onlyDev(instance) {

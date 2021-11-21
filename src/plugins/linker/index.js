@@ -112,7 +112,7 @@ class Linker {
         //     }, 2));
         // });
 
-        bot.client.on('messageCreate', bot.wrapListener(this.onMessage, this));
+        bot.listen('messageCreate', this.onMessage, this);
     }
 
     hasStringKeys(arr) {

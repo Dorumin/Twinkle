@@ -79,8 +79,8 @@ class Starboard {
             )
         `).safeIntegers(true);
 
-        bot.client.on('messageReactionAdd', bot.wrapListener(this.onReaction, this));
-        bot.client.on('messageReactionRemove', bot.wrapListener(this.onReaction, this));
+        bot.listenPartial('messageReactionAdd', this.onReaction, this);
+        bot.listenPartial('messageReactionRemove', this.onReaction, this);
     }
 
     async onReaction(reaction, user) {
@@ -92,6 +92,11 @@ class Starboard {
         ) return;
 
         const message = reaction.message;
+
+        if (message.partial) {
+            await message.fetch();
+        }
+
         const guild = message.guild;
 
         if (!guild) return;
