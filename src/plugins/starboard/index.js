@@ -173,7 +173,7 @@ class Starboard {
     }
 
     buildStarEmbed(message, reaction) {
-        return new MessageEmbed()
+        const embed = new MessageEmbed()
             .setAuthor(message.member?.nickname ?? message.author.username,
                 message.author.avatarURL({
                     dynamic: false,
@@ -185,6 +185,20 @@ class Starboard {
             .setDescription(message.content)
             .setFooter(`${reaction.count} ⭐ | ${this.stringifyChannel(message.channel)}`)
             .setTimestamp(message.timestamp);
+
+        if (message.attachments.size) {
+            embed.setImage(message.attachments.first().url);
+        }
+
+        return embed;
+    }
+
+    getMessageContent() {
+        if (message.content) {
+            return message.content;
+        } else if (message.embeds.length) {
+            return this.stringifyEmbed(message.embeds[0]);
+        }
     }
 
     stringifyChannel(channel) {
@@ -196,6 +210,64 @@ class Starboard {
 
         return name;
     }
+
+    stringifyEmbed({
+        provider,
+        author,
+        title,
+        url,
+        description,
+        fields,
+        footer,
+        timestamp
+    }) {
+        const sections = new Array(4).fill(null).map(() => []);
+
+        if (provider) {
+            sections[0].push(provider.name);
+        }
+
+        if (author && author.name) {
+            const name = author.url
+                ? `[${author.name}](${author.url})`
+                : `${author.name}`;
+
+            sections[0].push(`${name}`);
+        }
+
+        if (title) {
+            let str = url
+                ? `[${title}](${url})`
+                : `${title}`;
+
+            sections[0].push(str);
+        }
+
+        if (description) {
+            sections[0].push(`${description}`);
+        }
+
+        if (fields.length) {
+            for (const field of fields) {
+                sections[1].push(`${field.name}:`);
+                sections[1].push(field.value.split('\n').map(line => `  ${line}`).join('\n'));
+            }
+        }
+
+        if (footer) {
+            if (timestamp) {
+                sections[3].push(`${footer.text} • <t:${Math.floor(new Date(timestamp).getTime() / 1000)}:f>`);
+            } else {
+                sections[3].push(`${footer.text}`);
+            }
+        }
+
+        return sections
+            .filter(section => section.length)
+            .map(section => section.join('\n'))
+            .join('\n\n');
+    }
+
 
     getStarsEmoji(count) {
         for (const star of STAR_LEVELS) {

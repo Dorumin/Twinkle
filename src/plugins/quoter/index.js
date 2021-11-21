@@ -201,7 +201,7 @@ class Quoter {
 
         if (footer) {
             if (timestamp) {
-                sections[3].push(`${footer.text} • ${this.formatTime(timestamp)}`);
+                sections[3].push(`${footer.text} • <t:${Math.floor(new Date(timestamp).getTime() / 1000)}:f>`);
             } else {
                 sections[3].push(`${footer.text}`);
             }
@@ -211,22 +211,6 @@ class Quoter {
             .filter(section => section.length)
             .map(section => section.join('\n'))
             .join('\n\n');
-    }
-
-    formatTime(timestamp) {
-        const d = new Date(timestamp);
-        const date = this.pad(d.getUTCDate());
-        const month = this.pad(d.getUTCMonth() + 1);
-        const year = this.pad(d.getUTCFullYear());
-        const hour = this.pad(d.getUTCHours());
-        const mins = this.pad(d.getUTCMinutes());
-        const secs = this.pad(d.getUTCSeconds());
-
-        return `${date}/${month}/${year} ${hour}:${mins}:${secs}`;
-    }
-
-    pad(n, len = 2, char = '0') {
-        return (new Array(len).join(char) + n).slice(-len);
     }
 }
 
