@@ -372,6 +372,9 @@ class EvalCommand extends OPCommand {
                     handleNode(node.left);
                     handleNode(node.right);
                     break;
+                case 'SpreadElement':
+                    handleNode(node.argument);
+                    break;
                 case 'MemberExpression':
                     const prop = node.property;
                     if (prop && prop.type === 'Identifier' && prop.name === 'await') {
