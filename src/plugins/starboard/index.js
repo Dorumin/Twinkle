@@ -198,7 +198,7 @@ class Starboard {
     }
 
     getMessageProps(message) {
-        let content;
+        let content = '';
         let image;
 
         if (message.attachments.size) {
