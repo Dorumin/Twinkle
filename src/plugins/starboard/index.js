@@ -179,6 +179,7 @@ class Starboard {
     }
 
     buildStarEmbed(message, reaction) {
+        const props = this.getMessageProps(message);
         const embed = new MessageEmbed()
             .setAuthor(message.member?.nickname ?? message.author.username,
                 message.author.avatarURL({
@@ -188,23 +189,43 @@ class Starboard {
             )
             .setTitle('Jump to message')
             .setURL(message.url)
-            .setDescription(this.getMessageContent(message))
+            .setDescription(props.content)
+            .setImage(props.image)
             .setFooter(`${reaction.count} ⭐ | ${this.stringifyChannel(message.channel)}`)
             .setTimestamp(message.timestamp);
-
-        if (message.attachments.size) {
-            embed.setImage(message.attachments.first().url);
-        }
 
         return embed;
     }
 
-    getMessageContent(message) {
-        if (message.content) {
-            return message.content;
-        } else if (message.embeds.length) {
-            return this.stringifyEmbed(message.embeds[0]);
+    getMessageProps(message) {
+        let content;
+        let image;
+
+        if (message.attachments.size) {
+            const file = message.attachments.first();
+
+            // TODO: Maybe do some proper contentType checking for images?
+            // I just don't want to embed mp3s
+            if (file && file.height && file.width) {
+                image = file.url;
+            }
         }
+
+        if (message.content) {
+            if (image === undefined && /^https:\/\/cdn\.discordapp\.com\/attachments\/\d+\/\d+\/\S+$/.test(message.content)) {
+                image = message.content;
+                content = '';
+            } else {
+                content = message.content;
+            }
+        } else if (message.embeds.length) {
+            content = this.stringifyEmbed(message.embeds[0]);
+        }
+
+        return {
+            content,
+            image
+        };
     }
 
     stringifyChannel(channel) {

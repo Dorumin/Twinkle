@@ -8,7 +8,7 @@ function isMessagePartial(message) {
 
 function isChannelPartial(channel) {
     return channel?.partial
-        || isGuildPartial(channel?.partial);
+        || isGuildPartial(channel?.guild);
 }
 
 function isGuildPartial(guild) {
