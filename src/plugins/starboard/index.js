@@ -191,7 +191,7 @@ class Starboard {
             .setURL(message.url)
             .setDescription(props.content)
             .setImage(props.image)
-            .setFooter(`${reaction.count} ⭐ | ${this.stringifyChannel(message.channel)}`)
+            .setFooter(`${reaction.count} ${this.getStarsEmoji(reaction.count)} | ${this.stringifyChannel(message.channel)}`)
             .setTimestamp(message.timestamp);
 
         return embed;
