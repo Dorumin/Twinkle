@@ -253,7 +253,7 @@ class GuildLogger {
                     latest.action === 'MESSAGE_DELETE' &&
                     latest.target.id === message.author.id &&
                     latest.extra.channel.id === message.channel.id &&
-                    elapsed < 1000
+                    elapsed < 2000
                 ) {
                     description = `A message by <@${message.author.id}> ` +
                         `was deleted in <#${message.channel.id}> ` +
@@ -475,15 +475,15 @@ class GuildLogger {
                     limit: 1
                 });
                 const latest = auditLogs.entries.first();
-                const elapsed = Date.now() - SnowflakeUtil.deconstruct(latest.id).timestamp;
+                const elapsed = Date.now() - latest.createdTimestamp;
 
                 if (
                     latest.action === 'MEMBER_UPDATE' &&
-                    latest.target.id === member.user.id &&
+                    latest.target.id === newMember.user.id &&
                     latest.changes.some(change => change.key === 'nick') &&
-                    elapsed < 1000
+                    elapsed < 2000
                 ) {
-                    description = `<@${member.user.id}>'s nickname was updated `
+                    description = `<@${newMember.user.id}>'s nickname was updated `
                         + `by <@${latest.executor.id}>`;
                 }
             } catch(e) {}
@@ -556,7 +556,7 @@ class GuildLogger {
                 if (
                     latest.action === 'MEMBER_ROLE_UPDATE' &&
                     latest.target.id === member.user.id &&
-                    elapsed < 1000
+                    elapsed < 2000
                 ) {
                     description = `<@${member.user.id}>'s roles were updated `
                         + `by <@${latest.executor.id}>`;
