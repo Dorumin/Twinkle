@@ -42,6 +42,32 @@
             "155545848812535808",
             "195712766214930432"
         ],
+        "STARBOARD": {
+            "THRESHOLD": 4,
+            "STARBOARD_ID": "911674376246689853"
+        },
+        "GUILD_LOGGER": {
+            "GUILDS": {
+                "246075715714416641": {
+                    "CHANNELS": {
+                        "918373559246659584": {
+                            "LOG_TYPES": [
+                                "VOICE_JOIN",
+                                "VOICE_LEAVE",
+                                "STREAM_START",
+                                "STREAM_END",
+                                "MESSAGE_DELETE",
+                                "MESSAGE_UPDATE",
+                                "ROLES_UPDATE",
+                                "EMOJI_CREATE",
+                                "NICKNAME_CHANGE",
+                                "GUILD_ICON_CHANGE"
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         // Settings for the commander plugin
         "COMMANDER": {
             "MENTION": true,
