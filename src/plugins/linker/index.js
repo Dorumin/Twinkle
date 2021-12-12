@@ -192,14 +192,17 @@ class Linker {
                     time: 60000,
                     max: 1
                 }),
-            ]).then(([reaction, reactions]) => {
+            ]).then(async ([reaction, reactions]) => {
                 if (reactions.size) {
-                    return reply.delete();
+                    await reply.delete();
                 } else {
-                    return reaction.remove();
+                    try {
+                        await reaction.remove();
+                    } catch(e) {}
                 }
             }));
         }
+
         return Promise.all(returnedPromises);
     }
 
