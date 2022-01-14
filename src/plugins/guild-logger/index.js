@@ -22,7 +22,7 @@ class GuildLogger {
 
         this.collectEvents();
 
-        this.bot.client.on('ready', this.onReady.bind(this));
+        bot.listen('ready', this.onReady, this);
     }
 
     collectEvents() {
@@ -49,13 +49,13 @@ class GuildLogger {
     }
 
     onReady() {
-        this.bot.client.on('emojiCreate', this.onEmojiCreate.bind(this));
-        this.bot.client.on('guildUpdate', this.onGuildUpdate.bind(this));
-        this.bot.client.on('messageUpdate', this.onMessageUpdate.bind(this));
-        this.bot.client.on('messageDelete', this.onMessageDelete.bind(this));
-        this.bot.client.on('voiceStateUpdate', this.onVoiceStateUpdate.bind(this));
-        this.bot.client.on('guildMemberUpdate', this.onGuildMemberUpdate.bind(this));
-        this.bot.client.on('presenceUpdate', this.onPresenceUpdate.bind(this));
+        bot.listen('emojiCreate', this.onEmojiCreate, this);
+        bot.listen('guildUpdate', this.onGuildUpdate, this);
+        bot.listen('messageUpdate', this.onMessageUpdate, this);
+        bot.listen('messageDelete', this.onMessageDelete, this);
+        bot.listen('voiceStateUpdate', this.onVoiceStateUpdate, this);
+        bot.listen('guildMemberUpdate', this.onGuildMemberUpdate, this);
+        bot.listen('presenceUpdate', this.onPresenceUpdate, this);
     }
 
     async onEmojiCreate(emoji) {
