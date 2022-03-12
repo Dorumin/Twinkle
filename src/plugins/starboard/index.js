@@ -214,7 +214,9 @@ class Starboard {
         if (image === undefined && message.stickers.size === 1) {
             const sticker = message.stickers.first();
 
-            image = sticker.url;
+            if (sticker.format === 'PNG' || sticker.format === 'APNG') {
+                image = sticker.url;
+            }
         }
 
         if (message.content) {
