@@ -211,6 +211,12 @@ class Starboard {
             }
         }
 
+        if (image === undefined && message.stickers.size === 1) {
+            const sticker = message.stickers.first();
+
+            image = sticker.url;
+        }
+
         if (message.content) {
             if (image === undefined && /^https:\/\/cdn\.discordapp\.com\/attachments\/\d+\/\d+\/\S+$/.test(message.content)) {
                 image = message.content;
