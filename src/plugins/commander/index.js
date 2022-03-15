@@ -8,6 +8,7 @@ const Cache = require('../../structs/Cache.js');
 const LoggerPlugin = require('../logger');
 const SQLPlugin = require('../sql');
 const FormatterPlugin = require('../fmt');
+const BlacklistPlugin = require('../blacklist');
 const InteractionCompatibilityLayer = require('./structs/InteractionCompatibilityLayer.js');
 
 class CommanderPlugin extends Plugin {
@@ -15,6 +16,7 @@ class CommanderPlugin extends Plugin {
         return [
             LoggerPlugin,
             FormatterPlugin,
+            BlacklistPlugin,
             SQLPlugin
         ];
     }
@@ -68,6 +70,9 @@ class Commander {
 
         // Rights check or whatever for commands
         if (!command.filter(compat)) return;
+
+        // No blacklisted
+        if (this.bot.blacklist.isBlacklistedUser(compat.author)) return;
 
         this.callCommand(command, compat, compat._unprefixedContent, {
             alias: interaction.commandName,
@@ -228,6 +233,8 @@ class Commander {
                     if (!command.filter(message)) continue;
                     // Don't run commands for bots
                     if (!command.bot && message.author.bot) continue;
+                    // No blacklisted
+                    if (this.bot.blacklist.isBlacklistedUser(message.author)) return;
 
                     matched = true;
 

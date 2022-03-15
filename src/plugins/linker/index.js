@@ -6,12 +6,14 @@ const Cache = require('../../structs/Cache.js');
 const Plugin = require('../../structs/Plugin.js');
 const FandomizerPlugin = require('../fandomizer');
 const FormatterPlugin = require('../fmt');
+const BlacklistPlugin = require('../blacklist');
 
 class LinkerPlugin extends Plugin {
     static get deps() {
         return [
             FormatterPlugin,
-            FandomizerPlugin
+            FandomizerPlugin,
+            BlacklistPlugin
         ];
     }
 
@@ -170,6 +172,9 @@ class Linker {
 
         // Ignore in dev mode if outside of dev guild
         if (this.bot.onlyDev(message.guild)) return;
+
+        // No blacklist
+        if (this.bot.blacklist.isBlacklistedUser(message.author)) return;
 
         const wiki = await this.getWiki(message.guild);
         const promises = this.getPromises(message, wiki);

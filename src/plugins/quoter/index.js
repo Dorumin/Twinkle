@@ -1,10 +1,12 @@
 const Plugin = require('../../structs/Plugin.js');
 const FormatterPlugin = require('../fmt');
+const BlacklistPlugin = require('../blacklist');
 
 class QuoterPlugin extends Plugin {
     static get deps() {
         return [
-            FormatterPlugin
+            FormatterPlugin,
+            BlacklistPlugin
         ];
     }
 
@@ -49,6 +51,9 @@ class Quoter {
 
         // Ignore in dev mode if outside of dev guild
         if (this.bot.onlyDev(message.guild)) return;
+
+        // No blacklist
+        if (this.bot.blacklist.isBlacklistedUser(message.author)) return;
 
         if (this.bot.commander) {
             const executed = await this.bot.commander.onMessage(message);
