@@ -26,6 +26,13 @@ class Linker {
         Object.defineProperty(this, 'config', { value: bot.config.LINKER });
 
         Object.defineProperty(this, 'jar', { value: new CookieJar() });
+        // These headers are required to authenticate using the access_token cookie.
+        Object.defineProperty(this, 'headers', {
+            value: {
+                'X-Fandom-Auth': '1',
+                'X-Wikia-WikiaAppsID': '69'
+            }
+        });
 
         this.replies = new Cache();
         this.namespaces = new Cache();
@@ -206,16 +213,24 @@ class Linker {
         return Promise.all(returnedPromises);
     }
 
-    login() {
-        return got.post('https://services.fandom.com/auth/token', {
+    async login() {
+        // Grab the access token from Fandom's mobile API.
+        const {access_token} = await got.post('https://services.fandom.com/mobile-fandom-app/fandom-auth/login', {
             form: {
                 username: this.config.USERNAME,
                 password: this.config.PASSWORD
             },
-            headers: {
-                'X-Wikia-WikiaAppsID': '69'
-            },
+            headers: this.headers,
             cookieJar: this.jar
+        }).json();
+        // Set the access_token cookie from the grabbed response (it only sets a fandom_session cookie right now).
+        const expiry = new Date();
+        expiry.setFullYear(expiry.getFullYear() + 100);
+        this.jar.setCookieSync(`access_token=${access_token}; Domain=fandom.com; Path=/; HostOnly=false; Expires=${expiry.toUTCString()}; Max-Age=15552000; Secure; HttpOnly; Version=1`, 'https://fandom.com/');
+        // Verify the login works, will throw an error if it does not.
+        await got.get('https://services.fandom.com/whoami', {
+            cookieJar: this.jar,
+            headers: this.headers
         });
     }
 
@@ -652,7 +667,8 @@ class Linker {
             searchParams: {
                 uri: `${url}/wiki/${props.title}`,
             },
-            cookieJar: this.jar
+            cookieJar: this.jar,
+            headers: this.headers
         }).json();
 
         return body;
