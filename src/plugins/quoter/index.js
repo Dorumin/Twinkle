@@ -80,10 +80,15 @@ class Quoter {
 
         const embeds = filtered
             .map((quote, i) => this.buildQuoteEmbed(message, quote, i === 0))
-            .filter(Boolean)
-        await message.channel.send({
-            embeds
-        });
+            .filter(Boolean);
+
+        try {
+            await message.channel.send({
+                embeds
+            });
+        } catch(e) {
+            return;
+        }
 
         if (shouldDelete) {
             try {
