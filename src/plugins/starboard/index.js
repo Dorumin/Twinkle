@@ -42,7 +42,8 @@ class Starboard {
         Object.defineProperty(this, 'config', { value: bot.config.STARBOARD });
 
         this.threshold = this.config.THRESHOLD;
-        this.starboardId = this.config.STARBOARD_ID;
+        this.guildMap = this.config.GUILDS;
+        // this.starboardId = this.config.STARBOARD_ID;
 
         this.sql = this.bot.sql.handle('starboard');
         this.sql.exec(`CREATE TABLE IF NOT EXISTS starboard_starred_v1 (
@@ -97,8 +98,10 @@ class Starboard {
             await message.fetch();
         }
 
+        const starboardId = this.guildMap[message.guild.id];
+
         // Don't star starboard posts
-        if (message.channel.id === this.starboardId && message.author.id === this.bot.client.user.id) return;
+        if (message.channel.id === starboardId && message.author.id === this.bot.client.user.id) return;
 
         const guild = message.guild;
 
@@ -122,7 +125,8 @@ class Starboard {
     }
 
     async star(message, reaction) {
-        const starboard = message.guild.channels.cache.get(this.starboardId);
+        const starboardId = this.guildMap[message.guild.id];
+        const starboard = message.guild.channels.cache.get(starboardId);
         if (!starboard) return;
 
         await this.sql.setStarred.run({
@@ -151,7 +155,8 @@ class Starboard {
     }
 
     async updateStar(message, reaction, starEntry) {
-        const starboard = message.guild.channels.cache.get(this.starboardId);
+        const starboardId = this.guildMap[message.guild.id];
+        const starboard = message.guild.channels.cache.get(starboardId);
         if (!starboard) return;
 
         let starMessage;
@@ -191,7 +196,7 @@ class Starboard {
             .setURL(message.url)
             .setDescription(props.content)
             .setImage(props.image)
-            .setFooter(`${reaction.count} ${this.getStarsEmoji(reaction.count)} | ${this.stringifyChannel(message.channel)}`)
+            .setFooter(`${reaction.count} ${this.getStarsEmoji(reaction.count ?? 0)} | ${this.stringifyChannel(message.channel)}`)
             .setTimestamp(message.timestamp);
 
         return embed;
