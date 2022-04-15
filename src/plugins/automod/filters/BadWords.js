@@ -36,7 +36,7 @@ class BadWordsFilter extends Filter {
         const patternsDesc = describeMatchedPatterns('\nThe following patterns were matched:\n', this.patterns, message.content);
         const postCcnormPatternsDesc = describeMatchedPatterns('\nThe following post-ccnorm patterns were matched:\n', this.postCcnormPatterns, remove(message.content));
 
-        let logMessage = `**Reason**: Bad words matched${patternsDesc}${postCcnormPatternsDesc}\n<@${message.author.id}>`; // TODO: # of offenses
+        let logMessage = `**Reason**: Bad words matched${patternsDesc}${postCcnormPatternsDesc}\n<@${message.author.id}\nThe message:\n${message.content}>`; // TODO: # of offenses
         try {
             await message.author.send(`Hey! Watch your language! You've been grounded from ${message.guild.name}; message someone with the **@Server Moderator** role to talk this out.`); // TODO # of offenses
             await message.author.send(`Here's a copy of your message:\`\`\`${message.content.slice(0, 1900)}\`\`\``);    
