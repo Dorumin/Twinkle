@@ -27,7 +27,7 @@
     "clean-stack": "^4.1.0",
     "confusables": "^1.0.0",
     "diff": "^5.0.0",
-    "discord-api-types": "^0.22.0",
+    "discord-api-types": "^0.31.2",
     "discord.js": "^13.0.1",
     "dropbox": "^10.5.0",
     "escodegen": "^2.0.0",
