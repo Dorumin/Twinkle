@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/Dorumin/Twinkle#readme",
   "dependencies": {
-    "@discordjs/builders": "^0.5.0",
+    "@discordjs/builders": "^0.13.0",
     "@discordjs/rest": "^0.1.0-canary.0",
     "acorn": "^8.6.0",
     "better-sqlite3": "^7.4.3",
