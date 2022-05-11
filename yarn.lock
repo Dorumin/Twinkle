@@ -462,10 +462,10 @@ dot-prop@^6.0.1:
   dependencies:
     is-obj "^2.0.0"
 
-dropbox@^10.5.0:
-  version "10.21.0"
-  resolved "https://registry.yarnpkg.com/dropbox/-/dropbox-10.21.0.tgz#4494b95fab3e39cdda08139f0cade64e34d1fea9"
-  integrity sha512-9mbrgJOOrXjRlFJH5vYXqxAYN4gIR5C3uwQIOq1PFW6pJ+0YdsQ96y8ArJIYMd1TKHp8ROG5LGcFCpLWgsfbNg==
+dropbox@^10.27.0:
+  version "10.29.0"
+  resolved "https://registry.yarnpkg.com/dropbox/-/dropbox-10.29.0.tgz#3ae751706f7be8d31ac4aa72825b3b45a48ee3d3"
+  integrity sha512-ZrLZbrvZPWiF9DLSOpmwXq57saTFwygcD6FBV7onURbTNHn0ivavAlb7jT/HI0LguNbCxpS2Luh1LHiYXM2ojA==
   dependencies:
     node-fetch "^2.6.1"
 
