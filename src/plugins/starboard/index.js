@@ -221,10 +221,10 @@ class Starboard {
 
 
         if (image === undefined && message.embeds.length) {
-            const embed = message.embeds.find(embed => embed.image);
+            const embed = message.embeds.find(embed => embed.image || embed.type === 'image');
 
             if (embed) {
-                image = embed.image.url;
+                image = embed.image?.url ?? embed.url;
             }
         }
 
