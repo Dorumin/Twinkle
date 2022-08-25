@@ -219,6 +219,15 @@ class Starboard {
             }
         }
 
+
+        if (image === undefined && message.embeds.length) {
+            const embed = message.embeds.find(embed => embed.image);
+
+            if (embed) {
+                image = embed.image.url;
+            }
+        }
+
         if (message.content) {
             if (image === undefined && /^https:\/\/cdn\.discordapp\.com\/attachments\/\d+\/\d+\/\S+$/.test(message.content)) {
                 image = message.content;
