@@ -31,7 +31,8 @@ You can use:
 \\\`\\\`\\\`
  - a link to your Fandom/GitHub file
  - a code snippet site:
-<https://dpaste.org/> • <https://privatebin.net/> • <https://pst.klgrth.io/> • <https://hastebin.com/>
+<https://dpaste.org/> • <https://privatebin.net/> • <https://pst.klgrth.io/> • <https://hastebin.com/> • <https://gist.github.com/>
+ - save your code as a file and upload it here
 Please *don't* use screenshots, we can't read those!`);
     }
 }
