@@ -49,6 +49,8 @@ class GuildLogger {
     }
 
     onReady() {
+        if (this.bot.dev) return;
+
         this.bot.listen('emojiCreate', this.onEmojiCreate, this);
         this.bot.listen('guildUpdate', this.onGuildUpdate, this);
         this.bot.listen('messageUpdate', this.onMessageUpdate, this);
