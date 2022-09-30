@@ -5,21 +5,26 @@ const Plugin = require('../../structs/Plugin.js');
 class IPCPlugin extends Plugin {
     load() {
         if (this.bot.config.IPC) {
-            this.bot.ipc = new IPC(this.bot);
+            const ipcConfig = this.bot.config.IPC;
+            if (Array.isArray(ipcConfig)) {
+                this.bot.ipc = ipcConfig.map(c => new IPC(this.bot, c));
+            } else {
+                this.bot.ipc = [new IPC(this.bot, ipcConfig)];
+            }
         }
     }
 
-    cleanup() {
+    async cleanup() {
         if (this.bot.ipc) {
-            this.bot.ipc.cleanup();
+            await Promise.all(this.bot.ipc.map(i => i.cleanup()));
         }
     }
 }
 
 class IPC {
-    constructor(bot) {
+    constructor(bot, config) {
         Object.defineProperty(this, 'bot', { value: bot });
-        Object.defineProperty(this, 'config', { value: bot.config.IPC });
+        Object.defineProperty(this, 'config', { value: config });
 
         this.connections = {};
         this.connectionCount = 0;
