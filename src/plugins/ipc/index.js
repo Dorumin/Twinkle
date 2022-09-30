@@ -1,5 +1,5 @@
 const { createServer } = require('net');
-const fs = require('fs');
+const { unlink } = require('fs/promises');
 const Plugin = require('../../structs/Plugin.js');
 
 class IPCPlugin extends Plugin {
@@ -37,7 +37,7 @@ class IPC {
     async unlinkSocket() {
         if (typeof this.config.SOCKET_PATH === 'string') {
             try {
-                await fs.promises.unlink(this.config.SOCKET_PATH);
+                await unlink(this.config.SOCKET_PATH);
             } catch {}
         }
     }
