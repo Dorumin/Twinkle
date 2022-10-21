@@ -43,7 +43,7 @@ class MemberCommand extends Command {
             }
         }).json()
 
-        return response.userData.edits;
+        return response.userData.localEdits;
     }
 
     getMastheadDiscord(userId) {
