@@ -87,15 +87,11 @@ class Starboard {
         // Only stars allowed
         if (reaction.emoji.name !== STAR) return;
 
-        if (reaction.partial) {
-            await reaction.fetch();
-        }
+        await reaction.fetch();
 
         const message = reaction.message;
 
-        if (message.partial) {
-            await message.fetch();
-        }
+        await message.fetch();
 
         // Don't star starboard posts
         if (message.channel.id === this.starboardId && message.author.id === this.bot.client.user.id) return;
