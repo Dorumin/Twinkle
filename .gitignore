@@ -13,7 +13,7 @@ tmp/
 # Workspace settings
 .vscode/
 
-# No more locks
+# No locks, no shackles
 package-lock.json
 yarn.lock
 pnpm-lock.yaml

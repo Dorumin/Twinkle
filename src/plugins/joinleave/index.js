@@ -48,6 +48,9 @@ class JoinLeave {
                 }
             }
         }
+
+        // Don't blow your own stack, even if you're flexible enough to do so
+        setTimeout(this.populateCache.bind(this), 1000 * 60 * 60);
     }
 
     // Compares two invite collections and filters out the two who have changed
