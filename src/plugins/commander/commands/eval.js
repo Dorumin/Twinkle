@@ -520,7 +520,7 @@ class EvalCommand extends OPCommand {
     async evaluate(code, context) {
         this.beforeEval(context);
 
-        const require = this.getCustomRequire(context);
+        let require = this.getCustomRequire(context);
         const _require = this.originalRequire;
         const unrequire = () => require = _require;
         const module = context.module;
