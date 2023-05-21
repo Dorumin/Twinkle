@@ -140,6 +140,7 @@ class EvalCommand extends OPCommand {
         this.ignoredObjects = [];
 
         // Internal require cache for our custom-loader for dynamic npm installs
+        this.originalRequire = require;
         this.stupidRequireCache = new Map();
     }
 
@@ -520,8 +521,10 @@ class EvalCommand extends OPCommand {
         this.beforeEval(context);
 
         const require = this.getCustomRequire(context);
+        const _require = this.originalRequire;
+        const unrequire = () => require = _require;
         const module = context.module;
-        swallow(require, module);
+        swallow(require, module, unrequire);
 
         let result;
         try {
