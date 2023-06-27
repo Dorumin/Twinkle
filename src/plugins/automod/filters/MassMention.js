@@ -1,7 +1,16 @@
 const Filter = require('../structs/Filter.js');
-const {MessageMentions} = require('discord.js');
+const { MessageMentions } = require('discord.js');
 
 class MassMentionFilter extends Filter {
+    constructor(automod) {
+        super(automod);
+
+        this.config = automod.config.MASSMENTION || {};
+        this.minMentions = this.config.MINMENTIONS || 5;
+        this.spanSeconds = this.config.SPANSECONDS || 10;
+        this.cache = new Map();
+    }
+
     suppressMentions(text) {
         return text.replace(MessageMentions.USERS_PATTERN, '');
     }
@@ -9,15 +18,42 @@ class MassMentionFilter extends Filter {
     interested(message) {
         if (message.member.permissions.has('MANAGE_MESSAGES')) return false;
 
-        if (message.mentions.users.size < 6) return;
+        const mentionCount = message.mentions.users.size + message.mentions.roles.size;
+        let previousCount = 0;
+
+        if (this.cache.has(message.user.id)) {
+            previousCount = this.cache.get(message.user.id);
+        } else {
+            previousCount = 0;
+        }
+
+        this.cache.set(message.user.id, previousCount + mentionCount);
+
+        setTimeout(() => {
+            if (!this.cache.has(message.user.id)) return;
+
+            const previousCount = this.cache.get(message.user.id);
+
+            this.cache.set(message.user.id, previousCount - mentionCount);
+
+            if (previousCount - mentionCount <= 0) {
+                this.cache.delete(message.user.id);
+            }
+        }, this.spanSeconds * 1000);
+
+        if (this.cache.get(message.user.id) < this.minMentions) return;
 
         return true;
     }
 
     async handle(message) {
+        this.cache.delete(message.user.id);
+
         const muteAction = message.member.roles.add('401231955741507604');
         const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
 
+        // Suppressing and deleting mention-only messages seems counterproductive
+        // to the whole ghost ping effort
         const suppressed = this.suppressMentions(message.content);
         let deleted = !suppressed.trim();
 
