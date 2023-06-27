@@ -27,7 +27,7 @@ class GhostPingFilter extends Filter {
     onMessageDelete(message) {
         let removedMentions = message.mentions.users.size + message.mentions.roles.size;
 
-        if (removedMentions > this.minimumMentions) {
+        if (removedMentions >= this.minimumMentions) {
             this.onMessageRemovedMentions(message);
         }
     }
@@ -37,7 +37,7 @@ class GhostPingFilter extends Filter {
         removedMentions += oldMessage.mentions.users.filter(user => !newMessage.mentions.users.has(user.id)).size;
         removedMentions += oldMessage.mentions.roles.filter(role => !newMessage.mentions.roles.has(role.id)).size;
 
-        if (removedMentions > this.minimumMentions) {
+        if (removedMentions >= this.minimumMentions) {
             this.onMessageRemovedMentions(newMessage);
         }
     }
