@@ -21,33 +21,33 @@ class MassMentionFilter extends Filter {
         const mentionCount = message.mentions.users.size + message.mentions.roles.size;
         let previousCount = 0;
 
-        if (this.cache.has(message.user.id)) {
-            previousCount = this.cache.get(message.user.id);
+        if (this.cache.has(message.author.id)) {
+            previousCount = this.cache.get(message.author.id);
         } else {
             previousCount = 0;
         }
 
-        this.cache.set(message.user.id, previousCount + mentionCount);
+        this.cache.set(message.author.id, previousCount + mentionCount);
 
         setTimeout(() => {
-            if (!this.cache.has(message.user.id)) return;
+            if (!this.cache.has(message.author.id)) return;
 
-            const previousCount = this.cache.get(message.user.id);
+            const previousCount = this.cache.get(message.author.id);
 
-            this.cache.set(message.user.id, previousCount - mentionCount);
+            this.cache.set(message.author.id, previousCount - mentionCount);
 
             if (previousCount - mentionCount <= 0) {
-                this.cache.delete(message.user.id);
+                this.cache.delete(message.author.id);
             }
         }, this.spanSeconds * 1000);
 
-        if (this.cache.get(message.user.id) < this.minMentions) return;
+        if (this.cache.get(message.author.id) < this.minMentions) return;
 
         return true;
     }
 
     async handle(message) {
-        this.cache.delete(message.user.id);
+        this.cache.delete(message.author.id);
 
         const muteAction = message.member.roles.add('401231955741507604');
         const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
