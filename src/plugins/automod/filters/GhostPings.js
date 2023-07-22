@@ -43,6 +43,8 @@ class GhostPingFilter extends Filter {
     }
 
     async onMessageRemovedMentions(message) {
+        if (!message.member) return;
+
         const msSinceJoined = Date.now() - message.member.joinedAt.getTime();
         if (msSinceJoined > this.maximumAge) return;
 

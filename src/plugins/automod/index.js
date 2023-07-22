@@ -34,9 +34,14 @@ class AutoMod {
 
         // Fetch members not already in member cache
         if (!message.member) {
-            const member = await message.guild.members.fetch(message.author.id);
+            try {
+                const member = await message.guild.members.fetch(message.author.id);
 
-            message.member = member;
+                message.member = member;
+            } catch(e) {
+                // User no longer has a member :pensive:
+                return;
+            }
         }
 
         this.filters.forEach(async (filter) => {
