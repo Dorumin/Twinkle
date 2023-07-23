@@ -78,7 +78,7 @@ class LockdownFilter extends Filter {
         const age = SnowflakeUtil.deconstruct(member.user.id).date;
 
         // If the account age is less than today - maxage, it's too old
-        if (age.getTime() < Date.now() - maxAge * 1000 * 60 * 60 * 24) return;
+        if (maxAge > 0 && age.getTime() < Date.now() - maxAge * 1000 * 60 * 60 * 24) return;
 
         const muteAction = member.roles.add(this.roleId);
         const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
