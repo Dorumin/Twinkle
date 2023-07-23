@@ -1,3 +1,4 @@
+const { SnowflakeUtil } = require('discord.js');
 const Cache = require('../../../structs/Cache.js');
 const Filter = require('../structs/Filter.js');
 
@@ -18,7 +19,7 @@ class LockdownFilter extends Filter {
 
         this.guildMap = new Cache();
 
-        this.lockdownGuilds = new Set();
+        this.lockdownGuilds = new Map();
 
         automod.bot.listen('guildMemberAdd', this.onJoin, this);
     }
@@ -50,8 +51,8 @@ class LockdownFilter extends Filter {
         }
     }
 
-    async lockdown(guild) {
-        this.lockdownGuilds.add(guild.id);
+    async lockdown(guild, maxAge = 0) {
+        this.lockdownGuilds.set(guild.id, maxAge);
 
         const channel = guild.channels.cache.get(this.channelId);
 
@@ -73,6 +74,12 @@ class LockdownFilter extends Filter {
     }
 
     async customHandle(member) {
+        const maxAge = this.lockdownGuilds.get(member.guild.id);
+        const age = SnowflakeUtil.deconstruct(member.user.id).date;
+
+        // If the account age is less than today - maxage, it's too old
+        if (age.getTime() < Date.now() - maxAge * 1000 * 60 * 60 * 24) return;
+
         const muteAction = member.roles.add(this.roleId);
         const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
 
