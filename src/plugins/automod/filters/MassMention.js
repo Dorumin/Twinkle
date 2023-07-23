@@ -47,6 +47,8 @@ class MassMentionFilter extends Filter {
     }
 
     async handle(message) {
+        const accumulated = this.cache.get(message.author.id);
+
         this.cache.delete(message.author.id);
 
         const muteAction = message.member.roles.add('401231955741507604');
@@ -67,7 +69,7 @@ class MassMentionFilter extends Filter {
             warning += `\n\nYour message has been deleted.`;
         }
 
-        let logMessage = `**Reason**: Mass mention (${message.mentions.users.size} users)\n<@${message.author.id}>\n`; // TODO: # of offenses
+        let logMessage = `**Reason**: Mass mention (${message.mentions.users.size} users, ${accumulated} accumulated)\n<@${message.author.id}>\n`; // TODO: # of offenses
         try {
             await message.author.send(warning);
         } catch (error) {
