@@ -81,7 +81,7 @@ class LockdownFilter extends Filter {
         if (maxAge > 0 && age.getTime() < Date.now() - maxAge * 1000 * 60 * 60 * 24) return;
 
         const muteAction = member.roles.add(this.roleId);
-        const muteResult = await muteAction.then(() => 'and been muted', () => 'but could not be muted');
+        const muteResult = await muteAction.then(() => 'and was muted', () => 'but could not be muted');
 
         let logMessage = `**Reason**: Lockdown\n<@${member.id}>`;
 
