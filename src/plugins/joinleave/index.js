@@ -133,7 +133,7 @@ class JoinLeave {
     getVars(member) {
         return {
             USERID: member.user.id,
-            USERNAME: member.user.username,
+            USERNAME: this.bot.fmt.escape(member.user.username),
             USERDISCRIM: member.user.discriminator
         };
     }
@@ -145,7 +145,7 @@ class JoinLeave {
                 return vars[name];
             }
 
-            return this.bot.fmt.escape(full);
+            return full;
         });
     }
 
