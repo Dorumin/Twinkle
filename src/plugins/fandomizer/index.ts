@@ -1,0 +1,84 @@
+import got from 'got';
+
+import Twinkle from '../../Twinkle';
+import Plugin from '../../structs/Plugin';
+import Cache from '../../structs/Cache';
+import { ConfigProvider } from '../../structs/Config';
+
+export default class FandomizerPlugin extends Plugin {
+    private cache: Cache<string, Promise<string>>;
+
+    constructor(bot: Twinkle, config: ConfigProvider) {
+        super(bot, config);
+
+        this.cache = new Cache();
+    }
+
+    url(maybeWiki: string, alt?: string) {
+        const wikiname = this.sanitize(maybeWiki);
+
+        if (!wikiname) return alt || null;
+
+        if (!this.cache.has(wikiname)) {
+            this.cache.set(wikiname, this.fetch(wikiname, alt));
+        }
+
+        return this.cache.get(wikiname);
+
+    }
+
+    sanitize(wikiname: string) {
+        wikiname = wikiname.toLowerCase();
+
+        const protocolIndex = wikiname.indexOf('://');
+        if (protocolIndex != -1) {
+            wikiname = wikiname.slice(protocolIndex + 3);
+        }
+
+        const pathIndex = wikiname.indexOf('/');
+        if (pathIndex != -1) {
+            wikiname = wikiname.slice(0, pathIndex);
+        }
+
+        wikiname = wikiname.replace(/\.(fandom\.com|wikia\.(com|org))$/, '');
+        // wikiname = wikiname.replace(/^\.+|\.+$/, '');
+
+        return wikiname;
+    }
+
+    stripLocation(location: string) {
+        const url = new URL(location);
+        const parts = url.pathname.split('/');
+        const host = url.hostname;
+
+        parts.pop();
+        parts.pop();
+
+        const final = `https://${host}${parts.join('/')}`;
+
+        return final;
+    }
+
+    async fetch(wikiname: string, alt?: string) {
+        const split = wikiname.split('.');
+        const isMultipart = split.length > 1;
+
+        const [wikia, fandom] = await Promise.allSettled([
+            // Note: http necessary for wikia.com if multipart
+            got.head(`${isMultipart ? 'http' : 'https'}://${wikiname}.wikia.com/`, { followRedirect: false }),
+            // Final slash will or will not be present depending on the length of `split`
+            // Hopefully, this doesn't matter
+            got.head(`https://${split.pop()}.fandom.com/${split.join('/')}`, { followRedirect: false })
+        ]);
+
+        if (wikia.status === 'fulfilled' && wikia.value.headers.location) {
+            return this.stripLocation(wikia.value.headers.location);
+        }
+
+        if (fandom.status === 'fulfilled' && fandom.value.headers.location) {
+            return this.stripLocation(fandom.value.headers.location);
+        }
+
+        return alt || `http://${wikiname}.wikia.com`;
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "Node",
+        "lib": [],
+        "esModuleInterop": true,
+        "noImplicitAny": true,
+        "strict": true,
+        "checkJs": true,
+        "target": "ES2021",
+        "outDir": "./build",
+        "skipLibCheck": true,
+        "paths": {
+            "$src/*": ["./src/*"],
+            "$plugins/*": ["./src/plugins/*"]
+        }
+    },
+    "exclude": [
+        "node_modules/**/*"
+    ]
+}
