@@ -1,7 +1,14 @@
 const Plugin = require('../../structs/Plugin.js');
 const Cache = require('../../structs/Cache.js');
+const FormatterPlugin = require('../fmt');
 
 class JoinLeavePlugin extends Plugin {
+    static get deps() {
+        return [
+            FormatterPlugin
+        ];
+    }
+
     load() {
         this.bot.joinleave = new JoinLeave(this.bot);
     }
@@ -138,7 +145,7 @@ class JoinLeave {
                 return vars[name];
             }
 
-            return full;
+            return this.bot.fmt.escape(full);
         });
     }
 
