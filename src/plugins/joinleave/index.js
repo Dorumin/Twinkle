@@ -133,7 +133,7 @@ class JoinLeave {
     getVars(member) {
         return {
             USERID: member.user.id,
-            USERNAME: this.bot.fmt.escape(member.user.username),
+            USERNAME: this.bot.fmt.escape(member.user.username, '_'),
             USERDISCRIM: member.user.discriminator
         };
     }
