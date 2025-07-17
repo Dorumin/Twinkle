@@ -13,6 +13,7 @@ class JoinLeave {
         Object.defineProperty(this, 'config', { value: bot.config.JOIN_LEAVE });
 
         this.specials = this.config.SPECIAL_JOIN_CODES || {};
+        this.guildIds = this.config.GUILDS || null;
         this.cache = new Map();
 
         bot.listen('ready', this.populateCache, this);
@@ -37,6 +38,10 @@ class JoinLeave {
 
     async populateCache() {
         for (const guild of this.bot.client.guilds.cache.values()) {
+            if (this.guildIds !== null && !this.guildIds.includes(guild.id)) {
+                continue;
+            }
+
             try {
                 const invites = await guild.invites.fetch();
                 this.cache.set(guild.id, this.serialize(invites));
