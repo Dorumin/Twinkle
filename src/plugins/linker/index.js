@@ -319,6 +319,8 @@ class Linker {
         if (!text) return text;
 
         return text
+            // Holy shit
+            .replace(/©/g, ':c:')
             .replace(/<@!?[0-9]+>/g, input => {
                 const id = input.replace(/<|!|>|@/g, '');
                 if (message.channel.type === 'DM' || message.channel.type === 'GROUP_DM') {
