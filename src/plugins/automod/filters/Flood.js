@@ -6,8 +6,8 @@ class FloodFilter extends Filter {
         super(automod);
 
         this.config = automod.config.FLOOD || {};
-        this.min = this.config.MIN || 4;
-        this.delay = this.config.DELAY || 3000;
+        this.min = this.config.MIN || 5;
+        this.delay = this.config.DELAY || 10000;
         this.userMap = new Cache();
 
         this.muted = new Set();
@@ -35,10 +35,13 @@ class FloodFilter extends Filter {
     async handle(message) {
         this.muted.add(message.author.id);
 
+        const channels = this.userMap.get(message.author.id);
         const muteAction = message.member.roles.add('401231955741507604');
         const muteResult = await muteAction.then(() => 'and muted', () => 'but could not be muted');
         for (const { message } of channels.values()) {
-            await message.delete();
+            try {
+                await message.delete();
+            } catch(e) {}
         }
 
         let logMessage = `**Reason**: Multi-channel flooding\n<@${message.author.id}>\nChannels posted in: ${channels.size}`;
@@ -63,8 +66,6 @@ class FloodFilter extends Filter {
                 description: logMessage,
             }]
         });
-
-        const channels = this.userMap.get(message.author.id);
 
         this.muted.delete(message.author.id);
     }
